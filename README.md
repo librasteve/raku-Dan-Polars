@@ -1,6 +1,6 @@
 # raku-Curve
 
-So I googled <butterfly polar> and got a [Butterfly Curve](https://en.wikipedia.org/wiki/Butterfly_curve_(transcendental))
+So I googled "butterfly polar" and got a [Butterfly Curve](https://en.wikipedia.org/wiki/Butterfly_curve_(transcendental))
   
 How's that for an instant module name and mascot...
   ...so far that's all that this module has - **WORK IN PROGRESS**

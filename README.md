@@ -13,3 +13,24 @@ First step is to get a Dockerfile up... likely candidate is
 Then pip install polars and some raku.
   
 ![Butterfly_transcendental_curve svg](https://user-images.githubusercontent.com/40125330/148213787-a8d914e7-fd01-460b-bcde-7d254e800fd2.png)
+
+Notes from Polars Discord
+
+potter420 — 05/01/2022
+https://raku-advent.blog/2019/12/13/day-4-a-little-rr/
+Raku Advent Calendar
+tmtvl
+Day 13 – A Little R&R
+A Little R&R Introduction Raku is a really nice language. Versatile, expressive, fast, dwimmy. The only problem I sometimes have with it is that it can be a little slow. Fortunately that can ea…
+
+[20:09]
+according to this blog, one can make a FFI binding between Raku and Rust
+[20:11]
+But, @ritchie46  prolly too busy keeping rust and python lib of polars updated. So additional external effort may be needed
+
+ritchie46 — Yesterday at 14:56
+Yeap.. 😅
+[14:59]
+can an FFI capable languge be bound to polars that way reasonably effectively and is there any example/documentation/cheat sheet/advice I can use to avoid reinventing wheels
+
+Yes, definitely look at the python implementation as the reference implementation. The interop goes very well. There are also bindings to nodejs which also may be helpful. The work of @universalmind303 proves that the port is definitely possible and a lot less work than starting from scratch (Trust me, I've got a lot of time in this ;))

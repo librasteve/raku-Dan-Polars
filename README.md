@@ -1,4 +1,4 @@
-# raku-Curve
+# raku Dan::Curve
 
 So I googled "butterfly polar" and got a [Butterfly Curve](https://en.wikipedia.org/wiki/Butterfly_curve_(transcendental))
   

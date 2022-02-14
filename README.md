@@ -2,8 +2,7 @@
 
 This is a new notion for a new raku module to bind to Polars via FFI
   
-How's that for an instant module name and mascot...
-  ...so far that's all that this module has - **WORK IN PROGRESS**
+ **WORK IN PROGRESS**
   
 First step is to get a Dockerfile up... likely candidate is 
   - https://jupyter-docker-stacks.readthedocs.io/en/latest/using/selecting.html

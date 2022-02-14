@@ -1,6 +1,6 @@
-# raku Dan::Curve
+# raku Dan::Polars
 
-So I googled "butterfly polar" and got a [Butterfly Curve](https://en.wikipedia.org/wiki/Butterfly_curve_(transcendental))
+This is a new notion for a new raku module to bind to Polars via FFI
   
 How's that for an instant module name and mascot...
   ...so far that's all that this module has - **WORK IN PROGRESS**
@@ -11,8 +11,6 @@ First step is to get a Dockerfile up... likely candidate is
   - https://hub.docker.com/r/jupyter/scipy-notebook/tags/
   
 Then pip install polars and some raku.
-  
-![Butterfly_transcendental_curve svg](https://user-images.githubusercontent.com/40125330/148213787-a8d914e7-fd01-460b-bcde-7d254e800fd2.png)
 
 Notes from Polars Discord
 

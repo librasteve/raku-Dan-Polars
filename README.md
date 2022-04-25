@@ -34,3 +34,4 @@ Yes, definitely look at the python implementation as the reference implementatio
 
 Some other notes:
 https://news.ycombinator.com/item?id=27051573#27053712
+https://www.youtube.com/watch?v=OtIU7HsHCE8&t=2731s

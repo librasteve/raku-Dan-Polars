@@ -4,12 +4,8 @@ This is a new notion for a new raku module to bind to Polars via FFI
   
  **WORK IN PROGRESS**
   
-First step is to get a Dockerfile up... likely candidate is 
-  - https://jupyter-docker-stacks.readthedocs.io/en/latest/using/selecting.html
-  - https://github.com/jupyter/docker-stacks/tree/master/scipy-notebook
-  - https://hub.docker.com/r/jupyter/scipy-notebook/tags/
-  
-Then pip install polars and some raku.
+First step is to get a Dockerfile up...
+- rakudo + rust + polars minimal (no python!)
 
 Notes from Polars Discord
 

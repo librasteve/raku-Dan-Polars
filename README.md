@@ -3,6 +3,17 @@
 This is a new notion for a new raku module to bind to Polars via FFI
   
  **WORK IN PROGRESS**
+ 
+ Installation
+ 
+ make pl_so ...
+ ```
+ cargo new pl_so && cd pl_so
+ vi Cargo.toml, add polars = "0.21.1"
+ vi src/main.rs (write some code)
+ cargo build
+ cargo run
+ ```
   
 First step is to get a Dockerfile up...
 - rakudo + rust + polars minimal (no python!)

@@ -1,0 +1,31 @@
+use polars::prelude::*;
+use polars_lazy::prelude::*;
+use std::io::Cursor;
+
+fn main() -> Result<()> {
+
+    let tsv = Cursor::new(r#"trade_date AAPL TSLA
+2020-07-01 90.278 223.926
+2020-07-02 90.278 241.732
+2020-07-06 92.698 274.316
+2020-07-07 92.406 277.972
+2020-07-08 94.558 273.176"#);
+
+    let df = CsvReader::new(tsv)
+        .with_delimiter(b' ')
+        .finish()?;
+
+//    let cols = || col("*").exclude("trade_date");
+
+//    let out = df.lazy()
+//        .select(vec![
+//            col("trade_date"),
+//            (cols() / cols().shift(1) - lit(1.0)).suffix("_daily_return")
+//        ]).collect()?;
+//
+
+    let out = df;
+    dbg!(out);
+
+    Ok(())
+}

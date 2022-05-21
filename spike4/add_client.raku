@@ -13,6 +13,6 @@ class CFoo is repr('CStruct') {
     #has Str      $.sa_data;
 }
 
-sub foo_new ( ) returns CFoo is native('add') { * }
+sub foo_new ( ) returns CFoo is native('./add_dll/src/add') { * }
 say foo_new;
 #]

@@ -10,13 +10,16 @@ pub extern "C" fn add(a:i32, b:i32) -> i32 {
     a+b
 }
 
-type CFoo = c_void;
-
-#[no_mangle]
-pub extern "C" fn foo_new(_class const i8) -> mut CFoo {
-    Box::into_raw(Box::new(Foo::new())) as mut CFoo
-}
-
+//#viz. https://metacpan.org/pod/FFI::Platypus::Lang::Rust
+//#a "thin C layer"
+//
+//type CFoo = c_void;
+//
+//#[no_mangle]
+//pub extern "C" fn foo_new(_class *const i8) -> *mut CFoo {
+//    Box::into_raw(Box::new(Foo::new())) as *mut CFoo
+//}
+//
 //#[no_mangle]
 //pub extern "C" fn foo_method1(f: *mut CFoo) {
 //    let f = unsafe { &*(f as *mut Foo) };

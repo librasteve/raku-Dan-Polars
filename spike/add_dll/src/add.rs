@@ -1,6 +1,5 @@
-#![crate_type = "dylib"]
- 
-// compile with: rustc add.rs
+//#![crate_type = "dylib"]
+// crate_type specified in Cargo.toml 
  
 #[no_mangle]
 pub extern "C" fn add(a:i32, b:i32) -> i32 {

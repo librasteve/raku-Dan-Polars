@@ -21,8 +21,10 @@ use polars::prelude::SerReader;
 //}
 
 //iamerejh ... get from CStr to AsRef<Path> maybe via AsRef<OsStr>?
-pub fn read_csv(spath:&CStr) -> PolarResult<DataFrame> {
-    let fpath = Path::new(spath);
+pub fn read_csv(spath:&str) -> PolarResult<DataFrame> {
+    println!{"{}", spath};
+    let fpath = Path::new("/root/raku-Dan-Polars/spike2/pl_so/src/iris.csv");
+    //let fpath = Path::new(spath);
     let file = File::open(fpath).expect("Cannot open file.");
 
     CsvReader::new(file)
@@ -31,14 +33,19 @@ pub fn read_csv(spath:&CStr) -> PolarResult<DataFrame> {
 }
 
 #[no_mangle]
-pub extern "C" fn xxx(sfile:&CStr) {
+pub extern "C" fn xxx(cfile:&CStr) {
 //fn main() -> Result<()> {
+
   //let ifile = "/root/raku-Dan-Polars/spike2/pl_so/src/iris.csv";
-  let ifile = sfile;
-  let df = read_csv(ifile).unwrap();
+  let sfile = "some text";
+  //let sfile = cfile.to_str().unwrap();
+  println!("{}", sfile.len());
+  //let ifile = sfile;
+  let df = read_csv(sfile).unwrap();
   println!{"{}", df.head(Some(5))};
 
-  //Ok(())   #may need some incantation like this for "no panic" return types?
+  //Ok(())  
+  //#may need some incantation like this for "no panic" return types?
 }
  
 

@@ -1,17 +1,15 @@
 use std::ffi::*; //{CStr, CString,}
 use std::os::raw::c_char;
 use std::cell::RefCell;
-
-use polars::prelude::*;//{CsvReader, DataType, Field, Result as PolarResult, Schema, DataFrame,};
-use polars::prelude::{Result as PolarResult};
-use polars::frame::DataFrame;
 use std::fs::File;
 use std::path::{Path};
 
-pub fn read_csv(spath: &str) -> PolarResult<DataFrame> {
-    println!{"{}", spath};
-    let fpath = Path::new("/root/raku-Dan-Polars/spike2/pl_so/src/iris.csv");
-    //let fpath = Path::new(spath);
+use polars::prelude::*;//{CsvReader, DataType, Field, Schema, DataFrame,};
+use polars::prelude::{Result as PolarResult};
+use polars::frame::DataFrame;
+
+pub fn df_load_csv(spath: &str) -> PolarResult<DataFrame> {
+    let fpath = Path::new(spath);
     let file = File::open(fpath).expect("Cannot open file.");
 
     CsvReader::new(file)
@@ -19,9 +17,20 @@ pub fn read_csv(spath: &str) -> PolarResult<DataFrame> {
     .finish()
 }
 #[no_mangle]
-pub extern "C" fn xxx(string: *const c_char) {
-    let df = read_csv(&str_in(string)).unwrap();
+pub extern "C" fn df_read_csv(string: *const c_char) {
+    let df = df_load_csv(&str_in(string)).unwrap();
     println!{"{}", df.head(Some(5))};
+
+    let c = df.column("petal.length").unwrap();
+    println!{"{}", c};
+
+    let x = df
+            .groupby(["variety"])
+            .unwrap()
+            .select(["petal.length"])
+            .sum();
+
+    println!{"{:?}", x};
 }
 
 fn str_in(i_string: *const c_char) -> String {

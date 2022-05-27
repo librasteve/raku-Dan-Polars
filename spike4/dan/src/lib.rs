@@ -2,6 +2,28 @@ use std::ffi::*; //{CStr, CString,}
 use std::os::raw::c_char;
 use std::cell::RefCell;
 
+use polars::prelude::*;//{CsvReader, DataType, Field, Result as PolarResult, Schema, DataFrame,};
+use polars::prelude::{Result as PolarResult};
+use polars::frame::DataFrame;
+use std::fs::File;
+use std::path::{Path};
+
+pub fn read_csv(spath: &str) -> PolarResult<DataFrame> {
+    println!{"{}", spath};
+    let fpath = Path::new("/root/raku-Dan-Polars/spike2/pl_so/src/iris.csv");
+    //let fpath = Path::new(spath);
+    let file = File::open(fpath).expect("Cannot open file.");
+
+    CsvReader::new(file)
+    .has_header(true)
+    .finish()
+}
+#[no_mangle]
+pub extern "C" fn xxx(string: *const c_char) {
+    let df = read_csv(&str_in(string)).unwrap();
+    println!{"{}", df.head(Some(5))};
+}
+
 fn str_in(i_string: *const c_char) -> String {
     unsafe {
         CStr::from_ptr(i_string).to_string_lossy().into_owned()

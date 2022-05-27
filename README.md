@@ -5,10 +5,10 @@ This is a new notion for a new raku module to bind to Polars via Raku NativeCall
 The following capabilities are planned:
 - Polars objects (Series, DataFrames) as shadows
 - Polars object methods (ie. auto-generate & export, access via .fallback)
-- broad datatype support & mapping
-- handle lazy APIs (with raku lazy behaviours)
+- Polars lazy APIs via raku lazy semantics
 - handle map & apply (with raku callbacks)
 - raku Dan features (accessors, dtypes)
+- broad datatype support & mapping
 - concurrency
   
  **WORK IN PROGRESS**

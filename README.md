@@ -15,7 +15,7 @@ The following capabilities are planned:
  
  Installation
  
- Use [p6steve/raku-Dockerfiles/raku-dan-polars](https://github.com/p6steve/raku-Dockerfiles/blob/main/raku-dan-polars/stage-2/Dockerfile), [p6steve/raku-dan:polars-2022.02-arm64](docker pull p6steve/raku-dan:polars-2022.02-arm64) on Docker Hub 
+ Use [p6steve/raku-Dockerfiles/raku-dan-polars](https://github.com/p6steve/raku-Dockerfiles/blob/main/raku-dan-polars/stage-2/Dockerfile) aka [p6steve/raku-dan:polars-2022.02-arm64](docker pull p6steve/raku-dan:polars-2022.02-arm64) on Docker Hub 
  
  make dan like this ...
  ```

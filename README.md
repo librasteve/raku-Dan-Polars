@@ -15,9 +15,11 @@ The following capabilities are planned:
  
  Installation
  
- make pl_so ...
+ Use [p6steve/raku-Dockerfiles/raku-dan-polars/stage-2](https://github.com/p6steve/raku-Dockerfiles/blob/main/raku-dan-polars/stage-2/Dockerfile), image something like [p6steve/raku-dan:polars-2022.02-arm64](hub.docker.com) on Docker Hub 
+ 
+ make dan like this ...
  ```
- cargo new pl_so && cd pl_so
+ cargo new dan && cd dan
  vi Cargo.toml, add polars = "0.21.1"
  vi src/main.rs (write some code)
  cargo build

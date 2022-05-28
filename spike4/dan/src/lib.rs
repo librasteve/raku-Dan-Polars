@@ -1,8 +1,9 @@
 use std::ffi::*; //{CStr, CString,}
-use std::os::raw::c_char;
+use std::collections::HashMap;
 use std::cell::RefCell;
 use std::fs::File;
 use std::path::{Path};
+use libc::c_char;
 
 use polars::prelude::*;//{CsvReader, DataType, Field, Schema, DataFrame,};
 use polars::prelude::{Result as PolarResult};
@@ -32,6 +33,19 @@ pub extern "C" fn df_read_csv(string: *const c_char) {
 
     println!{"{:?}", x};
 }
+
+
+#[no_mangle]
+pub extern "C" fn df_ret_csv(string: *const c_char) -> *const DataFrame {
+    let df = df_load_csv(&str_in(string)).unwrap();
+    &df as *const _ 
+}
+#[no_mangle]
+pub extern "C" fn df_head( df: DataFrame ) {
+//pub extern "C" fn df_head( df: <*const DataFrame> ) {
+    println!{"{}", df.head(Some(2))};
+}
+
 
 fn str_in(i_string: *const c_char) -> String {
     unsafe {

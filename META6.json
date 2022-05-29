@@ -1,0 +1,31 @@
+{
+  "name": "Dan::Pandas",
+  "description": "Bridge Dan to Python Pandas",
+  "version": "0.0.1",
+  "perl": "6.d",
+  "authors": [
+    "p6steve"
+  ],
+  "auth": "zef:p6steve",
+  "depends": [
+    "Dan",
+    "Inline::Python"
+  ],
+  "build-depends": [],
+  "test-depends": [],
+  "provides": {
+    "Dan::Pandas": "lib/Dan/Pandas.rakumod"
+  },
+  "resources": [],
+  "license": "Artistic-2.0",
+  "tags": [
+    "Data Analytics",
+    "Series",
+    "DataSlice",
+    "DataFrame",
+    "Pandas",
+    "Python"
+  ],
+  "api": "1",
+  "source-url": "git://github.com/p6steve/raku-dan-pandas.git"
+}

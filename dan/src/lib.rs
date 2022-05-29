@@ -3,22 +3,56 @@ use libc::size_t;
 use std::slice;
 use std::ffi::*; //{CStr, CString,}
 use std::iter;
-use std::collections::HashMap;
 use std::fs::File;
 use std::path::{Path};
 
 use polars::prelude::*;//{CsvReader, DataType, Field, Schema, DataFrame,};
 use polars::prelude::{Result as PolarResult};
 use polars::frame::DataFrame;
+use polars::datatypes::DataType;
 
-// String Arguments 
-// viz. https://metacpan.org/pod/FFI::Platypus::Lang::Rust
-fn str_in(i_string: *const c_char) -> String {
-    unsafe {
-        CStr::from_ptr(i_string).to_string_lossy().into_owned()
+pub struct SeriesC {
+    se: Series,
+}
+
+impl SeriesC {
+    fn new() -> SeriesC {
+        SeriesC {
+            se: Series::new_empty("anon", &DataType::UInt32),
+        }
+    }
+
+    fn say(&self) {
+        println!{"{}", self.se}
     }
 }
 
+// extern functions for Series Container
+#[no_mangle]
+pub extern "C" fn se_new() -> *mut SeriesC {
+    Box::into_raw(Box::new(SeriesC::new()))
+}
+
+#[no_mangle]
+pub extern "C" fn se_free(ptr: *mut SeriesC) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn se_say(ptr: *mut SeriesC) {
+    let se_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+    se_c.say();
+}
+
+// helper functions for DataFrame Container
 pub fn df_load_csv(spath: &str) -> PolarResult<DataFrame> {
     let fpath = Path::new(spath);
     let file = File::open(fpath).expect("Cannot open file.");
@@ -28,22 +62,84 @@ pub fn df_load_csv(spath: &str) -> PolarResult<DataFrame> {
     .finish()
 }
 
-#[no_mangle]
-pub extern "C" fn df_read_csv(string: *const c_char) {
-    let df = df_load_csv(&str_in(string)).unwrap();
-    println!{"{}", df.head(Some(5))};
-
-    let c = df.column("petal.length").unwrap();
-    println!{"{}", c};
-
-    let x = df
-            .groupby(["variety"])
-            .unwrap()
-            .select(["petal.length"])
-            .sum();
-
-    println!{"{:?}", x};
+pub struct DataFrameC {
+    df: DataFrame,
 }
+
+impl DataFrameC {
+    fn new() -> DataFrameC {
+        DataFrameC {
+            df: DataFrame::default(),
+        }
+    }
+
+    fn read_csv(&mut self, string: String) {
+        self.df = df_load_csv(&string).unwrap(); 
+    }
+
+    fn head(&self) {
+        println!{"{}", self.df.head(Some(5))};
+    }
+}
+
+// extern functions for DataFrame Container
+#[no_mangle]
+pub extern "C" fn df_new() -> *mut DataFrameC {
+    Box::into_raw(Box::new(DataFrameC::new()))
+}
+
+#[no_mangle]
+pub extern "C" fn df_free(ptr: *mut DataFrameC) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn df_read_csv(
+    ptr: *mut DataFrameC,
+    string: *const c_char,
+) {
+    let df_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+    let spath = unsafe {
+        CStr::from_ptr(string).to_string_lossy().into_owned()
+    };
+    df_c.read_csv(spath);
+}
+
+#[no_mangle]
+pub extern "C" fn df_head(ptr: *mut DataFrameC) {
+    let df_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+    df_c.head();
+}
+
+// ------------------------------------------------------------------
+
+//#[no_mangle]
+//pub extern "C" fn df_read_csv(string: *const c_char) {
+//    let df = df_load_csv(&str_in(string)).unwrap();
+//    println!{"{}", df.head(Some(5))};
+//
+//    let c = df.column("petal.length").unwrap();
+//    println!{"{}", c};
+//
+//    let x = df
+//            .groupby(["variety"])
+//            .unwrap()
+//            .select(["petal.length"])
+//            .sum();
+//
+//    println!{"{:?}", x};
+//}
 
 // Rust FFI Omnibus: Integers
 #[no_mangle]
@@ -85,70 +181,5 @@ pub extern "C" fn sum_of_even(n: *const u32, len: size_t) -> u32 {
         .iter()
         .filter(|&v| v % 2 == 0)
         .sum()
-}
-
-// Rust FFI Omnibus: Objects
-pub struct ZipCodeDatabase {
-    population: HashMap<String, u32>,
-}
-
-impl ZipCodeDatabase {
-    fn new() -> ZipCodeDatabase {
-        ZipCodeDatabase {
-            population: HashMap::new(),
-        }
-    }
-
-    fn populate(&mut self) {
-        for i in 0..100_000 {
-            let zip = format!("{:05}", i);
-            self.population.insert(zip, i);
-        }
-    }
-
-    fn population_of(&self, zip: &str) -> u32 {
-        self.population.get(zip).cloned().unwrap_or(0)
-    }
-}
-
-#[no_mangle]
-pub extern "C" fn zip_code_database_new() -> *mut ZipCodeDatabase {
-    Box::into_raw(Box::new(ZipCodeDatabase::new()))
-}
-
-#[no_mangle]
-pub extern "C" fn zip_code_database_free(ptr: *mut ZipCodeDatabase) {
-    if ptr.is_null() {
-        return;
-    }
-    unsafe {
-        Box::from_raw(ptr);
-    }
-}
-
-#[no_mangle]
-pub extern "C" fn zip_code_database_populate(ptr: *mut ZipCodeDatabase) {
-    let database = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
-    database.populate();
-}
-
-#[no_mangle]
-pub extern "C" fn zip_code_database_population_of(
-    ptr: *const ZipCodeDatabase,
-    zip: *const c_char,
-) -> u32 {
-    let database = unsafe {
-        assert!(!ptr.is_null());
-        &*ptr
-    };
-    let zip = unsafe {
-        assert!(!zip.is_null());
-        CStr::from_ptr(zip)
-    };
-    let zip_str = zip.to_str().unwrap();
-    database.population_of(zip_str)
 }
 

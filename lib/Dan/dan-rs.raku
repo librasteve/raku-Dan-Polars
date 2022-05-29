@@ -2,9 +2,58 @@ use NativeCall;
 
 constant $n-path = '../../dan/target/debug/dan';
 
-sub df_read_csv(Str is encoded('utf8')) is native($n-path) {*};
-df_read_csv("../../dan/src/iris.csv");
+class Series is repr('CPointer') {
+    sub se_new() returns Series  is native($n-path) { * }
+    sub se_free(Series)          is native($n-path) { * }
+    sub se_say(Series)           is native($n-path) { * }
 
+    method new { 
+        se_new 
+    }
+
+    submethod DESTROY { #Free data when the object is garbage collected.
+        se_free(self);
+    }
+
+    method say { 
+        se_say(self) 
+    }
+}
+
+dd my \se = Series.new;
+se.say;
+
+
+class DataFrame is repr('CPointer') {
+    sub df_new() returns DataFrame  is native($n-path) { * }
+    sub df_free(DataFrame)          is native($n-path) { * }
+    sub df_read_csv(DataFrame, Str) is native($n-path) { * }
+    sub df_head(DataFrame)          is native($n-path) { * }
+    #sub df_columns(DataFrame) returns Series is native($n-path) { * }
+#iamerejh - do do eg columns need to make empty Series and then pass in to df.columns as the "put it here ptr"
+
+    method new { 
+        df_new 
+    }
+
+    submethod DESTROY { #Free data when the object is garbage collected.
+        df_free(self);
+    }
+
+    method read_csv( Str \path ) {
+        df_read_csv(self, path);
+    }
+
+    method head { 
+        df_head(self) 
+    }
+}
+
+dd my \df = DataFrame.new;
+df.read_csv("../../dan/src/iris.csv");
+df.head;
+
+#-----------------------------------------------------------------------------
 
 ## Rust FFI Omnibus: Integers
 sub addition(int32, int32) returns int32 is native($n-path) { * }
@@ -25,38 +74,4 @@ my @numbers := CArray[uint32].new;
 @numbers[$++] = $_ for 1..6;
 
 say sum_of_even( @numbers, @numbers.elems );
-
-## Rust FFI Omnibus: Objects 
-class ZipCodeDatabase is repr('CPointer') {
-    sub zip_code_database_new() returns ZipCodeDatabase is native($n-path) { * }
-    sub zip_code_database_free(ZipCodeDatabase)         is native($n-path) { * }
-    sub zip_code_database_populate(ZipCodeDatabase)     is native($n-path) { * }
-    sub zip_code_database_population_of(ZipCodeDatabase, Str is encoded('utf8')) 
-                                         returns uint32 is native($n-path) { * }
-
-    method new { 
-        zip_code_database_new 
-    }
-
-    submethod DESTROY {        # Free data when the object is garbage collected.
-        zip_code_database_free(self);
-    }
-
-    method populate { 
-        zip_code_database_populate(self) 
-    }
-
-    method population_of( Str \zip ) {
-        zip_code_database_population_of(self, zip);
-    }
-}
-
-my \database = ZipCodeDatabase.new;
-    database.populate;
-
-my \pop1 = database.population_of('90210');
-my \pop2 = database.population_of('20500');
-say pop1 - pop2;
-
-
 

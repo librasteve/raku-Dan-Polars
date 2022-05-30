@@ -29,8 +29,7 @@ class DataFrame is repr('CPointer') {
     sub df_free(DataFrame)          is native($n-path) { * }
     sub df_read_csv(DataFrame, Str) is native($n-path) { * }
     sub df_head(DataFrame)          is native($n-path) { * }
-    #sub df_columns(DataFrame) returns Series is native($n-path) { * }
-#iamerejh - do do eg columns need to make empty Series and then pass in to df.columns as the "put it here ptr"
+    sub df_column(DataFrame, Str) returns Series is native($n-path) { * }
 
     method new { 
         df_new 
@@ -47,11 +46,18 @@ class DataFrame is repr('CPointer') {
     method head { 
         df_head(self) 
     }
+
+    method column( Str \colname ) { 
+        df_column(self, colname) 
+    }
 }
 
 dd my \df = DataFrame.new;
 df.read_csv("../../dan/src/iris.csv");
 df.head;
+my $se-sl = df.column("sepal.length");
+#my $se-sl = df.column("sepal.length");
+#$se-sl.say;
 
 #-----------------------------------------------------------------------------
 

@@ -25,6 +25,10 @@ impl SeriesC {
     fn say(&self) {
         println!{"{}", self.se}
     }
+
+    fn set(&mut self, new_se: Series) {
+        self.se = new_se;
+    }
 }
 
 // extern functions for Series Container
@@ -80,6 +84,13 @@ impl DataFrameC {
     fn head(&self) {
         println!{"{}", self.df.head(Some(5))};
     }
+
+    fn column(&self, string: String) -> Series {
+        //let colin = self.df.column(&string).unwrap().head(Some(23));
+        let colin = self.df.column(&string).unwrap();
+        println!{"{}", colin};
+        colin
+    }
 }
 
 // extern functions for DataFrame Container
@@ -122,6 +133,24 @@ pub extern "C" fn df_head(ptr: *mut DataFrameC) {
     df_c.head();
 }
 
+#[no_mangle]
+pub extern "C" fn df_column(
+    ptr: *mut DataFrameC,
+    string: *const c_char,
+) -> *mut SeriesC {
+    let df_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+    let colname = unsafe {
+        CStr::from_ptr(string).to_string_lossy().into_owned()
+    };
+    let col = df_c.column(colname);
+    let mut se_c = SeriesC::new();
+    se_c.set( col );
+    Box::into_raw(Box::new(se_c))
+}
+
 // ------------------------------------------------------------------
 
 //#[no_mangle]
@@ -154,8 +183,8 @@ pub extern "C" fn theme_song_generate(length: u8) -> *mut c_char {
     song.extend(iter::repeat("na ").take(length as usize));
     song.push_str("Batman! 💣");
 
-    let c_str_song = CString::new(song).unwrap();
-    c_str_song.into_raw()
+    let cstring_song = CString::new(song).unwrap();
+    cstring_song.into_raw()
 }
 
 #[no_mangle]

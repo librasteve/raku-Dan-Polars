@@ -148,6 +148,35 @@ pub extern "C" fn df_column(
     Box::into_raw(Box::new(se_c))
 }
 
+#[no_mangle]
+pub extern "C" fn df_select(
+    ptr: *mut DataFrameC,
+    colspec: *const *const c_char,
+    len: size_t, 
+) -> *mut DataFrameC {
+    let df_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+
+    let mut output = Vec::<String>::new();
+    unsafe {
+        assert!(!colspec.is_null());
+
+        for item in slice::from_raw_parts(colspec, len as usize) {
+            output.push(CStr::from_ptr(*item).to_string_lossy().into_owned());
+        };
+    println!("{:?}", output);
+    println!("{:?}", output[0]);
+    };
+
+//iamerejh - get new df from selection
+    //let col = df_c.columns(colspec);
+    let mut se_c = SeriesC::new();
+    //se_c.set( col );
+    Box::into_raw(Box::new(se_c))
+}
+
 // ------------------------------------------------------------------
 
 //#[no_mangle]
@@ -167,39 +196,12 @@ pub extern "C" fn df_column(
 //    println!{"{:?}", x};
 //}
 
-// Rust FFI Omnibus: Integers
-#[no_mangle]
-pub extern "C" fn addition(a:i32, b:i32) -> i32 {
-    a+b
-}
-
-// Rust FFI Omnibus: String Return Values
-#[no_mangle]
-pub extern "C" fn theme_song_generate(length: u8) -> *mut c_char {
-    let mut song = String::from("💣 ");
-    song.extend(iter::repeat("na ").take(length as usize));
-    song.push_str("Batman! 💣");
-
-    let cstring_song = CString::new(song).unwrap();
-    cstring_song.into_raw()
-}
-
-#[no_mangle]
-pub extern "C" fn theme_song_free(s: *mut c_char) {
-    unsafe {
-        if s.is_null() {
-            return;
-        }
-        CString::from_raw(s)
-    };
-}
 
 // Rust FFI Omnibus: Slice Arguments
 #[no_mangle]
 pub extern "C" fn sum_of_even(n: *const u32, len: size_t) -> u32 {
     let numbers = unsafe {
         assert!(!n.is_null());
-
         slice::from_raw_parts(n, len as usize)
     };
 

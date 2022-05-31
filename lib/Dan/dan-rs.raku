@@ -23,6 +23,11 @@ class Series is repr('CPointer') {
 dd my \se = Series.new;
 se.say;
 
+sub prep-carray-str( @items where .are ~~ Str --> CArray ) {
+    my @output := CArray[Str].new();
+    @output[$++] = $_ for @items;
+    @output;
+}
 
 class DataFrame is repr('CPointer') {
     sub df_new() returns DataFrame  is native($n-path) { * }
@@ -30,6 +35,7 @@ class DataFrame is repr('CPointer') {
     sub df_read_csv(DataFrame, Str) is native($n-path) { * }
     sub df_head(DataFrame)          is native($n-path) { * }
     sub df_column(DataFrame, Str) returns Series is native($n-path) { * }
+    sub df_select(DataFrame, CArray[Str], size_t) returns Series is native($n-path) { * }
 
     method new { 
         df_new 
@@ -50,28 +56,21 @@ class DataFrame is repr('CPointer') {
     method column( Str \colname ) { 
         df_column(self, colname) 
     }
+
+    method select( Array \colspec ) { 
+        df_select(self, prep-carray-str( colspec ), colspec.elems)
+    }
 }
 
-dd my \df = DataFrame.new;
+my \df = DataFrame.new;
 df.read_csv("../../dan/src/iris.csv");
 df.head;
 my $se-sl = df.column("sepal.length");
-my $se-sl = df.column("sepal.length");
 $se-sl.say;
 
+my $selection = df.select(["sepal.length", "variety"]);
+
 #-----------------------------------------------------------------------------
-
-## Rust FFI Omnibus: Integers
-sub addition(int32, int32) returns int32 is native($n-path) { * }
-say addition(1, 2);
-
-## Rust FFI Omnibus: String Return Values
-sub theme_song_generate(uint8) returns Pointer[Str] is encoded('utf8') is native($n-path) { * }
-sub theme_song_free(Pointer[Str]) is native($n-path) { * }
-
-my \song = theme_song_generate(5);
-say song.deref;
-theme_song_free(song);
 
 ## Rust FFI Omnibus: Slice Arguments
 sub sum_of_even(CArray[uint32], size_t) returns uint32 is native($n-path) { * }

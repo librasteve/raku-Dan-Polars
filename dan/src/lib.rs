@@ -86,10 +86,7 @@ impl DataFrameC {
     }
 
     fn column(&self, string: String) -> Series {
-        //let colin = self.df.column(&string).unwrap().head(Some(23));
-        let colin = self.df.column(&string).unwrap();
-        println!{"{}", colin};
-        colin
+        self.df.column(&string).unwrap().clone()
     }
 }
 

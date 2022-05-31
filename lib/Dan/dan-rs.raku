@@ -56,8 +56,8 @@ dd my \df = DataFrame.new;
 df.read_csv("../../dan/src/iris.csv");
 df.head;
 my $se-sl = df.column("sepal.length");
-#my $se-sl = df.column("sepal.length");
-#$se-sl.say;
+my $se-sl = df.column("sepal.length");
+$se-sl.say;
 
 #-----------------------------------------------------------------------------
 

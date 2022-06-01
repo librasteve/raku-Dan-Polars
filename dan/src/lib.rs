@@ -22,12 +22,8 @@ impl SeriesC {
         }
     }
 
-    fn say(&self) {
-        println!{"{}", self.se}
-    }
-
-    fn set(&mut self, new_se: Series) {
-        self.se = new_se;
+    fn head(&self) {
+        println!{"{}", self.se.head(Some(5))};
     }
 }
 
@@ -48,12 +44,13 @@ pub extern "C" fn se_free(ptr: *mut SeriesC) {
 }
 
 #[no_mangle]
-pub extern "C" fn se_say(ptr: *mut SeriesC) {
+pub extern "C" fn se_head(ptr: *mut SeriesC) {
     let se_c = unsafe {
         assert!(!ptr.is_null());
         &mut *ptr
     };
-    se_c.say();
+
+    se_c.head();
 }
 
 // helper functions for DataFrame Container
@@ -87,6 +84,10 @@ impl DataFrameC {
 
     fn column(&self, string: String) -> Series {
         self.df.column(&string).unwrap().clone()
+    }
+
+    fn select(&self, colvec: Vec::<String>) -> DataFrame {
+        self.df.select(&colvec).unwrap().clone()
     }
 }
 
@@ -135,17 +136,19 @@ pub extern "C" fn df_column(
     ptr: *mut DataFrameC,
     string: *const c_char,
 ) -> *mut SeriesC {
+
     let df_c = unsafe {
         assert!(!ptr.is_null());
         &mut *ptr
     };
+
     let colname = unsafe {
         CStr::from_ptr(string).to_string_lossy().into_owned()
     };
-    let col = df_c.column(colname);
-    let mut se_c = SeriesC::new();
-    se_c.set( col );
-    Box::into_raw(Box::new(se_c))
+
+    let mut se_n = SeriesC::new();
+    se_n.se = df_c.column(colname);
+    Box::into_raw(Box::new(se_n))
 }
 
 #[no_mangle]
@@ -159,22 +162,19 @@ pub extern "C" fn df_select(
         &mut *ptr
     };
 
-    let mut output = Vec::<String>::new();
+    let mut colvec = Vec::<String>::new();
     unsafe {
         assert!(!colspec.is_null());
 
         for item in slice::from_raw_parts(colspec, len as usize) {
-            output.push(CStr::from_ptr(*item).to_string_lossy().into_owned());
+            colvec.push(CStr::from_ptr(*item).to_string_lossy().into_owned());
         };
-    println!("{:?}", output);
-    println!("{:?}", output[0]);
     };
 
-//iamerejh - get new df from selection
-    //let col = df_c.columns(colspec);
-    let mut se_c = SeriesC::new();
-    //se_c.set( col );
-    Box::into_raw(Box::new(se_c))
+    //FIXME adjust to new(df)
+    let mut df_n = DataFrameC::new();
+    df_n.df = df_c.select(colvec);
+    Box::into_raw(Box::new(df_n))
 }
 
 // ------------------------------------------------------------------

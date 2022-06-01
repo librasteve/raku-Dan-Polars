@@ -5,7 +5,7 @@ constant $n-path = '../../dan/target/debug/dan';
 class Series is repr('CPointer') {
     sub se_new() returns Series  is native($n-path) { * }
     sub se_free(Series)          is native($n-path) { * }
-    sub se_say(Series)           is native($n-path) { * }
+    sub se_head(Series)          is native($n-path) { * }
 
     method new { 
         se_new 
@@ -15,13 +15,13 @@ class Series is repr('CPointer') {
         se_free(self);
     }
 
-    method say { 
-        se_say(self) 
+    method head { 
+        se_head(self) 
     }
 }
 
-dd my \se = Series.new;
-se.say;
+my \se = Series.new;
+se.head;
 
 sub prep-carray-str( @items where .are ~~ Str --> CArray ) {
     my @output := CArray[Str].new();
@@ -35,7 +35,7 @@ class DataFrame is repr('CPointer') {
     sub df_read_csv(DataFrame, Str) is native($n-path) { * }
     sub df_head(DataFrame)          is native($n-path) { * }
     sub df_column(DataFrame, Str) returns Series is native($n-path) { * }
-    sub df_select(DataFrame, CArray[Str], size_t) returns Series is native($n-path) { * }
+    sub df_select(DataFrame, CArray[Str], size_t) returns DataFrame is native($n-path) { * }
 
     method new { 
         df_new 
@@ -66,9 +66,10 @@ my \df = DataFrame.new;
 df.read_csv("../../dan/src/iris.csv");
 df.head;
 my $se-sl = df.column("sepal.length");
-$se-sl.say;
+$se-sl.head;
 
-my $selection = df.select(["sepal.length", "variety"]);
+dd my $selection = df.select(["sepal.length", "variety"]);
+$selection.head;
 
 #-----------------------------------------------------------------------------
 

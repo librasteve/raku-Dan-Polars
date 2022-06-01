@@ -11,7 +11,8 @@ class Series is repr('CPointer') {
         se_new 
     }
 
-    submethod DESTROY { #Free data when the object is garbage collected.
+    #Free data when the object is garbage collected.
+    submethod DESTROY {
         se_free(self);
     }
 
@@ -26,7 +27,7 @@ se.head;
 sub prep-carray-str( @items where .are ~~ Str --> CArray ) {
     my @output := CArray[Str].new();
     @output[$++] = $_ for @items;
-    @output;
+    @output
 }
 
 class DataFrame is repr('CPointer') {
@@ -36,12 +37,15 @@ class DataFrame is repr('CPointer') {
     sub df_head(DataFrame)          is native($n-path) { * }
     sub df_column(DataFrame, Str) returns Series is native($n-path) { * }
     sub df_select(DataFrame, CArray[Str], size_t) returns DataFrame is native($n-path) { * }
+#    sub df_groupby(DataFrame, CArray[Str], size_t) returns DataFrame is native($n-path) { * }
+    sub df_sum(DataFrame) returns DataFrame is native($n-path) { * }
 
     method new { 
         df_new 
     }
 
-    submethod DESTROY { #Free data when the object is garbage collected.
+    #Free data when the object is garbage collected.
+    submethod DESTROY {
         df_free(self);
     }
 
@@ -60,6 +64,16 @@ class DataFrame is repr('CPointer') {
     method select( Array \colspec ) { 
         df_select(self, prep-carray-str( colspec ), colspec.elems)
     }
+
+#`[
+    method groupby( Array \colspec ) { 
+        df_groupby(self, prep-carray-str( colspec ), colspec.elems)
+    }
+#]
+
+    method sum { 
+        df_sum(self) 
+    }
 }
 
 my \df = DataFrame.new;
@@ -70,14 +84,5 @@ $se-sl.head;
 
 dd my $selection = df.select(["sepal.length", "variety"]);
 $selection.head;
-
-#-----------------------------------------------------------------------------
-
-## Rust FFI Omnibus: Slice Arguments
-sub sum_of_even(CArray[uint32], size_t) returns uint32 is native($n-path) { * }
-
-my @numbers := CArray[uint32].new;
-@numbers[$++] = $_ for 1..6;
-
-say sum_of_even( @numbers, @numbers.elems );
-
+my $sum = $selection.sum;
+$sum.head;

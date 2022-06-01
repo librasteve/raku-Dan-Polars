@@ -89,6 +89,14 @@ impl DataFrameC {
     fn select(&self, colvec: Vec::<String>) -> DataFrame {
         self.df.select(&colvec).unwrap().clone()
     }
+
+    fn groupby(&self, colvec: Vec::<String>) -> GroupBy {
+        self.df.groupby(&colvec).unwrap().clone()
+    }
+
+    fn sum(&self) -> DataFrame {
+        self.df.sum().clone()
+    }
 }
 
 // extern functions for DataFrame Container
@@ -177,16 +185,48 @@ pub extern "C" fn df_select(
     Box::into_raw(Box::new(df_n))
 }
 
-// ------------------------------------------------------------------
-
 //#[no_mangle]
-//pub extern "C" fn df_read_csv(string: *const c_char) {
-//    let df = df_load_csv(&str_in(string)).unwrap();
-//    println!{"{}", df.head(Some(5))};
+//pub extern "C" fn df_groupby(
+//    ptr: *mut DataFrameC,
+//    colspec: *const *const c_char,
+//    len: size_t, 
+//) -> *mut DataFrameC {
+//    let df_c = unsafe {
+//        assert!(!ptr.is_null());
+//        &mut *ptr
+//    };
 //
-//    let c = df.column("petal.length").unwrap();
-//    println!{"{}", c};
+//    let mut colvec = Vec::<String>::new();
+//    unsafe {
+//        assert!(!colspec.is_null());
 //
+//        for item in slice::from_raw_parts(colspec, len as usize) {
+//            colvec.push(CStr::from_ptr(*item).to_string_lossy().into_owned());
+//        };
+//    };
+//
+//    //FIXME adjust to new(df)
+//    let mut df_n = DataFrameC::new();
+//    df_n.df = df_c.groupby(colvec);
+//    Box::into_raw(Box::new(df_n))
+//}
+
+#[no_mangle]
+pub extern "C" fn df_sum(
+    ptr: *mut DataFrameC,
+) -> *mut DataFrameC {
+
+    let df_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+
+    //FIXME adjust to new(df)
+    let mut df_n = DataFrameC::new();
+    df_n.df = df_c.sum();
+    Box::into_raw(Box::new(df_n))
+}
+
 //    let x = df
 //            .groupby(["variety"])
 //            .unwrap()
@@ -194,20 +234,5 @@ pub extern "C" fn df_select(
 //            .sum();
 //
 //    println!{"{:?}", x};
-//}
 
-
-// Rust FFI Omnibus: Slice Arguments
-#[no_mangle]
-pub extern "C" fn sum_of_even(n: *const u32, len: size_t) -> u32 {
-    let numbers = unsafe {
-        assert!(!n.is_null());
-        slice::from_raw_parts(n, len as usize)
-    };
-
-    numbers
-        .iter()
-        .filter(|&v| v % 2 == 0)
-        .sum()
-}
 

@@ -5,10 +5,10 @@ use std::ffi::*; //{CStr, CString,}
 use std::fs::File;
 use std::path::{Path};
 
-use polars::prelude::*;//{CsvReader, DataType, Field, Schema, DataFrame,};
+use polars::prelude::*;//{CsvReader, DataType, DataFrame, Series};
 use polars::prelude::{Result as PolarResult};
-use polars::frame::DataFrame;
-use polars::datatypes::DataType;
+
+// Series Container
 
 pub struct SeriesC {
     se: Series,
@@ -52,7 +52,8 @@ pub extern "C" fn se_head(ptr: *mut SeriesC) {
     se_c.head();
 }
 
-// helper functions for DataFrame Container
+// DataFrame Container
+
 pub fn df_load_csv(spath: &str) -> PolarResult<DataFrame> {
     let fpath = Path::new(spath);
     let file = File::open(fpath).expect("Cannot open file.");

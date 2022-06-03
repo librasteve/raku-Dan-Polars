@@ -1,6 +1,123 @@
 unit module Dan::Polars:ver<0.0.1>:auth<Steve Roe (p6steve@furnival.net)>;
 
 use Dan;
+use NativeCall;
+
+### Container Classes (CStruct) that interface to Rust lib.rs ###
+
+constant $n-path = '../dan/target/debug/dan';
+constant $rust-dir = '../dan/src/';
+constant $rust-file = 'lib.rs';
+constant $tmpl-file = 'lib.rs.template';
+constant $raku-dir = '../lib/Dan/';
+constant $raku-file = 'Polars.rakumod';
+
+class SeriesC is repr('CPointer') {
+    sub se_new() returns SeriesC  is native($n-path) { * }
+    sub se_free(SeriesC)          is native($n-path) { * }
+    sub se_head(SeriesC)          is native($n-path) { * }
+
+    method new {
+        se_new
+    }
+
+    submethod DESTROY {           #Free data when the object is garbage collected.
+        se_free(self);
+    }
+
+    method head {
+        se_head(self)
+    }
+}
+
+my \se = SeriesC.new;
+se.head;
+
+sub prep-carray-str( @items where .are ~~ Str --> CArray ) {
+    my @output := CArray[Str].new();
+    @output[$++] = $_ for @items;
+    @output
+}
+
+class DataFrameC is repr('CPointer') {
+    sub df_new() returns DataFrameC  is native($n-path) { * }
+    sub df_free(DataFrameC)          is native($n-path) { * }
+    sub df_read_csv(DataFrameC, Str) is native($n-path) { * }
+    sub df_head(DataFrameC)          is native($n-path) { * }
+    sub df_column(DataFrameC, Str) returns SeriesC is native($n-path) { * }
+    sub df_select(DataFrameC, CArray[Str], size_t) returns DataFrameC is native($n-path) { * }
+    sub df_query(DataFrameC) returns DataFrameC is native($n-path) { * }
+
+    method new {
+        df_new
+    }
+
+    submethod DESTROY {              #Free data when the object is garbage collected.
+        df_free(self);
+    }
+
+    method read_csv( Str \path ) {
+        df_read_csv(self, path);
+    }
+
+    method head {
+        df_head(self)
+    }
+
+    method column( Str \colname ) {
+        df_column(self, colname)
+    }
+
+    method select( Array \colspec ) {
+        df_select(self, prep-carray-str( colspec ), colspec.elems)
+    }
+
+    method query {
+        df_query(self)
+    }
+}
+
+my \df = DataFrameC.new;
+df.read_csv("../dan/src/iris.csv");
+df.head;
+
+my $column = df.column("sepal.length");
+$column.head;
+
+my $select = df.select(["sepal.length", "variety"]);
+$select.head;
+
+class Query {
+    has Str $.s;
+
+    submethod TWEAK {
+
+        if "$raku-dir/$raku-file".IO.modified > "$rust-dir/$rust-file".IO.modified {
+
+            indir( $rust-dir, {
+                my $template = slurp $tmpl-file;
+                $template ~~ s/'//%INSERT-QUERY%'/$!s/;;
+                spurt $rust-file, $template;
+
+                run <cargo build>;
+            });
+
+        }
+    }
+}
+
+Query.new( s => q{
+    .groupby(["variety"])
+    .unwrap()
+    .select(["petal.length"])
+    .sum()
+    .unwrap()
+});
+
+my \x = df.query;
+x.head;
+
+### Object Roles that are exported for Script Usage ###
 
 # generates default column labels
 constant @alphi = 'A'..∞; 
@@ -10,36 +127,16 @@ sub sbv( %h --> Seq ) is export {
     %h.sort(*.value).map(*.key)
 }
 
-#`[[[
-
-#| singleton pattern for shared Python context 
-#| viz. https://docs.raku.org/language/classtut
-
-class Py {
-    my  Py $instance;
-    has Inline::Python $.py;
-
-    method new {!!!}
-
-    submethod instance {
-	unless $instance {
-            $instance = Py.bless( py => Inline::Python.new ); 
- 	    $instance.py.run('import numpy as np');
-	    $instance.py.run('import pandas as pd');
-	}
-        $instance;
-    }
-}
-
 role Series does Positional does Iterable is export {
 
-    ## attrs for construct and pull only: not synched to Python side ##
-    has Str	$.name;
+    ## attrs for construct and pull only: not synched to Rust side ##
+    has Str	    $.name;
     has Any     @.data;
     has Int     %!index;
 
-    has $.py = Py.instance.py; 	  
-    has $.po;			  #ref to this Python Series obj 
+    has SeriesC $!rc;       #Rust container
+
+    has $.po;			  #ref to this Python Series obj  #FIXME REMOVE
 
     ### Constructors ###
  
@@ -76,29 +173,28 @@ role Series does Positional does Iterable is export {
         samewith( name => s.name, data => s.data, index => s.index )
     }
 
-
     submethod BUILD( :$name, :@data, :$index ) {
         $!name = $name // 'anon';
-	@!data = @data;
+        @!data = @data;
 
-	if $index {
+	    if $index {
             if $index !~~ Hash {
                 %!index = $index.map({ $_ => $++ })
-	    } else {
-	        %!index = $index
-	    }
-	}
+            } else {
+                %!index = $index
+            }
+        }
     }
 
     method prep-py-args {
-	my ( @qdata, $args );
+        my ( @qdata, $args );
 
-	@qdata = @!data.map({$_ ~~ Str ?? qq/\"$_\"/ !! $_ });
+        @qdata = @!data.map({$_ ~~ Str ?? qq/\"$_\"/ !! $_ });
 
-	$args  = "[{@qdata.join(', ')}]";
-	$args ~~ s:g/NaN/np.nan/;
-	$args ~= ", index=['{%!index.&sbv.join("', '")}']"   if %!index; 	
-	$args ~= ", name=\"$!name\""   	      		if $!name;
+        $args  = "[{@qdata.join(', ')}]";
+        $args ~~ s:g/NaN/np.nan/;
+        $args ~= ", index=['{%!index.&sbv.join("', '")}']"   if %!index; 	
+        $args ~= ", name=\"$!name\""   	      		if $!name;
     }
 
     method TWEAK {
@@ -121,12 +217,15 @@ role Series does Positional does Iterable is export {
 
 	if ! %!index {
 	    %!index = gather {
-		for 0..^@!data {
-		    take ( $_ => $_ )
-		}
+            for 0..^@!data {
+                take ( $_ => $_ )
+            }
 	    }.Hash
 	}
   
+    ## put SeriesC here
+
+#`[
 	my $args = self.prep-py-args;
 
 # since Inline::Python will not pass a Series class back and forth
@@ -180,6 +279,8 @@ class RakuSeries:
 
 	$!py.run($py-str);
 	$!po = $!py.call('__main__', 'RakuSeries');
+#]
+
     }
 
     #### Info Methods #####
@@ -270,6 +371,7 @@ class RakuSeries:
         @res
     }
 
+#`[
     ### Concat ###
     #| concat done by way of aop splice
 
@@ -304,6 +406,7 @@ class RakuSeries:
     multi method pd( $exp, Dan::Pandas::Series:D $other ) {
 	$!po.rs_eval2( $exp, $other.po )
     }
+#]
 
     ### Role Support ###
 
@@ -362,6 +465,8 @@ class RakuSeries:
     }
 
 }
+
+#`{{
 
 role Categorical does Series is export {
 }
@@ -908,4 +1013,4 @@ multi postcircumfix:<{ }>( Dan::DataSlice @aods , @ks ) is export {
     DataFrame.new( sliced-slices(@aods, @s) )
 }
 
-#]]]
+#}}

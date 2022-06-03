@@ -1,6 +1,31 @@
 use NativeCall; 
 
 constant $n-path = '../../dan/target/debug/dan';
+constant $s-path = '../../dan/src/';
+constant $s-name = 'lib.rs';
+constant $t-name = 'lib.rs.template';
+constant $r-name = 'dan-rs.raku';
+
+sub build-me {
+    indir( $s-path, {
+        spurt 'file', 'default text, directly written';
+        run 'cargo', 'build';
+    });
+}
+
+say my $raku-modified = $r-name.IO.modified.DateTime; 
+say my $rust-modified = indir( $s-path, { $s-name.IO.modified.DateTime } ); 
+say $raku-modified > $rust-modified; 
+
+die;
+if $raku-modified > $rust-modified { 
+
+    my $template = indir( $s-path, {slurp $t-name} );
+    say $template;
+    build-me;
+}
+die;
+
 
 class Series is repr('CPointer') {
     sub se_new() returns Series  is native($n-path) { * }

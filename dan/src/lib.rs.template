@@ -2,7 +2,6 @@ use libc::c_char;
 use libc::size_t;
 use std::slice;
 use std::ffi::*; //{CStr, CString,}
-use std::iter;
 use std::fs::File;
 use std::path::{Path};
 
@@ -90,12 +89,11 @@ impl DataFrameC {
         self.df.select(&colvec).unwrap().clone()
     }
 
-    fn groupby(&self, colvec: Vec::<String>) -> GroupBy {
-        self.df.groupby(&colvec).unwrap().clone()
-    }
-
-    fn sum(&self) -> DataFrame {
-        self.df.sum().clone()
+    fn query(&self) -> DataFrame {
+        let x = self.df.clone()
+//%INSERT-QUERY%
+            ;
+        x
     }
 }
 
@@ -185,37 +183,10 @@ pub extern "C" fn df_select(
     Box::into_raw(Box::new(df_n))
 }
 
-//#[no_mangle]
-//pub extern "C" fn df_groupby(
-//    ptr: *mut DataFrameC,
-//    colspec: *const *const c_char,
-//    len: size_t, 
-//) -> *mut DataFrameC {
-//    let df_c = unsafe {
-//        assert!(!ptr.is_null());
-//        &mut *ptr
-//    };
-//
-//    let mut colvec = Vec::<String>::new();
-//    unsafe {
-//        assert!(!colspec.is_null());
-//
-//        for item in slice::from_raw_parts(colspec, len as usize) {
-//            colvec.push(CStr::from_ptr(*item).to_string_lossy().into_owned());
-//        };
-//    };
-//
-//    //FIXME adjust to new(df)
-//    let mut df_n = DataFrameC::new();
-//    df_n.df = df_c.groupby(colvec);
-//    Box::into_raw(Box::new(df_n))
-//}
-
 #[no_mangle]
-pub extern "C" fn df_sum(
+pub extern "C" fn df_query(
     ptr: *mut DataFrameC,
 ) -> *mut DataFrameC {
-
     let df_c = unsafe {
         assert!(!ptr.is_null());
         &mut *ptr
@@ -223,16 +194,7 @@ pub extern "C" fn df_sum(
 
     //FIXME adjust to new(df)
     let mut df_n = DataFrameC::new();
-    df_n.df = df_c.sum();
+    df_n.df = df_c.query();
     Box::into_raw(Box::new(df_n))
 }
-
-//    let x = df
-//            .groupby(["variety"])
-//            .unwrap()
-//            .select(["petal.length"])
-//            .sum();
-//
-//    println!{"{:?}", x};
-
 

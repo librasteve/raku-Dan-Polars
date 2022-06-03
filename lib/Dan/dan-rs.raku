@@ -1,31 +1,10 @@
 use NativeCall; 
 
 constant $n-path = '../../dan/target/debug/dan';
-constant $s-path = '../../dan/src/';
-constant $s-name = 'lib.rs';
-constant $t-name = 'lib.rs.template';
-constant $r-name = 'dan-rs.raku';
-
-sub build-me {
-    indir( $s-path, {
-        spurt 'file', 'default text, directly written';
-        run 'cargo', 'build';
-    });
-}
-
-say my $raku-modified = $r-name.IO.modified.DateTime; 
-say my $rust-modified = indir( $s-path, { $s-name.IO.modified.DateTime } ); 
-say $raku-modified > $rust-modified; 
-
-die;
-if $raku-modified > $rust-modified { 
-
-    my $template = indir( $s-path, {slurp $t-name} );
-    say $template;
-    build-me;
-}
-die;
-
+constant $rust-dir = '../../dan/src/';
+constant $rust-file = 'lib.rs';
+constant $tmpl-file = 'lib.rs.template';
+constant $raku-file = 'dan-rs.raku';
 
 class Series is repr('CPointer') {
     sub se_new() returns Series  is native($n-path) { * }
@@ -62,8 +41,7 @@ class DataFrame is repr('CPointer') {
     sub df_head(DataFrame)          is native($n-path) { * }
     sub df_column(DataFrame, Str) returns Series is native($n-path) { * }
     sub df_select(DataFrame, CArray[Str], size_t) returns DataFrame is native($n-path) { * }
-#    sub df_groupby(DataFrame, CArray[Str], size_t) returns DataFrame is native($n-path) { * }
-    sub df_sum(DataFrame) returns DataFrame is native($n-path) { * }
+    sub df_query(DataFrame) returns DataFrame is native($n-path) { * }
 
     method new { 
         df_new 
@@ -90,14 +68,8 @@ class DataFrame is repr('CPointer') {
         df_select(self, prep-carray-str( colspec ), colspec.elems)
     }
 
-#`[
-    method groupby( Array \colspec ) { 
-        df_groupby(self, prep-carray-str( colspec ), colspec.elems)
-    }
-#]
-
-    method sum { 
-        df_sum(self) 
+    method query { 
+        df_query(self)
     }
 }
 
@@ -109,5 +81,37 @@ $se-sl.head;
 
 dd my $selection = df.select(["sepal.length", "variety"]);
 $selection.head;
-my $sum = $selection.sum;
-$sum.head;
+
+class Query {
+    has Str $.s;
+
+    submethod TWEAK {
+
+        if "$raku-file".IO.modified > "$rust-dir/$rust-file".IO.modified {
+
+            indir( $rust-dir, {
+                my $template = slurp $tmpl-file;
+                $template ~~ s/'//%INSERT-QUERY%'/$!s/;;
+                spurt $rust-file, $template;
+
+                run <cargo build>;
+            });
+
+        }
+    }
+}
+
+Query.new( s => q{
+    .groupby(["variety"])
+    .unwrap()
+    .select(["petal.length"])
+    .sum()
+    .unwrap()
+});
+
+my \x = df.query;
+x.head;
+
+
+
+

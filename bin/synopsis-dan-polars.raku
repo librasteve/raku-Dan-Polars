@@ -5,6 +5,7 @@ use lib '../lib';
 use Dan;
 use Dan::Polars;
 
+say 'yo';
 
 my \s = $;
 #my $index = {:a(0), :b(1), :c(2), :d(3), :e(4), :f(5)};
@@ -13,9 +14,9 @@ my \s = $;
 #s = Series.new(data => [1, 3, 5, NaN, 6, 8]);
 #s = Series.new([1, 3, 5, 6, 8]);
 #s = Series.new([1, 3, 5, NaN, 6, 8]);
-dd s = Series.new( [rand xx 5], index => <a b c d e>);
+s = Series.new( [rand xx 6], index => <a b c d e f>);
 #s = Series.new( [b=>1, a=>0, c=>2] );               #from Array of Pairs
-#say ~s;
+s.say;
 
 #`[[[
 #say s.dtype;

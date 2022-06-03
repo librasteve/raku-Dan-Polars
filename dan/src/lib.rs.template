@@ -21,6 +21,10 @@ impl SeriesC {
         }
     }
 
+    fn say(&self) {
+        println!{"{}", self.se};
+    }
+
     fn head(&self) {
         println!{"{}", self.se.head(Some(5))};
     }
@@ -42,6 +46,16 @@ pub extern "C" fn se_free(ptr: *mut SeriesC) {
     }
 }
 
+
+#[no_mangle]
+pub extern "C" fn se_say(ptr: *mut SeriesC) {
+    let se_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+
+    se_c.say();
+}
 #[no_mangle]
 pub extern "C" fn se_head(ptr: *mut SeriesC) {
     let se_c = unsafe {

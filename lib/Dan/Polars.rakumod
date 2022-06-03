@@ -15,6 +15,7 @@ constant $raku-file = 'Polars.rakumod';
 class SeriesC is repr('CPointer') {
     sub se_new() returns SeriesC  is native($n-path) { * }
     sub se_free(SeriesC)          is native($n-path) { * }
+    sub se_say(SeriesC)           is native($n-path) { * }
     sub se_head(SeriesC)          is native($n-path) { * }
 
     method new {
@@ -23,6 +24,10 @@ class SeriesC is repr('CPointer') {
 
     submethod DESTROY {           #Free data when the object is garbage collected.
         se_free(self);
+    }
+
+    method say {
+        se_say(self)
     }
 
     method head {
@@ -117,7 +122,7 @@ Query.new( s => q{
 my \x = df.query;
 x.head;
 
-### Object Roles that are exported for Script Usage ###
+### Series, DataFrame [..] Roles that are exported for Script Usage ###
 
 # generates default column labels
 constant @alphi = 'A'..∞; 
@@ -186,20 +191,9 @@ role Series does Positional does Iterable is export {
         }
     }
 
-    method prep-py-args {
-        my ( @qdata, $args );
-
-        @qdata = @!data.map({$_ ~~ Str ?? qq/\"$_\"/ !! $_ });
-
-        $args  = "[{@qdata.join(', ')}]";
-        $args ~~ s:g/NaN/np.nan/;
-        $args ~= ", index=['{%!index.&sbv.join("', '")}']"   if %!index; 	
-        $args ~= ", name=\"$!name\""   	      		if $!name;
-    }
-
     method TWEAK {
 
-	# handle data => Array of Pairs 
+        # handle data => Array of Pairs 
 
         if @!data.first ~~ Pair {
 
@@ -211,26 +205,27 @@ role Series does Positional does Iterable is export {
                     %!index{$p.key} = $++
                 }
             }.Array
-	}
+	    }
 
-	# handle implicit index
+        # handle implicit index
 
-	if ! %!index {
-	    %!index = gather {
-            for 0..^@!data {
-                take ( $_ => $_ )
-            }
-	    }.Hash
-	}
+        if ! %!index {
+            %!index = gather {
+                for 0..^@!data {
+                    take ( $_ => $_ )
+                }
+            }.Hash
+        }
+
+        $!rc = SeriesC.new;
   
     ## put SeriesC here
 
 #`[
-	my $args = self.prep-py-args;
 
-# since Inline::Python will not pass a Series class back and forth
-# we make and instantiate a standard class 'RakuSeries' as container
-# and populate methods over in Python to condition the returns as 
+# since Nativecall will not pass a Series class back and forth
+# we make and instantiate a repr class 'SeriesC' as container
+# and populate methods over in Rust to condition the returns as 
 # supported datatypes (Int, Str, Array, Hash, etc)
 
 my $py-str = qq{
@@ -286,7 +281,7 @@ class RakuSeries:
     #### Info Methods #####
 
     method Str { 
-	$!po.rs_str()
+	    $!rc.Str
     }
 
     method dtype {

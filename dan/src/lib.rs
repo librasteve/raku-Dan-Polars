@@ -15,7 +15,9 @@ pub struct SeriesC {
 }
 
 impl SeriesC {
-    fn new<T>(name: String, data: Vec::<T>) -> SeriesC {
+    fn new<T>(name: String, data: Vec::<T>) -> SeriesC 
+        where Series: NamedFrom<Vec<T>, [T]>
+    {
         SeriesC {
             se: Series::new(&name, data),
         }
@@ -210,6 +212,7 @@ pub extern "C" fn df_head(ptr: *mut DataFrameC) {
     df_c.head();
 }
 
+//iamerejh
 #[no_mangle]
 pub extern "C" fn df_column(
     ptr: *mut DataFrameC,
@@ -225,7 +228,7 @@ pub extern "C" fn df_column(
         CStr::from_ptr(string).to_string_lossy().into_owned()
     };
 
-    let mut se_n = SeriesC::new("dummy".to_owned(), [].to_vec());
+    let mut se_n = SeriesC::new::<i64>("dummy".to_owned(), [].to_vec());
     se_n.se = df_c.column(colname);
     Box::into_raw(Box::new(se_n))
 }

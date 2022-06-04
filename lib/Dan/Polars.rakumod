@@ -13,13 +13,15 @@ constant $raku-dir = '../lib/Dan/';
 constant $raku-file = 'Polars.rakumod';
 
 class SeriesC is repr('CPointer') {
-    sub se_new() returns SeriesC  is native($n-path) { * }
+    sub se_new(Str, CArray[int64], size_t) returns SeriesC is native($n-path) { * }
     sub se_free(SeriesC)          is native($n-path) { * }
     sub se_say(SeriesC)           is native($n-path) { * }
     sub se_head(SeriesC)          is native($n-path) { * }
+    sub se_dtype(SeriesC)         is native($n-path) { * }
+    sub se_elems(SeriesC) returns uint32 is native($n-path) { * }
 
-    method new {
-        se_new
+    method new( $name, @data ) {
+        se_new($name, prep-carray-int(@data), @data.elems );
     }
 
     submethod DESTROY {           #Free data when the object is garbage collected.
@@ -33,13 +35,27 @@ class SeriesC is repr('CPointer') {
     method head {
         se_head(self)
     }
+
+    method dtype {
+        se_dtype(self)
+    }
+
+    method elems {
+        se_elems(self)
+    }
 }
 
-my \se = SeriesC.new;
+my \se = SeriesC.new( "anon", [2,3,4] );
 se.head;
 
 sub prep-carray-str( @items where .are ~~ Str --> CArray ) {
     my @output := CArray[Str].new();
+    @output[$++] = $_ for @items;
+    @output
+}
+
+sub prep-carray-int( @items where .are ~~ Int --> CArray ) {
+    my @output := CArray[int64].new();
     @output[$++] = $_ for @items;
     @output
 }
@@ -111,6 +127,7 @@ class Query {
     }
 }
 
+#`[ off
 Query.new( s => q{
     .groupby(["variety"])
     .unwrap()
@@ -121,6 +138,7 @@ Query.new( s => q{
 
 my \x = df.query;
 x.head;
+£]
 
 ### Series, DataFrame [..] Roles that are exported for Script Usage ###
 
@@ -137,7 +155,7 @@ role Series does Positional does Iterable is export {
     ## attrs for construct and pull only: not synched to Rust side ##
     has Str	    $.name;
     has Any     @.data;
-    has Int     %!index;
+    has Int     %!index;            #FIXME REMOVE
 
     has SeriesC $!rc;       #Rust container
 
@@ -189,6 +207,15 @@ role Series does Positional does Iterable is export {
                 %!index = $index
             }
         }
+    }
+
+    method prep-py-args {
+	my ( @qdata, $args );
+        @qdata = @!data.map({$_ ~~ Str ?? qq/\"$_\"/ !! $_ });
+        $args  = "[{@qdata.join(', ')}]";
+        $args ~~ s:g/NaN/np.nan/;
+        $args ~= ", index=['{%!index.&sbv.join("', '")}']"   if %!index;
+        $args ~= ", name=\"$!name\""   	      		if $!name;
     }
 
     method TWEAK {
@@ -280,28 +307,17 @@ class RakuSeries:
 
     #### Info Methods #####
 
-    method Str { 
-	    $!rc.Str
+    method say { 
+	    $!rc.say
     }
 
     method dtype {
-	$!po.rs_dtype()
-    }
-
-    #| get index as Hash
-    method index {
-	my @keys = $!po.rs_index();
-        @keys.map({ $_ => $++ }).Hash
-    }
-
-    #| get index as Array
-    multi method ix {
-	$!po.rs_index()
+        $!rc.dtype
     }
 
     method Dan-Series {
-	$.pull;
-	Dan::Series.new( :$!name, :@!data, :%!index )
+        $.pull;
+        Dan::Series.new( :$!name, :@!data, :%!index )
     }
 
     #### Sync Methods #####
@@ -309,8 +325,7 @@ class RakuSeries:
 
     #| set raku attrs to rs_array / rs_index
     method pull {
-	%!index = $.index;
-	@!data  = $!po.rs_values;
+	    #@!data  = $!po.rs_values;
     }
 
     #### MAC Methods #####
@@ -412,10 +427,10 @@ class RakuSeries:
         Any
     }
     method elems {
-	$!po.rs_size()
+        $!rc.elems()
     }
     method AT-POS( $p ) {
-	$.pull;
+        $.pull;
         @!data[$p]
     }
     method EXISTS-POS( $p ) {

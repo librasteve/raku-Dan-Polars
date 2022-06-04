@@ -1,6 +1,7 @@
 use libc::c_char;
 use libc::size_t;
 use std::slice;
+use std::any::Any;
 use std::ffi::*; //{CStr, CString,}
 use std::fs::File;
 use std::path::{Path};
@@ -15,11 +16,15 @@ pub struct SeriesC {
 }
 
 impl SeriesC {
-    fn new() -> SeriesC {
+    fn new(name: String, data: Vec::<i64>) -> SeriesC {
         SeriesC {
-            se: Series::new_empty("anon", &DataType::UInt32),
+            //se: Series::new_empty("anon", &DataType::UInt32),
+            //se: Series::new("a", [1 , 2, 3]),
+            se: Series::new(&name, data),
         }
     }
+    //fn column(&self, string: String) -> Series {
+    //fn select(&self, colvec: Vec::<String>) -> DataFrame {
 
     fn say(&self) {
         println!{"{}", self.se};
@@ -28,12 +33,49 @@ impl SeriesC {
     fn head(&self) {
         println!{"{}", self.se.head(Some(5))};
     }
+
+    fn dtype(&self) {
+        println!{"{}", self.se.dtype()};
+    }
+
+    fn elems(&self) -> u32 {
+        self.se.len().try_into().unwrap()
+    }
 }
 
 // extern functions for Series Container
+//#[no_mangle]
+//pub extern "C" fn se_new() -> *mut SeriesC {
+//    Box::into_raw(Box::new(SeriesC::new()))
+//}
+
 #[no_mangle]
-pub extern "C" fn se_new() -> *mut SeriesC {
-    Box::into_raw(Box::new(SeriesC::new()))
+pub extern "C" fn se_new(
+    string: *const c_char,
+    data: *const *const i64,
+    len: size_t, 
+) -> *mut SeriesC {
+
+    let se_name = unsafe {
+        CStr::from_ptr(string).to_string_lossy().into_owned()
+    };
+
+    let mut se_data = Vec::<i64>::new();
+    unsafe {
+        assert!(!data.is_null());
+
+        for item in slice::from_raw_parts(data, len as usize) {
+            se_data.push(*item as i64);
+            println!("{:?}", item );
+            println!("{:?}", se_data );
+        };
+    };
+
+    let sc = SeriesC::new(se_name, se_data);
+    println!("{:?}", sc.se);
+
+    //Box::into_raw(Box::new(SeriesC::new(se_name, se_data)))
+    Box::into_raw(Box::new(sc))
 }
 
 #[no_mangle]
@@ -46,7 +88,6 @@ pub extern "C" fn se_free(ptr: *mut SeriesC) {
     }
 }
 
-
 #[no_mangle]
 pub extern "C" fn se_say(ptr: *mut SeriesC) {
     let se_c = unsafe {
@@ -56,6 +97,7 @@ pub extern "C" fn se_say(ptr: *mut SeriesC) {
 
     se_c.say();
 }
+
 #[no_mangle]
 pub extern "C" fn se_head(ptr: *mut SeriesC) {
     let se_c = unsafe {
@@ -64,6 +106,26 @@ pub extern "C" fn se_head(ptr: *mut SeriesC) {
     };
 
     se_c.head();
+}
+
+#[no_mangle]
+pub extern "C" fn se_dtype(ptr: *mut SeriesC) {
+    let se_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+
+    se_c.dtype();
+}
+
+#[no_mangle]
+pub extern "C" fn se_elems(ptr: *mut SeriesC) -> u32 {
+    let se_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+
+    se_c.elems()
 }
 
 // DataFrame Container
@@ -106,7 +168,13 @@ impl DataFrameC {
 
     fn query(&self) -> DataFrame {
         let x = self.df.clone()
-//%INSERT-QUERY%
+
+    .groupby(["variety"])
+    .unwrap()
+    .select(["petal.length"])
+    .sum()
+    .unwrap()
+
             ;
         x
     }
@@ -156,7 +224,8 @@ pub extern "C" fn df_head(ptr: *mut DataFrameC) {
 pub extern "C" fn df_column(
     ptr: *mut DataFrameC,
     string: *const c_char,
-) -> *mut SeriesC {
+) {
+//) -> *mut SeriesC {
 
     let df_c = unsafe {
         assert!(!ptr.is_null());
@@ -167,9 +236,10 @@ pub extern "C" fn df_column(
         CStr::from_ptr(string).to_string_lossy().into_owned()
     };
 
-    let mut se_n = SeriesC::new();
-    se_n.se = df_c.column(colname);
-    Box::into_raw(Box::new(se_n))
+    //FIXME adjust to new(df)
+    //let mut se_n = SeriesC::new();
+    //se_n.se = df_c.column(colname);
+    //Box::into_raw(Box::new(se_n))
 }
 
 #[no_mangle]

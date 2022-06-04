@@ -1,7 +1,6 @@
 use libc::c_char;
 use libc::size_t;
 use std::slice;
-use std::any::Any;
 use std::ffi::*; //{CStr, CString,}
 use std::fs::File;
 use std::path::{Path};
@@ -16,15 +15,18 @@ pub struct SeriesC {
 }
 
 impl SeriesC {
-    fn new(name: String, data: Vec::<i64>) -> SeriesC {
+    fn new<T>(name: String, data: Vec::<T>) -> SeriesC {
         SeriesC {
-            //se: Series::new_empty("anon", &DataType::UInt32),
-            //se: Series::new("a", [1 , 2, 3]),
             se: Series::new(&name, data),
         }
     }
-    //fn column(&self, string: String) -> Series {
-    //fn select(&self, colvec: Vec::<String>) -> DataFrame {
+
+//    fn new(name: String, data: Vec::<i64>) -> SeriesC {
+//        SeriesC {
+//            se: Series::new(&name, data),
+//        }
+//    }
+
 
     fn say(&self) {
         println!{"{}", self.se};
@@ -43,12 +45,6 @@ impl SeriesC {
     }
 }
 
-// extern functions for Series Container
-//#[no_mangle]
-//pub extern "C" fn se_new() -> *mut SeriesC {
-//    Box::into_raw(Box::new(SeriesC::new()))
-//}
-
 #[no_mangle]
 pub extern "C" fn se_new(
     string: *const c_char,
@@ -66,16 +62,10 @@ pub extern "C" fn se_new(
 
         for item in slice::from_raw_parts(data, len as usize) {
             se_data.push(*item as i64);
-            println!("{:?}", item );
-            println!("{:?}", se_data );
         };
     };
 
-    let sc = SeriesC::new(se_name, se_data);
-    println!("{:?}", sc.se);
-
-    //Box::into_raw(Box::new(SeriesC::new(se_name, se_data)))
-    Box::into_raw(Box::new(sc))
+    Box::into_raw(Box::new(SeriesC::new(se_name, se_data)))
 }
 
 #[no_mangle]
@@ -224,8 +214,7 @@ pub extern "C" fn df_head(ptr: *mut DataFrameC) {
 pub extern "C" fn df_column(
     ptr: *mut DataFrameC,
     string: *const c_char,
-) {
-//) -> *mut SeriesC {
+) -> *mut SeriesC {
 
     let df_c = unsafe {
         assert!(!ptr.is_null());
@@ -236,10 +225,9 @@ pub extern "C" fn df_column(
         CStr::from_ptr(string).to_string_lossy().into_owned()
     };
 
-    //FIXME adjust to new(df)
-    //let mut se_n = SeriesC::new();
-    //se_n.se = df_c.column(colname);
-    //Box::into_raw(Box::new(se_n))
+    let mut se_n = SeriesC::new("dummy".to_owned(), [].to_vec());
+    se_n.se = df_c.column(colname);
+    Box::into_raw(Box::new(se_n))
 }
 
 #[no_mangle]

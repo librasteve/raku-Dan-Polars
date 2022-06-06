@@ -14,6 +14,7 @@ constant $raku-file = 'Polars.rakumod';
 
 class SeriesC is repr('CPointer') {
     sub se_new(Str, CArray[int64], size_t) returns SeriesC is native($n-path) { * }
+    sub se_new_new(Str, CArray[int64], size_t) returns SeriesC is native($n-path) { * }
     sub se_free(SeriesC)          is native($n-path) { * }
     sub se_say(SeriesC)           is native($n-path) { * }
     sub se_head(SeriesC)          is native($n-path) { * }
@@ -21,7 +22,8 @@ class SeriesC is repr('CPointer') {
     sub se_elems(SeriesC) returns uint32 is native($n-path) { * }
 
     method new( $name, @data ) {
-        se_new($name, prep-carray-int(@data), @data.elems );
+        se_new_new($name, prep-carray-int(@data), @data.elems );
+        #se_new($name, prep-carray-int(@data), @data.elems );
     }
 
     submethod DESTROY {           #Free data when the object is garbage collected.
@@ -47,6 +49,7 @@ class SeriesC is repr('CPointer') {
 
 my \se = SeriesC.new( "anon", [2,3,4] );
 se.head;
+die;
 
 sub prep-carray-str( @items where .are ~~ Str --> CArray ) {
     my @output := CArray[Str].new();

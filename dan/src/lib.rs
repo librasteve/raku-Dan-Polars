@@ -30,6 +30,15 @@ impl SeriesC {
 //    }
 
 
+    fn new_new<T>(name: String, data: Vec::<T>) -> SeriesC 
+        where Series: NamedFrom<Vec<T>, [T]>
+    {
+        SeriesC {
+            se: Series::new(&name, data),
+        }
+    }
+
+
     fn say(&self) {
         println!{"{}", self.se};
     }
@@ -46,6 +55,62 @@ impl SeriesC {
         self.se.len().try_into().unwrap()
     }
 }
+
+fn se_new_vec<T>(
+    string: *const c_char,
+    ptr: *const T,
+    len: size_t, 
+) -> *mut SeriesC 
+        where Series: NamedFrom<Vec<T>, [T]>
+    {
+
+    let se_name = unsafe {
+        CStr::from_ptr(string).to_string_lossy().into_owned()
+    };
+
+    let mut se_data = Vec::new();
+    unsafe {
+        assert!(!ptr.is_null());
+
+        for item in slice::from_raw_parts(ptr, len as usize) {
+            se_data.push(*item);
+        };
+    };
+
+    Box::into_raw(Box::new(SeriesC::new_new(se_name, se_data)))
+}
+
+#[no_mangle]
+pub extern "C" fn se_new_new(
+    string: *const c_char,
+    ptr: *const i64,
+    len: size_t, 
+) -> *mut SeriesC {
+    se_new_vec(string, ptr, len)
+}
+
+//#[no_mangle]
+//pub extern "C" fn se_new_new(
+//    string: *const c_char,
+//    ptr: *const i64,
+//    len: size_t, 
+//) -> *mut SeriesC {
+//
+//    let se_name = unsafe {
+//        CStr::from_ptr(string).to_string_lossy().into_owned()
+//    };
+//
+//    let mut se_data = Vec::new();
+//    unsafe {
+//        assert!(!ptr.is_null());
+//
+//        for item in slice::from_raw_parts(ptr, len as usize) {
+//            se_data.push(*item);
+//        };
+//    };
+//
+//    Box::into_raw(Box::new(SeriesC::new_new(se_name, se_data)))
+//}
 
 #[no_mangle]
 pub extern "C" fn se_new(

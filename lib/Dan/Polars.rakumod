@@ -13,8 +13,10 @@ constant $raku-dir = '../lib/Dan/';
 constant $raku-file = 'Polars.rakumod';
 
 class SeriesC is repr('CPointer') {
-    sub se_new(Str, CArray[int64], size_t) returns SeriesC is native($n-path) { * }
-    sub se_new_new(Str, CArray[int64], size_t) returns SeriesC is native($n-path) { * }
+    sub se_new_i32(Str, CArray[int32], size_t) returns SeriesC is native($n-path) { * }
+    sub se_new_i64(Str, CArray[int64], size_t) returns SeriesC is native($n-path) { * }
+    sub se_new_u32(Str, CArray[uint32], size_t) returns SeriesC is native($n-path) { * }
+    sub se_new_u64(Str, CArray[uint64], size_t) returns SeriesC is native($n-path) { * }
     sub se_free(SeriesC)          is native($n-path) { * }
     sub se_say(SeriesC)           is native($n-path) { * }
     sub se_head(SeriesC)          is native($n-path) { * }
@@ -22,9 +24,18 @@ class SeriesC is repr('CPointer') {
     sub se_elems(SeriesC) returns uint32 is native($n-path) { * }
 
     method new( $name, @data ) {
-        se_new_new($name, prep-carray-int(@data), @data.elems );
-        #se_new($name, prep-carray-int(@data), @data.elems );
+        se_new_i64($name, prep-carray-int(@data), @data.elems );
     }
+#`[ iamerejh
+    method new( $name, @data ) {
+    given @data.min, @data.max {
+        when < -2**31, < 2**31 { se_new_i32($name, @data, @data.elems ) }
+        when < 0     , < 2**32 { se_new_u32($name, @data, @data.elems ) }
+        when < -2**63, < 2**63 { se_new_i64($name, @data, @data.elems ) }
+        when < 0     , < 2**64 { se_new_u64($name, @data, @data.elems ) }
+        default { die "integers larger than 2**64 are not implemented" }
+    }
+#]
 
     submethod DESTROY {           #Free data when the object is garbage collected.
         se_free(self);
@@ -47,6 +58,13 @@ class SeriesC is repr('CPointer') {
     }
 }
 
+my UInt @vals = [2,3,4];
+@vals.map({$_.=UInt});
+say @vals.are;
+my \vals = [2,3,4];
+say vals.are;
+say vals.max;
+say vals.map(*.abs).max;
 my \se = SeriesC.new( "anon", [2,3,4] );
 se.head;
 die;

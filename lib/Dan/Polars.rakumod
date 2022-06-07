@@ -27,17 +27,18 @@ class SeriesC is repr('CPointer') {
     sub se_elems(SeriesC) returns uint32 is native($n-path) { * }
 
     method new( $name, @data, :$dtype ) {
-        say "no";
-        say $dtype;
-        say $dtype.^name;
+
+        @data.map({ $_.=Num }) if @data.are ~~ Real;     #Coerce stray Rats & Ints to Num
 
         if $dtype {
+
             given $dtype {
+                #when num32  { se_new_f32($name, carray(num32,  @data), @data.elems ) }
                 when 'int32'  { se_new_i32($name, carray(int32,  @data), @data.elems ) }
                 when 'uint32' { se_new_u32($name, carray(uint32, @data), @data.elems ) }
                 when 'int64'  { se_new_i64($name, carray(int64,  @data), @data.elems ) }
                 when 'uint64' { se_new_u64($name, carray(uint64, @data), @data.elems ) }
-                when 'num32'  { say 'ho'; se_new_f32($name, carray(num32,  @data), @data.elems ) }
+                when 'num32'  { se_new_f32($name, carray(num32,  @data), @data.elems ) }
                 when 'num64'  { se_new_f64($name, carray(num64,  @data), @data.elems ) }
                 when 'Int'    { se_new_i64($name, carray(int64, @data), @data.elems ) }
                 when 'Num'    { se_new_f64($name, carray(num64,  @data), @data.elems ) }
@@ -45,7 +46,9 @@ class SeriesC is repr('CPointer') {
                 when 'Rat'    { die "Rats are not implemented by Polars" }
                 when 'Real'   { die "Rats are not implemented by Polars" }
             }
+
         } else {
+
             given @data.are {
                 when Int {
                     given @data.min, @data.max {
@@ -57,7 +60,6 @@ class SeriesC is repr('CPointer') {
                     }
                 }
                 when Real {   
-                    @data.map({ $_.=Num });             #Coerce stray Rats & Ints to Nums
                     se_new_f64($name, carray(num64, @data), @data.elems );
                 }
                 when Str {   
@@ -283,7 +285,6 @@ role Series does Positional does Iterable is export {
             }.Hash
         }
 
-        say $!dtype;
         $!rc = SeriesC.new( $!name, @!data, dtype => $!dtype );;
   
     }

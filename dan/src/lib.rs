@@ -82,6 +82,7 @@ pub extern "C" fn se_new_f32( name: *const c_char, ptr: *const f32, len: size_t,
 #[no_mangle]
 pub extern "C" fn se_new_f64( name: *const c_char, ptr: *const f64, len: size_t, ) 
     -> *mut SeriesC { se_new_vec(name, ptr, len) }
+
 //iamerejh then add str
 //#[no_mangle]
 //pub extern "C" fn se_new_str( name: *const c_char, ptr: *const c_char, len: size_t, ) 

@@ -60,13 +60,32 @@ fn se_new_vec<T>(
 }
 
 #[no_mangle]
-pub extern "C" fn se_new_i32( name: *const c_char, ptr: *const i32, len: size_t, ) -> *mut SeriesC { se_new_vec(name, ptr, len) }
+pub extern "C" fn se_new_i32( name: *const c_char, ptr: *const i32, len: size_t, )
+    -> *mut SeriesC { se_new_vec(name, ptr, len) }
+
 #[no_mangle]
-pub extern "C" fn se_new_i64( name: *const c_char, ptr: *const i64, len: size_t, ) -> *mut SeriesC { se_new_vec(name, ptr, len) }
+pub extern "C" fn se_new_i64( name: *const c_char, ptr: *const i64, len: size_t, ) 
+    -> *mut SeriesC { se_new_vec(name, ptr, len) }
+
 #[no_mangle]
-pub extern "C" fn se_new_u32( name: *const c_char, ptr: *const u32, len: size_t, ) -> *mut SeriesC { se_new_vec(name, ptr, len) }
+pub extern "C" fn se_new_u32( name: *const c_char, ptr: *const u32, len: size_t, ) 
+    -> *mut SeriesC { se_new_vec(name, ptr, len) }
+
 #[no_mangle]
-pub extern "C" fn se_new_u64( name: *const c_char, ptr: *const u64, len: size_t, ) -> *mut SeriesC { se_new_vec(name, ptr, len) }
+pub extern "C" fn se_new_u64( name: *const c_char, ptr: *const u64, len: size_t, ) 
+    -> *mut SeriesC { se_new_vec(name, ptr, len) }
+
+#[no_mangle]
+pub extern "C" fn se_new_f32( name: *const c_char, ptr: *const f32, len: size_t, ) 
+    -> *mut SeriesC { se_new_vec(name, ptr, len) }
+
+#[no_mangle]
+pub extern "C" fn se_new_f64( name: *const c_char, ptr: *const f64, len: size_t, ) 
+    -> *mut SeriesC { se_new_vec(name, ptr, len) }
+//iamerejh then add str
+//#[no_mangle]
+//pub extern "C" fn se_new_str( name: *const c_char, ptr: *const c_char, len: size_t, ) 
+//    -> *mut SeriesC { se_new_vec(name, ptr, len) }
 
 #[no_mangle]
 pub extern "C" fn se_free(ptr: *mut SeriesC) {

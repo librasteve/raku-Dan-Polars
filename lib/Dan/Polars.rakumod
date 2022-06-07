@@ -15,27 +15,57 @@ constant $raku-file = 'Polars.rakumod';
 class SeriesC is repr('CPointer') {
     sub se_new_i32(Str, CArray[int32], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_i64(Str, CArray[int64], size_t) returns SeriesC is native($n-path) { * }
-    sub se_new_u32(Str, CArray[uint32], size_t) returns SeriesC is native($n-path) { * }
-    sub se_new_u64(Str, CArray[uint64], size_t) returns SeriesC is native($n-path) { * }
-    sub se_free(SeriesC)          is native($n-path) { * }
-    sub se_say(SeriesC)           is native($n-path) { * }
-    sub se_head(SeriesC)          is native($n-path) { * }
-    sub se_dtype(SeriesC)         is native($n-path) { * }
+    sub se_new_u32(Str, CArray[uint32],size_t) returns SeriesC is native($n-path) { * }
+    sub se_new_u64(Str, CArray[uint64],size_t) returns SeriesC is native($n-path) { * }
+    sub se_new_f32(Str, CArray[num32], size_t) returns SeriesC is native($n-path) { * }
+    sub se_new_f64(Str, CArray[num64], size_t) returns SeriesC is native($n-path) { * }
+    sub se_new_str(Str, CArray[Str],   size_t) returns SeriesC is native($n-path) { * }
+    sub se_free(SeriesC)  is native($n-path) { * }
+    sub se_say(SeriesC)   is native($n-path) { * }
+    sub se_head(SeriesC)  is native($n-path) { * }
+    sub se_dtype(SeriesC) is native($n-path) { * }
     sub se_elems(SeriesC) returns uint32 is native($n-path) { * }
 
-    method new( $name, @data ) {
-        se_new_i64($name, prep-carray-int(@data), @data.elems );
+    method new( $name, @data, :$dtype ) {
+        say "no";
+        say $dtype;
+        say $dtype.^name;
+
+        if $dtype {
+            given $dtype {
+                when 'int32'  { se_new_i32($name, carray(int32,  @data), @data.elems ) }
+                when 'uint32' { se_new_u32($name, carray(uint32, @data), @data.elems ) }
+                when 'int64'  { se_new_i64($name, carray(int64,  @data), @data.elems ) }
+                when 'uint64' { se_new_u64($name, carray(uint64, @data), @data.elems ) }
+                when 'num32'  { say 'ho'; se_new_f32($name, carray(num32,  @data), @data.elems ) }
+                when 'num64'  { se_new_f64($name, carray(num64,  @data), @data.elems ) }
+                when 'Int'    { se_new_i64($name, carray(int64, @data), @data.elems ) }
+                when 'Num'    { se_new_f64($name, carray(num64,  @data), @data.elems ) }
+                when 'Str'    { se_new_str($name, carray(Str,    @data), @data.elems ) }
+                when 'Rat'    { die "Rats are not implemented by Polars" }
+                when 'Real'   { die "Rats are not implemented by Polars" }
+            }
+        } else {
+            given @data.are {
+                when Int {
+                    given @data.min, @data.max {
+                        when * > -2**31, * < 2**31-1 { se_new_i32($name, carray(int32, @data), @data.elems ) }
+                        when * > 0     , * < 2**32-1 { se_new_u32($name, carray(uint32,@data), @data.elems ) }
+                        when * > -2**63, * < 2**63-1 { se_new_i64($name, carray(int64, @data), @data.elems ) }
+                        when * > 0     , * < 2**64-1 { se_new_u64($name, carray(uint64,@data), @data.elems ) }
+                        default { die "Int larger than 2**64 are not implemented by Polars" }
+                    }
+                }
+                when Real {   
+                    @data.map({ $_.=Num });             #Coerce stray Rats & Ints to Nums
+                    se_new_f64($name, carray(num64, @data), @data.elems );
+                }
+                when Str {   
+                    se_new_str($name, carray(Str, @data), @data.elems );
+                }
+            }
+        }
     }
-#`[ iamerejh
-    method new( $name, @data ) {
-    given @data.min, @data.max {
-        when < -2**31, < 2**31 { se_new_i32($name, @data, @data.elems ) }
-        when < 0     , < 2**32 { se_new_u32($name, @data, @data.elems ) }
-        when < -2**63, < 2**63 { se_new_i64($name, @data, @data.elems ) }
-        when < 0     , < 2**64 { se_new_u64($name, @data, @data.elems ) }
-        default { die "integers larger than 2**64 are not implemented" }
-    }
-#]
 
     submethod DESTROY {           #Free data when the object is garbage collected.
         se_free(self);
@@ -58,27 +88,13 @@ class SeriesC is repr('CPointer') {
     }
 }
 
-my UInt @vals = [2,3,4];
-@vals.map({$_.=UInt});
-say @vals.are;
-my \vals = [2,3,4];
-say vals.are;
-say vals.max;
-say vals.map(*.abs).max;
-my \se = SeriesC.new( "anon", [2,3,4] );
-se.head;
-die;
-
-sub prep-carray-str( @items where .are ~~ Str --> CArray ) {
-    my @output := CArray[Str].new();
-    @output[$++] = $_ for @items;
-    @output
-}
-
-sub prep-carray-int( @items where .are ~~ Int --> CArray ) {
-    my @output := CArray[int64].new();
-    @output[$++] = $_ for @items;
-    @output
+sub carray( $dtype, @items ) {
+    my $output := CArray[$dtype].new();
+#iamerejh - cant get num32 to load
+    loop ( my $i = 0; $i < @items; $i++ ) {
+        $output[$i] = @items[$i]
+    }
+    $output
 }
 
 class DataFrameC is repr('CPointer') {
@@ -111,7 +127,7 @@ class DataFrameC is repr('CPointer') {
     }
 
     method select( Array \colspec ) {
-        df_select(self, prep-carray-str( colspec ), colspec.elems)
+        df_select(self, carray( Str, colspec ), colspec.elems)
     }
 
     method query {
@@ -177,6 +193,7 @@ role Series does Positional does Iterable is export {
     has Str	    $.name;
     has Any     @.data;
     has Int     %!index;            #FIXME REMOVE
+    has         $!dtype;
 
     has SeriesC $!rc;       #Rust container
 
@@ -217,9 +234,10 @@ role Series does Positional does Iterable is export {
         samewith( name => s.name, data => s.data, index => s.index )
     }
 
-    submethod BUILD( :$name, :@data, :$index ) {
+    submethod BUILD( :$name, :@data, :$index, :$dtype ) {
         $!name = $name // 'anon';
         @!data = @data;
+        $!dtype = $dtype; 
 
 	    if $index {
             if $index !~~ Hash {
@@ -265,9 +283,10 @@ role Series does Positional does Iterable is export {
             }.Hash
         }
 
-        $!rc = SeriesC.new;
+        say $!dtype;
+        $!rc = SeriesC.new( $!name, @!data, dtype => $!dtype );;
   
-    ## put SeriesC here
+    }
 
 #`[
 
@@ -324,7 +343,6 @@ class RakuSeries:
 	$!po = $!py.call('__main__', 'RakuSeries');
 #]
 
-    }
 
     #### Info Methods #####
 
@@ -333,7 +351,7 @@ class RakuSeries:
     }
 
     method dtype {
-        $!rc.dtype
+        $!rc.dtype 
     }
 
     method Dan-Series {

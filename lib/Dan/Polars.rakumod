@@ -33,14 +33,13 @@ class SeriesC is repr('CPointer') {
         if $dtype {
 
             given $dtype {
-                #when num32  { se_new_f32($name, carray(num32,  @data), @data.elems ) }
                 when 'int32'  { se_new_i32($name, carray(int32,  @data), @data.elems ) }
                 when 'uint32' { se_new_u32($name, carray(uint32, @data), @data.elems ) }
                 when 'int64'  { se_new_i64($name, carray(int64,  @data), @data.elems ) }
                 when 'uint64' { se_new_u64($name, carray(uint64, @data), @data.elems ) }
                 when 'num32'  { se_new_f32($name, carray(num32,  @data), @data.elems ) }
                 when 'num64'  { se_new_f64($name, carray(num64,  @data), @data.elems ) }
-                when 'Int'    { se_new_i64($name, carray(int64, @data), @data.elems ) }
+                when 'Int'    { se_new_i64($name, carray(int64,  @data), @data.elems ) }
                 when 'Num'    { se_new_f64($name, carray(num64,  @data), @data.elems ) }
                 when 'Str'    { se_new_str($name, carray(Str,    @data), @data.elems ) }
                 when 'Rat'    { die "Rats are not implemented by Polars" }
@@ -92,7 +91,7 @@ class SeriesC is repr('CPointer') {
 
 sub carray( $dtype, @items ) {
     my $output := CArray[$dtype].new();
-#iamerejh - cant get num32 to load
+
     loop ( my $i = 0; $i < @items; $i++ ) {
         $output[$i] = @items[$i]
     }
@@ -285,8 +284,7 @@ role Series does Positional does Iterable is export {
             }.Hash
         }
 
-        $!rc = SeriesC.new( $!name, @!data, dtype => $!dtype );;
-  
+        $!rc = SeriesC.new( $!name, @!data, dtype => $!dtype )
     }
 
 #`[

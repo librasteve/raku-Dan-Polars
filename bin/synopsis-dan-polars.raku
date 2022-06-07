@@ -14,18 +14,18 @@ my \s = $;
 #s = Series.new([1, 3, 5, NaN, 6, 8]);
 #s = Series.new( [b=>1, a=>0, c=>2] );               #from Array of Pairs
 #s = Series.new( [rand xx 6], index => <a b c d e f>);
-my @d = [1, 3, 5, NaN, Inf, 6, 8];
 
 #s = Series.new(data => [1, 3, 5, 6, 8], name => 'john' );                          #i32
 #s = Series.new(data => [1, 3, 5, 6, 4_294_967_294], name => 'john' );              #u32
 #s = Series.new(data => [-1, 3, 5, 6, 4_294_967_298], name => 'john' );             #i64
-#s = Series.new(data => [1, 3, 5, 6, 18_446_744_073_709_551_614], name => 'john' );  #u64
-s = Series.new(data => [1, 3, 5, 6, 8], name => 'john', dtype => 'num32' );
-say s.dtype;
-say 'yo';
+#s = Series.new(data => [1, 3, 5, 6, 18_446_744_073_709_551_614], name => 'john' ); #u64
+#s = Series.new(data => [1, 3, 5, 6, 8], name => 'john', dtype => 'num32' );        #f32 FIXME dtype as raw type
+#s = Series.new(data => [1, 3, 5, NaN, 6, 8], name => 'john' );                      #f64
+s = Series.new(data => <a b c d e f>, name => 'anna' );                          #i32
+
 s.say;
-s.head;   #dead
 s.dtype;
+s.head;   #dead
 say s.elems;
 #`[[[
 say s.data;

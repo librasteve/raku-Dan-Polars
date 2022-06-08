@@ -38,6 +38,63 @@ impl SeriesC {
     fn elems(&self) -> u32 {
         self.se.len().try_into().unwrap()
     }
+
+    fn values(&self) {
+        let dtype: &str = &self.se.dtype().to_string();
+        match dtype {
+            "i32" => { 
+                let asvec: Vec<_> = self.se.i32().into_iter().collect(); 
+                let bsvec: Vec<_> = asvec[0].into_iter().collect();
+                for value in bsvec.iter() { 
+                    println!("{}", value.unwrap() );
+                }
+            },
+            "u32" => { 
+                let asvec: Vec<_> = self.se.u32().into_iter().collect(); 
+                let bsvec: Vec<_> = asvec[0].into_iter().collect();
+                for value in bsvec.iter() { 
+                    println!("{}", value.unwrap() );
+                }
+            },
+            "i64" => { 
+                let asvec: Vec<_> = self.se.i64().into_iter().collect(); 
+                let bsvec: Vec<_> = asvec[0].into_iter().collect();
+                for value in bsvec.iter() { 
+                    println!("{}", value.unwrap() );
+                }
+            },
+            "u64" => { 
+                let asvec: Vec<_> = self.se.u64().into_iter().collect(); 
+                let bsvec: Vec<_> = asvec[0].into_iter().collect();
+                for value in bsvec.iter() { 
+                    println!("{}", value.unwrap() );
+                }
+            },
+            "f32" => { 
+                let asvec: Vec<_> = self.se.f32().into_iter().collect(); 
+                let bsvec: Vec<_> = asvec[0].into_iter().collect();
+                for value in bsvec.iter() { 
+                    println!("{}", value.unwrap() );
+                }
+            },
+            "f64" => { 
+                let asvec: Vec<_> = self.se.f64().into_iter().collect(); 
+                let bsvec: Vec<_> = asvec[0].into_iter().collect();
+                for value in bsvec.iter() { 
+                    println!("{}", value.unwrap() );
+                }
+            },
+//iamerejh https://stackoverflow.com/questions/71376935/how-to-get-a-vec-from-polars-series-or-chunkedarray/71377587#71377587
+//            "str" => { 
+//                let asvec: Vec<_> = self.se.string().into_iter().collect(); 
+//                let bsvec: Vec<_> = asvec[0].into_iter().collect();
+//                for value in bsvec.iter() { 
+//                    println!("{}", value.unwrap() );
+//                }
+//            },
+            &_ => todo!(),
+        }
+    }
 }
 
 fn se_new_vec<T>(
@@ -151,6 +208,16 @@ pub extern "C" fn se_elems(ptr: *mut SeriesC) -> u32 {
     se_c.elems()
 }
 
+#[no_mangle]
+pub extern "C" fn se_values(ptr: *mut SeriesC) {
+    let se_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+
+    se_c.values();
+}
+
 // DataFrame Container
 
 pub fn df_load_csv(spath: &str) -> PolarResult<DataFrame> {
@@ -190,7 +257,7 @@ impl DataFrameC {
     }
 
     fn query(&self) -> DataFrame {
-        let x = self.df.clone()
+        let result = self.df.clone()
 
     .groupby(["variety"])
     .unwrap()
@@ -199,7 +266,7 @@ impl DataFrameC {
     .unwrap()
 
             ;
-        x
+       result 
     }
 }
 

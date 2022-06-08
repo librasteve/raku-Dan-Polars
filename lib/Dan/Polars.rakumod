@@ -20,30 +20,29 @@ class SeriesC is repr('CPointer') {
     sub se_new_f32(Str, CArray[num32], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_f64(Str, CArray[num64], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_str(Str, CArray[Str],   size_t) returns SeriesC is native($n-path) { * }
-    sub se_free(SeriesC)  is native($n-path) { * }
-    sub se_say(SeriesC)   is native($n-path) { * }
-    sub se_head(SeriesC)  is native($n-path) { * }
-    sub se_dtype(SeriesC) is native($n-path) { * }
-    sub se_elems(SeriesC) returns uint32 is native($n-path) { * }
+    sub se_free(SeriesC)   is native($n-path) { * }
+    sub se_say(SeriesC)    is native($n-path) { * }
+    sub se_head(SeriesC)   is native($n-path) { * }
+    sub se_dtype(SeriesC)  is native($n-path) { * }
+    sub se_elems(SeriesC)  returns uint32 is native($n-path) { * }
+    sub se_values(SeriesC) is native($n-path) { * }
 
     method new( $name, @data, :$dtype ) {
-
-        @data.map({ $_.=Num }) if @data.are ~~ Real;     #Coerce stray Rats & Ints to Num
 
         if $dtype {
 
             given $dtype {
-                when 'int32'  { se_new_i32($name, carray(int32,  @data), @data.elems ) }
+                when  'int32' { se_new_i32($name, carray( int32, @data), @data.elems ) }
                 when 'uint32' { se_new_u32($name, carray(uint32, @data), @data.elems ) }
-                when 'int64'  { se_new_i64($name, carray(int64,  @data), @data.elems ) }
+                when  'int64' { se_new_i64($name, carray( int64, @data), @data.elems ) }
                 when 'uint64' { se_new_u64($name, carray(uint64, @data), @data.elems ) }
-                when 'num32'  { se_new_f32($name, carray(num32,  @data), @data.elems ) }
-                when 'num64'  { se_new_f64($name, carray(num64,  @data), @data.elems ) }
-                when 'Int'    { se_new_i64($name, carray(int64,  @data), @data.elems ) }
-                when 'Num'    { se_new_f64($name, carray(num64,  @data), @data.elems ) }
-                when 'Str'    { se_new_str($name, carray(Str,    @data), @data.elems ) }
-                when 'Rat'    { die "Rats are not implemented by Polars" }
-                when 'Real'   { die "Rats are not implemented by Polars" }
+                when  'num32' { se_new_f32($name, carray( num32, @data), @data.elems ) }
+                when  'num64' { se_new_f64($name, carray( num64, @data), @data.elems ) }
+                when    'Int' { se_new_i64($name, carray( int64, @data), @data.elems ) }
+                when    'Num' { se_new_f64($name, carray( num64, @data), @data.elems ) }
+                when    'Str' { se_new_str($name, carray(   Str, @data), @data.elems ) }
+                when    'Rat' { die "Rats are not implemented by Polars" }
+                when   'Real' { die "Rats are not implemented by Polars" }
             }
 
         } else {
@@ -51,14 +50,15 @@ class SeriesC is repr('CPointer') {
             given @data.are {
                 when Int {
                     given @data.min, @data.max {
-                        when * > -2**31, * < 2**31-1 { se_new_i32($name, carray(int32, @data), @data.elems ) }
-                        when * > 0     , * < 2**32-1 { se_new_u32($name, carray(uint32,@data), @data.elems ) }
-                        when * > -2**63, * < 2**63-1 { se_new_i64($name, carray(int64, @data), @data.elems ) }
-                        when * > 0     , * < 2**64-1 { se_new_u64($name, carray(uint64,@data), @data.elems ) }
+                        when * > -2**31, * < 2**31-1 { se_new_i32($name, carray( int32, @data), @data.elems ) }
+                        when * >      0, * < 2**32-1 { se_new_u32($name, carray(uint32, @data), @data.elems ) }
+                        when * > -2**63, * < 2**63-1 { se_new_i64($name, carray( int64, @data), @data.elems ) }
+                        when * >      0, * < 2**64-1 { se_new_u64($name, carray(uint64, @data), @data.elems ) }
                         default { die "Int larger than 2**64 are not implemented by Polars" }
                     }
                 }
                 when Real {   
+                    @data.map({ $_.=Num }) if @data.are ~~ Real;     #Coerce stray Rats & Ints to Num
                     se_new_f64($name, carray(num64, @data), @data.elems );
                 }
                 when Str {   
@@ -87,6 +87,10 @@ class SeriesC is repr('CPointer') {
     method elems {
         se_elems(self)
     }
+
+    method values {
+        se_values(self)
+    }
 }
 
 sub carray( $dtype, @items ) {
@@ -95,8 +99,6 @@ sub carray( $dtype, @items ) {
     loop ( my $i = 0; $i < @items; $i++ ) {
         $output[$i] = @items[$i]
     }
-    say 'ho';
-    say $output[2];
     $output
 }
 
@@ -251,15 +253,6 @@ role Series does Positional does Iterable is export {
         }
     }
 
-    method prep-py-args {
-	my ( @qdata, $args );
-        @qdata = @!data.map({$_ ~~ Str ?? qq/\"$_\"/ !! $_ });
-        $args  = "[{@qdata.join(', ')}]";
-        $args ~~ s:g/NaN/np.nan/;
-        $args ~= ", index=['{%!index.&sbv.join("', '")}']"   if %!index;
-        $args ~= ", name=\"$!name\""   	      		if $!name;
-    }
-
     method TWEAK {
 
         # handle data => Array of Pairs 
@@ -289,70 +282,22 @@ role Series does Positional does Iterable is export {
         $!rc = SeriesC.new( $!name, @!data, dtype => $!dtype )
     }
 
-#`[
-
-# since Nativecall will not pass a Series class back and forth
-# we make and instantiate a repr class 'SeriesC' as container
-# and populate methods over in Rust to condition the returns as 
-# supported datatypes (Int, Str, Array, Hash, etc)
-
-my $py-str = qq{
-
-class RakuSeries:
-    def __init__(self):
-        self.series = pd.Series($args)
-        #print(self.series)
-
-    def rs_str(self):
-        return(str(self.series))
-
-    def rs_dtype(self):
-        return(str(self.series.dtype.type))
-
-    def rs_index(self):
-        return(self.series.index)
-
-    def rs_reindex(self, new_index):
-        result = self.series.reindex(new_index)
-        return(result)
-
-    def rs_size(self):
-        return(self.series.size)
-
-    def rs_values(self):
-        array = self.series.values
-        result = array.tolist()
-        return(result)
-
-    def rs_eval(self, exp):
-        result = eval('self.series' + exp)
-        print(result) 
-
-    def rs_eval2(self, exp, other):
-        result = eval('self.series' + exp + '(other.series)')
-        print(result) 
-
-    def rs_exec(self, exp):
-        exec('self.series' + exp)
-
-    def rs_push(self, args):
-        self.series = eval('pd.Series(' + args + ')')
-
-};
-
-	$!py.run($py-str);
-	$!po = $!py.call('__main__', 'RakuSeries');
-#]
-
-
     #### Info Methods #####
 
     method say { 
 	    $!rc.say
     }
 
+    method head {
+        $!rc.head 
+    }
+
     method dtype {
         $!rc.dtype 
+    }
+
+    method values {
+        $!rc.values 
     }
 
     method Dan-Series {
@@ -366,6 +311,15 @@ class RakuSeries:
     #| set raku attrs to rs_array / rs_index
     method pull {
 	    #@!data  = $!po.rs_values;
+    }
+
+    method prep-py-args {
+	my ( @qdata, $args );
+        @qdata = @!data.map({$_ ~~ Str ?? qq/\"$_\"/ !! $_ });
+        $args  = "[{@qdata.join(', ')}]";
+        $args ~~ s:g/NaN/np.nan/;
+        $args ~= ", index=['{%!index.&sbv.join("', '")}']"   if %!index;
+        $args ~= ", name=\"$!name\""   	      		if $!name;
     }
 
     #### MAC Methods #####

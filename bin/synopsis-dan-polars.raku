@@ -20,13 +20,15 @@ my \s = $;
 #s = Series.new(data => [-1, 3, 5, 6, 4_294_967_298], name => 'john' );             #i64
 #s = Series.new(data => [1, 3, 5, 6, 18_446_744_073_709_551_614], name => 'john' ); #u64
 #s = Series.new(data => [1, 3, 5, 6, 8], name => 'john', dtype => 'num32' );        #f32 FIXME dtype as raw type
-#s = Series.new(data => [1, 3, 5, NaN, 6, 8], name => 'john' );                      #f64
-s = Series.new(data => <a b c d e f>, name => 'anna' );                          #i32
+#s = Series.new(data => [1, 3, 5, NaN, 6, 8], name => 'john' );                     #f64
+s = Series.new(data => <a b c d e f>, name => 'anna' );                            #str
 
+#s = Series.new(data => 1..99, name => 'john' );                          #i32
 s.say;
 s.dtype;
 s.head;   #dead
 say s.elems;
+#s.values;
 #`[[[
 say s.data;
 #s.ix;

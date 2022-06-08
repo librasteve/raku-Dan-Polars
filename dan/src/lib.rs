@@ -83,10 +83,23 @@ pub extern "C" fn se_new_f32( name: *const c_char, ptr: *const f32, len: size_t,
 pub extern "C" fn se_new_f64( name: *const c_char, ptr: *const f64, len: size_t, ) 
     -> *mut SeriesC { se_new_vec(name, ptr, len) }
 
-//iamerejh then add str
-//#[no_mangle]
-//pub extern "C" fn se_new_str( name: *const c_char, ptr: *const c_char, len: size_t, ) 
-//    -> *mut SeriesC { se_new_vec(name, ptr, len) }
+#[no_mangle]
+pub extern "C" fn se_new_str( name: *const c_char, ptr: *const *const c_char, len: size_t, ) 
+    -> *mut SeriesC { 
+
+    let se_name;
+    let mut se_data = Vec::<String>::new();
+    unsafe {
+        assert!(!ptr.is_null());
+        se_name = CStr::from_ptr(name).to_string_lossy().into_owned();
+
+        for item in slice::from_raw_parts(ptr, len as usize) {
+            se_data.push(CStr::from_ptr(*item).to_string_lossy().into_owned());
+        };
+    };
+
+    Box::into_raw(Box::new(SeriesC::new(se_name, se_data)))
+}
 
 #[no_mangle]
 pub extern "C" fn se_free(ptr: *mut SeriesC) {
@@ -230,7 +243,6 @@ pub extern "C" fn df_head(ptr: *mut DataFrameC) {
     df_c.head();
 }
 
-//iamerejh
 #[no_mangle]
 pub extern "C" fn df_column(
     ptr: *mut DataFrameC,

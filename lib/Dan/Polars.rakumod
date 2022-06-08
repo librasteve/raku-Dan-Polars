@@ -95,6 +95,8 @@ sub carray( $dtype, @items ) {
     loop ( my $i = 0; $i < @items; $i++ ) {
         $output[$i] = @items[$i]
     }
+    say 'ho';
+    say $output[2];
     $output
 }
 

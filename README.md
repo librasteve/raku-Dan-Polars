@@ -1,6 +1,6 @@
 # raku Dan::Polars
 
-This is a new notion for a new raku module to bind to Polars via Raku NativeCall / Rust FFI.
+This is a new raku module to bind to Polars via Raku NativeCall / Rust FFI.
 
 The following capabilities are planned:
 - Polars objects (Series, DataFrames) as shadows
@@ -10,7 +10,9 @@ The following capabilities are planned:
 - raku Dan features (accessors, dtypes)
 - broad datatype support & mapping
 - concurrency
-  
+
+The ultimate aim is to emulate the examples in the [Rust Polars Cookbook](https://pola-rs.github.io/polars/polars/docs/eager/index.html)
+
  **WORK IN PROGRESS**
  
  Installation

@@ -2,7 +2,7 @@
 
 # raku Dan::Polars
 
-This is a new raku module to bind to Polars via Raku NativeCall / Rust FFI.
+This is a new module to bind raku [Dan](https://github.com/p6steve/raku-Dan) to Polars via Raku NativeCall / Rust FFI.
 
 The following capabilities are planned:
 - Polars objects (Series, DataFrames) as shadows

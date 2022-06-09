@@ -1,3 +1,5 @@
+ *WORK IN PROGRESS*
+
 # raku Dan::Polars
 
 This is a new raku module to bind to Polars via Raku NativeCall / Rust FFI.
@@ -12,8 +14,6 @@ The following capabilities are planned:
 - concurrency
 
 The ultimate aim is to emulate the examples in the [Rust Polars Cookbook](https://pola-rs.github.io/polars/polars/docs/eager/index.html)
-
- **WORK IN PROGRESS**
  
  Installation
  

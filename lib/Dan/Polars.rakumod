@@ -13,6 +13,7 @@ constant $raku-dir = '../lib/Dan/';
 constant $raku-file = 'Polars.rakumod';
 
 class SeriesC is repr('CPointer') {
+    sub se_new_bool(Str, CArray[bool],  size_t) returns SeriesC is native($n-path) { * }
     sub se_new_i32(Str, CArray[int32], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_i64(Str, CArray[int64], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_u32(Str, CArray[uint32],size_t) returns SeriesC is native($n-path) { * }
@@ -38,6 +39,8 @@ class SeriesC is repr('CPointer') {
                 when 'uint64' { se_new_u64($name, carray(uint64, @data), @data.elems ) }
                 when  'num32' { se_new_f32($name, carray( num32, @data), @data.elems ) }
                 when  'num64' { se_new_f64($name, carray( num64, @data), @data.elems ) }
+                when   'bool' { se_new_bool($name, carray( bool, @data), @data.elems ) }
+                when   'Bool' { se_new_bool($name, carray( bool, @data), @data.elems ) }
                 when    'Int' { se_new_i64($name, carray( int64, @data), @data.elems ) }
                 when    'Num' { se_new_f64($name, carray( num64, @data), @data.elems ) }
                 when    'Str' { se_new_str($name, carray(   Str, @data), @data.elems ) }
@@ -48,6 +51,9 @@ class SeriesC is repr('CPointer') {
         } else {
 
             given @data.are {
+                when Bool {   
+                    se_new_bool($name, carray(bool, @data), @data.elems );
+                }
                 when Int {
                     given @data.min, @data.max {
                         when * > -2**31, * < 2**31-1 { se_new_i32($name, carray( int32, @data), @data.elems ) }

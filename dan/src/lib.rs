@@ -84,14 +84,20 @@ impl SeriesC {
                     println!("{}", value.unwrap() );
                 }
             },
-//iamerejh https://stackoverflow.com/questions/71376935/how-to-get-a-vec-from-polars-series-or-chunkedarray/71377587#71377587
-//            "str" => { 
-//                let asvec: Vec<_> = self.se.string().into_iter().collect(); 
-//                let bsvec: Vec<_> = asvec[0].into_iter().collect();
-//                for value in bsvec.iter() { 
-//                    println!("{}", value.unwrap() );
-//                }
-//            },
+            "str" => { 
+                let asvec: Vec<_> = self.se.utf8().into_iter().collect(); 
+                let bsvec: Vec<_> = asvec[0].into_iter().collect();
+                for value in bsvec.iter() { 
+                    println!("{}", value.unwrap() );
+                }
+            },
+            "bool" => { 
+                let asvec: Vec<_> = self.se.bool().into_iter().collect(); 
+                let bsvec: Vec<_> = asvec[0].into_iter().collect();
+                for value in bsvec.iter() { 
+                    println!("{}", value.unwrap() );
+                }
+            },
             &_ => todo!(),
         }
     }
@@ -138,6 +144,10 @@ pub extern "C" fn se_new_f32( name: *const c_char, ptr: *const f32, len: size_t,
 
 #[no_mangle]
 pub extern "C" fn se_new_f64( name: *const c_char, ptr: *const f64, len: size_t, ) 
+    -> *mut SeriesC { se_new_vec(name, ptr, len) }
+
+#[no_mangle]
+pub extern "C" fn se_new_bool( name: *const c_char, ptr: *const bool, len: size_t, ) 
     -> *mut SeriesC { se_new_vec(name, ptr, len) }
 
 #[no_mangle]

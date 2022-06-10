@@ -12,7 +12,7 @@ my \s = $;
 #s = Series.new(data => [1, 3, 5, NaN, 6, 8]);
 #s = Series.new([1, 3, 5, 6, 8]);
 #s = Series.new([1, 3, 5, NaN, 6, 8]);
-#s = Series.new( [b=>1, a=>0, c=>2] );               #from Array of Pairs
+s = Series.new( [b=>1, a=>0, c=>2] );               #from Array of Pairs
 #s = Series.new( [rand xx 6], index => <a b c d e f>);
 
 #s = Series.new(data => [1, 3, 5, 6, 8], name => 'john' );                          #i32
@@ -24,10 +24,11 @@ my \s = $;
 #s = Series.new(data => <a b c d e f>, name => 'anna' );                            #str
 #s = Series.new(data => [True, False, True, False], name => 'john' );               #bool
 
-s = Series.new(data => 'a'..'z', name => 'anna' );                            #str
-
+#s = Series.new(data => 'a'..'z', name => 'anna' );                            #str
 #s = Series.new(data => 1..99, name => 'john' );                          #i32
-s.say;
+
+#say ~s;
+s.Str;
 s.head;
 say s.dtype;
 say s.name;
@@ -35,49 +36,33 @@ say s.elems;
 s.values;
 my \sd = s.Dan-Series;
 dd sd;
-#`[[[
+s.pull;
 say s.data;
-#s.ix;
-#s.index;
+say s.index;
+say s.ix;
 #say ~s.reindex(['d','e','f','g','h','i']);
 
-#say s.pull;
-
-#`[[
-#say s.map(*+2);
-#say [+] s; 
-#say s >>+>> 2; 
-#say s >>+<< s; 
+#[[
+say s.map(*+2);
+say [+] s; 
+say s >>+>> 2; 
+say s >>+<< s; 
 
 say s[2];
-say s<c>;
-
-say ~s;
+#say s<c>;
 
 s.splice(1,2,(j=>3)); 
 
 my \t = Series.new( [f=>1, e=>0, d=>2] );
 s.concat: t;
+s.head;
 
-#`[ pd methods
-s.pd: '.shape';
-s.pd: '.flags';
-s.pd: '.T';
-s.pd: '.to_json("test.json")';
-s.pd: '.to_csv("test.csv")';
-s.pd: '.iloc[2] = 23';
-s.pd: '.iloc[2]';
-say ~s;
-#]
-
-#`[ 2-arity pd methods
-say ~my \quants = Series.new([100, 15, 50, 15, 25]);
-say ~my \prices = Series.new([1.1, 4.3, 2.2, 7.41, 2.89]);
-#say ~my \costs  = Series.new( quants >>*<< prices );
-
-my \costs = quants;
-costs.pd: '.mul', prices;
-#]
+my \quants = Series.new([100, 15, 50, 15, 25]);
+quants.Str;
+my \prices = Series.new([1.1, 4.3, 2.2, 7.41, 2.89]);
+prices.Str;
+my \costs  = Series.new( quants >>*<< prices );
+costs.Str;
 
 my \u = s.Dan-Series;
 say u.^name;
@@ -85,9 +70,16 @@ say ~u;
 
 my \v = Series.new( u );
 say v.^name;
-say ~v;
+v.Str;
+
+#`[ expression (part of query) 
+my \costs = quants;
+costs.pd: '.mul', prices;
+#]
+
 #]]
 
+#`[[[
 say "=============================================";
 
 ### DataFrames ###

@@ -3,13 +3,18 @@ unit module Dan::Polars:ver<0.0.1>:auth<Steve Roe (p6steve@furnival.net)>;
 use Dan;
 use NativeCall;
 
+my regex number {
+	\S+                     #grab chars
+	<?{ +"$/" ~~ Real }>    #assert coerces via '+' to Real
+}
+
 ### Container Classes (CStruct) that interface to Rust lib.rs ###
 
-constant $n-path = '../dan/target/debug/dan';
-constant $rust-dir = '../dan/src/';
+constant $n-path    = '../dan/target/debug/dan';
+constant $rust-dir  = '../dan/src/';
 constant $rust-file = 'lib.rs';
 constant $tmpl-file = 'lib.rs.template';
-constant $raku-dir = '../lib/Dan/';
+constant $raku-dir  = '../lib/Dan/';
 constant $raku-file = 'Polars.rakumod';
 constant $vals-file = 'dan-values.txt';
 
@@ -34,7 +39,15 @@ class SeriesC is repr('CPointer') is export {
 
         if $dtype {
 
+            @data.map({ $_ .= Num if $_ ~~ Rat});     #Coerce stray Rats to Num
+
             given $dtype {
+                when    'i32' { se_new_i32($name, carray( int32, @data), @data.elems) }
+                when    'u32' { se_new_u32($name, carray(uint32, @data), @data.elems) }
+                when    'i64' { se_new_i64($name, carray( int64, @data), @data.elems) }
+                when    'u64' { se_new_u64($name, carray(uint64, @data), @data.elems) }
+                when    'f32' { se_new_f32($name, carray( num32, @data), @data.elems) }
+                when    'f64' { se_new_f64($name, carray( num64, @data), @data.elems) }
                 when  'int32' { se_new_i32($name, carray( int32, @data), @data.elems) }
                 when 'uint32' { se_new_u32($name, carray(uint32, @data), @data.elems) }
                 when  'int64' { se_new_i64($name, carray( int64, @data), @data.elems) }
@@ -115,6 +128,7 @@ class SeriesC is repr('CPointer') is export {
     method values {
         se_values(self, $vals-file);
         my @values = $vals-file.IO.lines;
+        @values.map({ $_ = +$_ if $_ ~~ /<number>/ });     #convert to Real type
         @values
     }
 }
@@ -223,12 +237,10 @@ role Series does Positional does Iterable is export {
     ## attrs for construct and pull only: not synched to Rust side ##
     has Str	    $.name;
     has Any     @.data;
-    has Int     %!index;            #FIXME REMOVE
+    has Int     %!index;
     has         $!dtype;
 
     has SeriesC $!rc;       #Rust container
-
-    has $.po;			  #ref to this Python Series obj  #FIXME REMOVE
 
     ### Constructors ###
  
@@ -296,21 +308,23 @@ role Series does Positional does Iterable is export {
 	    }
 
         # handle implicit index
+        # NB for Dan::Polars::Series, we accept index same as Dan::Series
+        # and then overwrite with the implicit index immediately
 
-        if ! %!index {
+        #if ! %!index {
             %!index = gather {
                 for 0..^@!data {
                     take ( $_ => $_ )
                 }
-            }.Hash
-        }
+            }.Hash;
+        #}
 
         $!rc = SeriesC.new( $!name, @!data, dtype => $!dtype )
     }
 
     #### Info Methods #####
 
-    method say { 
+    method Str {     #FIXME - Str should really return a Str ... prolly should adjust all Dans to 'say'
 	    $!rc.say
     }
 
@@ -320,6 +334,17 @@ role Series does Positional does Iterable is export {
 
     method dtype {
         $!rc.dtype 
+    }
+
+    #| get index as Hash
+    method index {
+        $.pull; 
+        %!index
+    }
+
+    #| get index as Array
+    multi method ix {
+        $.index.&sbv
     }
 
     method name {
@@ -338,11 +363,23 @@ role Series does Positional does Iterable is export {
     #### Sync Methods #####
     #### Pull & Push  #####
 
-    #| set raku attrs to rs_array / rs_index
+    #| set raku attrs to rc_values, reset index
     method pull {
-	    #@!data  = $!po.rs_values;
+	    @!data = $!rc.values;
+
+        %!index = gather {
+            for 0..^@!data {
+                take ( $_ => $_ )
+            }
+        }.Hash;
     }
 
+    #| flush SeriesC (with same dtype)
+    method push {
+        $!rc = SeriesC.new( $!name, @!data, dtype => $.dtype )
+    }
+
+##FIXME
     method prep-py-args {
 	my ( @qdata, $args );
         @qdata = @!data.map({$_ ~~ Str ?? qq/\"$_\"/ !! $_ });
@@ -355,26 +392,9 @@ role Series does Positional does Iterable is export {
     #### MAC Methods #####
     #Moves, Adds, Changes#
 
-    #| set index from Array (Dan::Series style) 
-    multi method ix( @new-index ) {
-        %.index.keys.map: { %!index{$_}:delete };
-        @new-index.map:   { %!index{$_} = $++  };
-
-	my $args = self.prep-py-args;
-	$!po.rs_push($args)
-    }
-
-
-    #| reindex from Array (Pandas style)
-    method reindex( @index ) {
-	my $rese  = $!po.rs_reindex( $@index );
-	my @data  = $rese.values; 
-	Series.new( :@data, :@index )
-    }
-
     #| get self as Array of Pairs
     multi method aop {
-	$.pull;
+	    $.pull;
         self.ix.map({ $_ => @!data[$++] })
     }
 
@@ -382,9 +402,7 @@ role Series does Positional does Iterable is export {
     multi method aop( @aop ) {
         %!index = @aop.map({$_.key => $++});
         @!data  = @aop.map(*.value);
-
-	my $args = self.prep-py-args;
-	$!po.rs_push($args)
+        $.push
     }
 
     ### Splice ###
@@ -392,32 +410,28 @@ role Series does Positional does Iterable is export {
 
     method splice( Series:D: $start = 0, $elems?, :ax(:$axis), *@replace ) {
 
-	my $serse = self.Dan-Series;
+	    my $serse = self.Dan-Series;
 
-	my @res = $serse.splice( $start, $elems, :$axis, |@replace );
+	    my @res = $serse.splice( $start, $elems, :$axis, |@replace );
 
-        %!index   = $serse.index;
-        @!data    = $serse.data;
+        @!data  = $serse.data;
+        %!index = gather {
+            for 0..^@!data {
+                take ( $_ => $_ )
+            }
+        }.Hash;
 
-	my $args = self.prep-py-args;
-	$!po.rs_push($args);
+        $.push;
 
         @res
     }
 
-#`[
     ### Concat ###
     #| concat done by way of aop splice
 
-    method concat( Dan::Pandas::Series:D $dsr ) {
+    method concat( Dan::Polars::Series:D $dsr ) {
 
-	$.pull;
-
-        %!index.map({ 
-            if $dsr.index{$_.key}:exists {
-                warn "duplicate key {$_.key} not permitted" 
-            } 
-        });
+	    $.pull;
 
         my $start = %!index.elems;
         my $elems = $dsr.index.elems;
@@ -426,21 +440,6 @@ role Series does Positional does Iterable is export {
         self.splice: $start, $elems, @replace;    
         self
     }
-
-    ### Pandas Methods ###
-
-    multi method pd( $exp ) {
-	if $exp ~~ /'='/ {
-	    $!po.rs_exec( $exp )
-	} else {
-	    $!po.rs_eval( $exp )
-	}
-    }
-
-    multi method pd( $exp, Dan::Pandas::Series:D $other ) {
-	$!po.rs_eval2( $exp, $other.po )
-    }
-#]
 
     ### Role Support ###
 
@@ -500,11 +499,10 @@ role Series does Positional does Iterable is export {
 
 }
 
-#`{{
-
 role Categorical does Series is export {
 }
 
+#`{{
 role DataFrame does Positional does Iterable is export {
     has Any         @.data;             #redo 2d shaped Array when [; ] implemented
     has Int         %!index;            #row index

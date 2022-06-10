@@ -11,8 +11,9 @@ constant $rust-file = 'lib.rs';
 constant $tmpl-file = 'lib.rs.template';
 constant $raku-dir = '../lib/Dan/';
 constant $raku-file = 'Polars.rakumod';
+constant $vals-file = 'dan-values.txt';
 
-class SeriesC is repr('CPointer') {
+class SeriesC is repr('CPointer') is export {
     sub se_new_bool(Str, CArray[bool],  size_t) returns SeriesC is native($n-path) { * }
     sub se_new_i32(Str, CArray[int32], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_i64(Str, CArray[int64], size_t) returns SeriesC is native($n-path) { * }
@@ -24,26 +25,27 @@ class SeriesC is repr('CPointer') {
     sub se_free(SeriesC)   is native($n-path) { * }
     sub se_say(SeriesC)    is native($n-path) { * }
     sub se_head(SeriesC)   is native($n-path) { * }
-    sub se_dtype(SeriesC)  is native($n-path) { * }
+    sub se_dtype(SeriesC,  &callback (Str --> Str)) is native($n-path) { * }
+    sub se_name(SeriesC,   &callback (Str --> Str)) is native($n-path) { * }
     sub se_elems(SeriesC)  returns uint32 is native($n-path) { * }
-    sub se_values(SeriesC) is native($n-path) { * }
+    sub se_values(SeriesC, Str) is native($n-path) { * }
 
     method new( $name, @data, :$dtype ) {
 
         if $dtype {
 
             given $dtype {
-                when  'int32' { se_new_i32($name, carray( int32, @data), @data.elems ) }
-                when 'uint32' { se_new_u32($name, carray(uint32, @data), @data.elems ) }
-                when  'int64' { se_new_i64($name, carray( int64, @data), @data.elems ) }
-                when 'uint64' { se_new_u64($name, carray(uint64, @data), @data.elems ) }
-                when  'num32' { se_new_f32($name, carray( num32, @data), @data.elems ) }
-                when  'num64' { se_new_f64($name, carray( num64, @data), @data.elems ) }
-                when   'bool' { se_new_bool($name, carray( bool, @data), @data.elems ) }
-                when   'Bool' { se_new_bool($name, carray( bool, @data), @data.elems ) }
-                when    'Int' { se_new_i64($name, carray( int64, @data), @data.elems ) }
-                when    'Num' { se_new_f64($name, carray( num64, @data), @data.elems ) }
-                when    'Str' { se_new_str($name, carray(   Str, @data), @data.elems ) }
+                when  'int32' { se_new_i32($name, carray( int32, @data), @data.elems) }
+                when 'uint32' { se_new_u32($name, carray(uint32, @data), @data.elems) }
+                when  'int64' { se_new_i64($name, carray( int64, @data), @data.elems) }
+                when 'uint64' { se_new_u64($name, carray(uint64, @data), @data.elems) }
+                when  'num32' { se_new_f32($name, carray( num32, @data), @data.elems) }
+                when  'num64' { se_new_f64($name, carray( num64, @data), @data.elems) }
+                when   'bool' { se_new_bool($name, carray( bool, @data), @data.elems) }
+                when   'Bool' { se_new_bool($name, carray( bool, @data), @data.elems) }
+                when    'Int' { se_new_i64($name, carray( int64, @data), @data.elems) }
+                when    'Num' { se_new_f64($name, carray( num64, @data), @data.elems) }
+                when    'Str' { se_new_str($name, carray(   Str, @data), @data.elems) }
                 when    'Rat' { die "Rats are not implemented by Polars" }
                 when   'Real' { die "Rats are not implemented by Polars" }
             }
@@ -56,10 +58,10 @@ class SeriesC is repr('CPointer') {
                 }
                 when Int {
                     given @data.min, @data.max {
-                        when * > -2**31, * < 2**31-1 { se_new_i32($name, carray( int32, @data), @data.elems ) }
-                        when * >      0, * < 2**32-1 { se_new_u32($name, carray(uint32, @data), @data.elems ) }
-                        when * > -2**63, * < 2**63-1 { se_new_i64($name, carray( int64, @data), @data.elems ) }
-                        when * >      0, * < 2**64-1 { se_new_u64($name, carray(uint64, @data), @data.elems ) }
+                        when * > -2**31, * < 2**31-1 { se_new_i32($name, carray( int32, @data), @data.elems) }
+                        when * >      0, * < 2**32-1 { se_new_u32($name, carray(uint32, @data), @data.elems) }
+                        when * > -2**63, * < 2**63-1 { se_new_i64($name, carray( int64, @data), @data.elems) }
+                        when * >      0, * < 2**64-1 { se_new_u64($name, carray(uint64, @data), @data.elems) }
                         default { die "Int larger than 2**64 are not implemented by Polars" }
                     }
                 }
@@ -87,7 +89,23 @@ class SeriesC is repr('CPointer') {
     }
 
     method dtype {
-        se_dtype(self)
+        my $out;
+        my &line_out = sub ( $line ) {
+            $out := $line
+        }
+
+        se_dtype(self, &line_out);
+        $out
+    }
+
+    method name {
+        my $out;
+        my &line_out = sub ( $line ) {
+            $out := $line
+        }
+
+        se_name(self, &line_out);
+        $out
     }
 
     method elems {
@@ -95,7 +113,9 @@ class SeriesC is repr('CPointer') {
     }
 
     method values {
-        se_values(self)
+        se_values(self, $vals-file);
+        my @values = $vals-file.IO.lines;
+        @values
     }
 }
 
@@ -302,13 +322,17 @@ role Series does Positional does Iterable is export {
         $!rc.dtype 
     }
 
+    method name {
+        $!rc.name 
+    }
+
     method values {
         $!rc.values 
     }
 
     method Dan-Series {
-        $.pull;
-        Dan::Series.new( :$!name, :@!data, :%!index )
+        @!data = $!rc.values;
+        Dan::Series.new( :$!name, :@!data )
     }
 
     #### Sync Methods #####

@@ -3,10 +3,15 @@ use libc::size_t;
 use std::slice;
 use std::ffi::*; //{CStr, CString,}
 use std::fs::File;
+use std::io::Write;
 use std::path::{Path};
 
 use polars::prelude::*;//{CsvReader, DataType, DataFrame, Series};
 use polars::prelude::{Result as PolarResult};
+
+// Callback Type
+
+type RetLine = extern fn(line: *const u8);
 
 // Series Container
 
@@ -31,71 +36,79 @@ impl SeriesC {
         println!{"{}", self.se.head(Some(5))};
     }
 
-    fn dtype(&self) {
-        println!{"{}", self.se.dtype()};
+    fn dtype(&self, retline: RetLine) {
+        //println!{"{}", self.se.dtype()};
+        let dtype = CString::new(self.se.dtype().to_string()).unwrap();
+        retline(dtype.as_ptr());
+    }
+
+    fn name(&self, retline: RetLine) {
+        let name = CString::new(self.se.name()).unwrap();
+        retline(name.as_ptr());
     }
 
     fn elems(&self) -> u32 {
         self.se.len().try_into().unwrap()
     }
 
-    fn values(&self) {
+    fn values(&self, vfile: String) {
+        let mut w = File::create(vfile).unwrap();
         let dtype: &str = &self.se.dtype().to_string();
         match dtype {
             "i32" => { 
                 let asvec: Vec<_> = self.se.i32().into_iter().collect(); 
                 let bsvec: Vec<_> = asvec[0].into_iter().collect();
                 for value in bsvec.iter() { 
-                    println!("{}", value.unwrap() );
+                    writeln!(&mut w, "{}", value.unwrap()).unwrap();
                 }
             },
             "u32" => { 
                 let asvec: Vec<_> = self.se.u32().into_iter().collect(); 
                 let bsvec: Vec<_> = asvec[0].into_iter().collect();
                 for value in bsvec.iter() { 
-                    println!("{}", value.unwrap() );
+                    writeln!(&mut w, "{}", value.unwrap()).unwrap();
                 }
             },
             "i64" => { 
                 let asvec: Vec<_> = self.se.i64().into_iter().collect(); 
                 let bsvec: Vec<_> = asvec[0].into_iter().collect();
                 for value in bsvec.iter() { 
-                    println!("{}", value.unwrap() );
+                    writeln!(&mut w, "{}", value.unwrap()).unwrap();
                 }
             },
             "u64" => { 
                 let asvec: Vec<_> = self.se.u64().into_iter().collect(); 
                 let bsvec: Vec<_> = asvec[0].into_iter().collect();
                 for value in bsvec.iter() { 
-                    println!("{}", value.unwrap() );
+                    writeln!(&mut w, "{}", value.unwrap()).unwrap();
                 }
             },
             "f32" => { 
                 let asvec: Vec<_> = self.se.f32().into_iter().collect(); 
                 let bsvec: Vec<_> = asvec[0].into_iter().collect();
                 for value in bsvec.iter() { 
-                    println!("{}", value.unwrap() );
+                    writeln!(&mut w, "{}", value.unwrap()).unwrap();
                 }
             },
             "f64" => { 
                 let asvec: Vec<_> = self.se.f64().into_iter().collect(); 
                 let bsvec: Vec<_> = asvec[0].into_iter().collect();
                 for value in bsvec.iter() { 
-                    println!("{}", value.unwrap() );
+                    writeln!(&mut w, "{}", value.unwrap()).unwrap();
                 }
             },
             "str" => { 
                 let asvec: Vec<_> = self.se.utf8().into_iter().collect(); 
                 let bsvec: Vec<_> = asvec[0].into_iter().collect();
                 for value in bsvec.iter() { 
-                    println!("{}", value.unwrap() );
+                    writeln!(&mut w, "{}", value.unwrap()).unwrap();
                 }
             },
             "bool" => { 
                 let asvec: Vec<_> = self.se.bool().into_iter().collect(); 
                 let bsvec: Vec<_> = asvec[0].into_iter().collect();
                 for value in bsvec.iter() { 
-                    println!("{}", value.unwrap() );
+                    writeln!(&mut w, "{}", value.unwrap()).unwrap();
                 }
             },
             &_ => todo!(),
@@ -199,13 +212,23 @@ pub extern "C" fn se_head(ptr: *mut SeriesC) {
 }
 
 #[no_mangle]
-pub extern "C" fn se_dtype(ptr: *mut SeriesC) {
+pub extern "C" fn se_dtype(ptr: *mut SeriesC, retline: RetLine) {
     let se_c = unsafe {
         assert!(!ptr.is_null());
         &mut *ptr
     };
 
-    se_c.dtype();
+    se_c.dtype(retline);
+}
+
+#[no_mangle]
+pub extern "C" fn se_name(ptr: *mut SeriesC, retline: RetLine) {
+    let se_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+
+    se_c.name(retline);
 }
 
 #[no_mangle]
@@ -219,13 +242,19 @@ pub extern "C" fn se_elems(ptr: *mut SeriesC) -> u32 {
 }
 
 #[no_mangle]
-pub extern "C" fn se_values(ptr: *mut SeriesC) {
+pub extern "C" fn se_values(
+    ptr: *mut SeriesC,
+    string: *const c_char,
+) {
     let se_c = unsafe {
         assert!(!ptr.is_null());
         &mut *ptr
     };
+    let vfile = unsafe {
+        CStr::from_ptr(string).to_string_lossy().into_owned()
+    };
 
-    se_c.values();
+    se_c.values(vfile);
 }
 
 // DataFrame Container

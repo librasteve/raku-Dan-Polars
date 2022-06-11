@@ -648,17 +648,21 @@ class RakuDataFrame:
         }
     }
 
-    #iamerejh
-    method load-from-data {
-    #`[
-        my @series = gather 
-        for @series -> \column {
-            $.with_column( column )
+    method load-from-data {                     #not using accessors as still constructing
+
+        my @cx = %!columns.&sbv;
+
+        my @series = gather {
+            loop ( my $i = 0; $i < @!data.first.elems; $i++ ) {
+                take Series.new( data => @!data[*;$i], name => @cx[$i] ) 
+            }
         }
-    #]
+
+        $.load-from-series: |@series
     }
 
     method load-from-slices( @slices ) {
+
         loop ( my $i=0; $i < @slices; $i++ ) {
 
             my $key = @slices[$i].name // ~$i;
@@ -666,6 +670,8 @@ class RakuDataFrame:
 
             @!data[$i] := @slices[$i].data
         }
+
+        $.load-from-data
     }
 
     method TWEAK {
@@ -723,12 +729,12 @@ class RakuDataFrame:
             when Dan::DataSlice {
                 my @slices = @!data; 
 
+                # make columns Hash
+                %!columns = @slices.first.index;
+
                 # clear and load data (and index)
                 @!data = [];
                 $.load-from-slices: @slices;
-
-                # make columns Hash
-                %!columns = @slices.first.index;
             }
 
             # data arg is 2d Array (already) 
@@ -745,6 +751,13 @@ class RakuDataFrame:
                 $.load-from-data
             } 
         }
+
+        # since this is Polars now reset index
+        %!index = gather {
+            for 0..^@!data {
+                take ( $_ => $_ )
+            }
+        }.Hash;
     }
 
     #### Info Methods #####
@@ -902,7 +915,7 @@ class RakuDataFrame:
     ### Pandas Methods ###
 
     multi method pd( $exp ) {
-	if $exp ~~ /'='/ {
+        if $exp ~~ /'='/ {
 	    $!po.rd_exec( $exp )
 	} else {
 	    $!po.rd_eval( $exp )
@@ -910,7 +923,7 @@ class RakuDataFrame:
     }
 
     multi method pd( $exp, Dan::Polars::Series:D $other ) {
-	$!po.rd_eval2( $exp, $other.po )
+        $!po.rd_eval2( $exp, $other.po )
     }
 
     ### Role Support ###
@@ -996,7 +1009,7 @@ class RakuDataFrame:
     }
 #]]]
 }
-#`{{
+#{{
 
 
 ### Postfix '^' as explicit subscript chain terminator

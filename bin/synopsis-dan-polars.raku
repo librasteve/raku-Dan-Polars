@@ -84,8 +84,8 @@ say "=============================================";
 ### DataFrames ###
 
 #my \dates = (Date.new("2022-01-01"), *+1 ... *)[^6];
-#my \df = DataFrame.new( data => [[rand xx 4] xx 6], index => dates, columns => <A B C D> );
-#my \df = DataFrame.new( [[rand xx 4] xx 6], columns => <A B C D> );
+#my \df = DataFrame.new( [[rand xx 4] xx 6], index => dates, columns => <A B C D> );
+my \df = DataFrame.new( [[rand xx 4] xx 6], columns => <A B C D> );
 #my \df = DataFrame.new( [[rand xx 4] xx 6] );
 
 #`[
@@ -100,31 +100,33 @@ $select.head;
 #]
 
 #say ~df;
-my \df = DataFrame.new();
-df.with_column(s);
+#my \df = DataFrame.new();
+#df.with_column(s);
 df.head;
 df.show;
+df.pull;
+dd df.data;
 
-#`[[[
 #`[
 say "---------------------------------------------";
 
 # Data Accessors [row;col]
 say df[0;0];
-df[0;0] = 3;                # set value (not sure why this works, must manual push
+#df[0;0] = 3;                # set value (not sure why this works, must manual push
 
 # Smart Accessors (mix Positional and Associative)
 say df[0][0];
 say df[0]<A>;
-say df{"2022-01-03"}[1];
+#say df{"2022-01-03"}[1];
 
 # Object Accessors & Slices (see note 1)
 say ~df[0];                 # 1d Row 0 (DataSlice)
 say ~df[*]<A>;              # 1d Col A (Series)
 say ~df[0..*-2][1..*-1];    # 2d DataFrame
-say ~df{dates[0..1]}^;      # the ^ postfix converts an Array of DataSlices into a new DataFrame
+#say ~df{dates[0..1]}^;      # the ^ postfix converts an Array of DataSlices into a new DataFrame
 #]
 
+#`[[[
 #`[
 say "---------------------------------------------";
 ### DataFrame Operations ###

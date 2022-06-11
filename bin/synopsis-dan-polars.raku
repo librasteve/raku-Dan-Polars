@@ -104,7 +104,9 @@ $select.head;
 #df.with_column(s);
 df.head;
 df.show;
-df.pull;
+say df.get_column_names;
+die;
+df.pull;  #iamerejh
 dd df.data;
 
 #`[

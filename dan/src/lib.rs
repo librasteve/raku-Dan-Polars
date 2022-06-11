@@ -9,7 +9,7 @@ use std::path::{Path};
 use polars::prelude::*;//{CsvReader, DataType, DataFrame, Series};
 use polars::prelude::{Result as PolarResult};
 
-// Callback Type
+// Callback Types
 
 type RetLine = extern fn(line: *const u8);
 
@@ -290,6 +290,16 @@ impl DataFrameC {
         println!{"{}", self.df.head(Some(5))};
     }
 
+    fn get_column_names(&self, retline: RetLine) {
+        let names = self.df.get_column_names();
+
+        for name in names.iter() {
+            // convert string slice to a C style NULL terminated string
+            let name = CString::new(*name).unwrap();
+            retline(name.as_ptr());
+        }
+    }
+
     fn column(&self, string: String) -> Series {
         self.df.column(&string).unwrap().clone()
     }
@@ -365,6 +375,16 @@ pub extern "C" fn df_head(ptr: *mut DataFrameC) {
     };
 
     df_c.head();
+}
+
+#[no_mangle]
+pub extern "C" fn df_get_column_names(ptr: *mut DataFrameC, retline: RetLine) {
+    let df_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+
+    df_c.get_column_names(retline);
 }
 
 #[no_mangle]

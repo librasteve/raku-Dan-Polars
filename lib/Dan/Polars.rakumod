@@ -171,6 +171,7 @@ class DataFrameC is repr('CPointer') {
     sub df_read_csv(DataFrameC, Str) is native($n-path) { * }
     sub df_show(DataFrameC)          is native($n-path) { * }
     sub df_head(DataFrameC)          is native($n-path) { * }
+    sub df_get_column_names(DataFrameC, &callback (Str)) is native($n-path) { * }
     sub df_column(DataFrameC, Str) returns SeriesC is native($n-path) { * }
     sub df_select(DataFrameC, CArray[Str], size_t) returns DataFrameC is native($n-path) { * }
     sub df_with_column(DataFrameC, SeriesC) returns DataFrameC is native($n-path) { * }
@@ -194,6 +195,16 @@ class DataFrameC is repr('CPointer') {
 
     method head {
         df_head(self)
+    }
+
+    method get_column_names {
+        my @out;
+        my &line_out = sub ( $line ) {
+            @out.push: $line;
+        }
+
+        df_get_column_names(self, &line_out);
+        @out
     }
 
     method column( Str \colname ) {
@@ -770,6 +781,10 @@ class RakuDataFrame:
         $!rc.head
     }
 
+    method get_column_names {
+        $!rc.get_column_names 
+    }
+
     method column( Str \colname ) {
         $!rc.column( colname )
     }
@@ -845,7 +860,39 @@ class RakuDataFrame:
         $!rc.read_csv( path )        
     }
 
+    #### Sync Methods #####
+    #### Pull & Push  #####
+
+    #| set raku attrs to rc_values, reset index
+    method pull {
+	    @!data = $!rc.values;
+
+        %!index = gather {
+            for 0..^@!data {
+                take ( $_ => $_ )
+            }
+        }.Hash;
+    }
+
+    #| flush SeriesC (with same dtype)
+    #method push {
+    #    $!rc = SeriesC.new( $!name, @!data, :$.dtype )
+    #}
+
 #`[[[
+    method load-from-data {                     #not using accessors as still constructing
+
+        my @cx = %!columns.&sbv;
+
+        my @series = gather {
+            loop ( my $i = 0; $i < @!data.first.elems; $i++ ) {
+                take Series.new( data => @!data[*;$i], name => @cx[$i] ) 
+            }
+        }
+
+        $.load-from-series: |@series
+    }
+
     #### Sync Methods #####
     #### Pull & Push  #####
 

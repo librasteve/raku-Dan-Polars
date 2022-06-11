@@ -28,7 +28,7 @@ impl SeriesC {
         }
     }
 
-    fn say(&self) {
+    fn show(&self) {
         println!{"{}", self.se};
     }
 
@@ -37,7 +37,6 @@ impl SeriesC {
     }
 
     fn dtype(&self, retline: RetLine) {
-        //println!{"{}", self.se.dtype()};
         let dtype = CString::new(self.se.dtype().to_string()).unwrap();
         retline(dtype.as_ptr());
     }
@@ -192,13 +191,13 @@ pub extern "C" fn se_free(ptr: *mut SeriesC) {
 }
 
 #[no_mangle]
-pub extern "C" fn se_say(ptr: *mut SeriesC) {
+pub extern "C" fn se_show(ptr: *mut SeriesC) {
     let se_c = unsafe {
         assert!(!ptr.is_null());
         &mut *ptr
     };
 
-    se_c.say();
+    se_c.show();
 }
 
 #[no_mangle]
@@ -279,8 +278,12 @@ impl DataFrameC {
         }
     }
 
-    fn read_csv(&mut self, string: String) {
-        self.df = df_load_csv(&string).unwrap(); 
+    fn read_csv(&mut self, path: String) {
+        self.df = df_load_csv(&path).unwrap(); 
+    }
+
+    fn show(&self) {
+        println!{"{}", self.df};
     }
 
     fn head(&self) {
@@ -341,11 +344,22 @@ pub extern "C" fn df_read_csv(
 }
 
 #[no_mangle]
+pub extern "C" fn df_show(ptr: *mut DataFrameC) {
+    let df_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+
+    df_c.show();
+}
+
+#[no_mangle]
 pub extern "C" fn df_head(ptr: *mut DataFrameC) {
     let df_c = unsafe {
         assert!(!ptr.is_null());
         &mut *ptr
     };
+
     df_c.head();
 }
 

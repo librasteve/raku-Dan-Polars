@@ -3,9 +3,20 @@ unit module Dan::Polars:ver<0.0.1>:auth<Steve Roe (p6steve@furnival.net)>;
 use Dan;
 use NativeCall;
 
+### Helper Items
+
 my regex number {
 	\S+                     #grab chars
 	<?{ +"$/" ~~ Real }>    #assert coerces via '+' to Real
+}
+
+sub carray( $dtype, @items ) {
+    my $output := CArray[$dtype].new();
+
+    loop ( my $i = 0; $i < @items; $i++ ) {
+        $output[$i] = @items[$i]
+    }
+    $output
 }
 
 ### Container Classes (CStruct) that interface to Rust lib.rs ###
@@ -28,7 +39,7 @@ class SeriesC is repr('CPointer') is export {
     sub se_new_f64(Str, CArray[num64], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_str(Str, CArray[Str],   size_t) returns SeriesC is native($n-path) { * }
     sub se_free(SeriesC)   is native($n-path) { * }
-    sub se_say(SeriesC)    is native($n-path) { * }
+    sub se_show(SeriesC)   is native($n-path) { * }
     sub se_head(SeriesC)   is native($n-path) { * }
     sub se_dtype(SeriesC,  &callback (Str --> Str)) is native($n-path) { * }
     sub se_name(SeriesC,   &callback (Str --> Str)) is native($n-path) { * }
@@ -93,8 +104,8 @@ class SeriesC is repr('CPointer') is export {
         se_free(self);
     }
 
-    method say {
-        se_say(self)
+    method show {
+        se_show(self)
     }
 
     method head {
@@ -128,24 +139,16 @@ class SeriesC is repr('CPointer') is export {
     method values {
         se_values(self, $vals-file);
         my @values = $vals-file.IO.lines;
-        @values.map({ $_ = +$_ if $_ ~~ /<number>/ });     #convert to Real type
+        @values.map({ $_ = +$_ if $_ ~~ /<number>/ });     #convert to narrowest Real type
         @values
     }
-}
-
-sub carray( $dtype, @items ) {
-    my $output := CArray[$dtype].new();
-
-    loop ( my $i = 0; $i < @items; $i++ ) {
-        $output[$i] = @items[$i]
-    }
-    $output
 }
 
 class DataFrameC is repr('CPointer') {
     sub df_new() returns DataFrameC  is native($n-path) { * }
     sub df_free(DataFrameC)          is native($n-path) { * }
     sub df_read_csv(DataFrameC, Str) is native($n-path) { * }
+    sub df_show(DataFrameC)          is native($n-path) { * }
     sub df_head(DataFrameC)          is native($n-path) { * }
     sub df_column(DataFrameC, Str) returns SeriesC is native($n-path) { * }
     sub df_select(DataFrameC, CArray[Str], size_t) returns DataFrameC is native($n-path) { * }
@@ -161,6 +164,10 @@ class DataFrameC is repr('CPointer') {
 
     method read_csv( Str \path ) {
         df_read_csv(self, path);
+    }
+
+    method show {
+        df_show(self)
     }
 
     method head {
@@ -179,16 +186,6 @@ class DataFrameC is repr('CPointer') {
         df_query(self)
     }
 }
-
-my \df = DataFrameC.new;
-df.read_csv("../dan/src/iris.csv");
-df.head;
-
-my $column = df.column("sepal.length");
-$column.head;
-
-my $select = df.select(["sepal.length", "variety"]);
-$select.head;
 
 class Query {
     has Str $.s;
@@ -220,7 +217,7 @@ Query.new( s => q{
 
 my \x = df.query;
 x.head;
-£]
+#]
 
 ### Series, DataFrame [..] Roles that are exported for Script Usage ###
 
@@ -324,8 +321,8 @@ role Series does Positional does Iterable is export {
 
     #### Info Methods #####
 
-    method Str {     #FIXME - Str should really return a Str ... prolly should adjust all Dans to 'say'
-	    $!rc.say
+    method show {
+	    $!rc.show
     }
 
     method head {
@@ -464,19 +461,19 @@ role Series does Positional does Iterable is export {
     # viz. https://docs.raku.org/type/Iterable
 
     method iterator {
-	$.pull;
+        $.pull;
         @!data.iterator
     }
     method flat {
-	$.pull;
+        $.pull;
         @!data.flat
     }
     method lazy {
-	$.pull;
+        $.pull;
         @!data.lazy
     }
     method hyper {
-	$.pull;
+        $.pull;
         @!data.hyper
     }
 
@@ -489,11 +486,11 @@ role Series does Positional does Iterable is export {
         Str(Any) 
     }
     method AT-KEY( $k ) {
-	$.pull;
+        $.pull;
         @!data[%.index{$k}]
     }
     method EXISTS-KEY( $k ) {
-	$.pull;
+        $.pull;
         %.index{$k}:exists
     }
 
@@ -502,14 +499,14 @@ role Series does Positional does Iterable is export {
 role Categorical does Series is export {
 }
 
-#`{{
 role DataFrame does Positional does Iterable is export {
     has Any         @.data;             #redo 2d shaped Array when [; ] implemented
     has Int         %!index;            #row index
     has Int         %!columns;          #column index
 
-    has $.py = Py.instance.py; 	  
-    has $.po;			  #ref to Python DataFrame obj 
+    has DataFrameC $!rc;       #Rust container
+    has $.po;			  #ref to Python DataFrame obj  FIXME
+
 
     ### Constructors ###
  
@@ -524,32 +521,35 @@ role DataFrame does Positional does Iterable is export {
     }
 
     submethod BUILD( :@data, :$index, :$columns ) {
-	@!data = @data;
+        @!data = @data;
 
-	if $index {
+        if $index {
             if $index !~~ Hash {
                 %!index = $index.map({ $_ => $++ })
-	    } else {
-	        %!index = $index
-	    }
-	}
+            } else {
+                %!index = $index
+            }
+        }
 
-	if $columns {
+        if $columns {
             if $columns !~~ Hash {
                 %!columns = $columns.map({ $_ => $++ })
-	    } else {
-	        %!columns = $columns
-	    }
-	}
+            } else {
+                %!columns = $columns
+            }
+        }
+
+        $!rc = DataFrameC.new; #( @!data, dtype => $!dtype )
     }
 
+#`[[[
     # helper functions for TWEAK
 
     method load-from-series( *@series ) {
-	for @series -> $sene {
-	    $!po.rd_concat_series($sene.po)
-	}
-	$.pull
+        for @series -> $sene {
+            $!po.rd_concat_series($sene.po)
+        }
+        $.pull
     }
 
     method load-from-slices( @slices ) {
@@ -560,11 +560,9 @@ role DataFrame does Positional does Iterable is export {
 
             @!data[$i] := @slices[$i].data
         }
-
-	#$.pull; #FIXME - rm this line as no object yet when called from TWEAK
     }
 
-    method prep-py-args {
+    method prep-py-args {   #FIXME
 	my ( @qdata, @rows, $args );
 
 	@qdata = @!data.map(*.map({$_ ~~ Str ?? qq/\"$_\"/ !! $_ }));
@@ -581,8 +579,8 @@ role DataFrame does Positional does Iterable is export {
 	$args ~= ", columns=['{%!columns.&sbv.join("', '")}']"   if %!columns; 	
     }
   
-    sub prep-py-str( $args ) {
-
+    sub prep-py-str( $args ) {  #FIXME
+#`[
 qq{
 
 # since Inline::Python will not pass a DataFrame class back and forth
@@ -648,6 +646,7 @@ class RakuDataFrame:
 	$!py.run( $py-str );
 	$!po = $!py.call('__main__', 'RakuDataFrame');
     }
+#]
 
     method TWEAK {
 
@@ -680,9 +679,9 @@ class RakuDataFrame:
                     }
                 }.Array;
 
-		# make stub df (as self) then concat each series 
-		self.init-po: '';
-		self.load-from-series: |@series;
+                # make stub df (as self) then concat each series 
+                self.init-po: '';
+                self.load-from-series: |@series;
             } 
 
 #`[
@@ -713,7 +712,7 @@ class RakuDataFrame:
                 # make columns Hash
                 %!columns = @slices.first.index;
 
-		self.init-po: self.prep-py-args
+                self.init-po: self.prep-py-args
             }
 
             # data arg is 2d Array (already) 
@@ -727,45 +726,65 @@ class RakuDataFrame:
                     @alphi[0..^@!data.first.elems].map( {%!columns{$_} = $++} ).eager;
                 }
 
-		self.init-po: self.prep-py-args
+                self.init-po: self.prep-py-args
             } 
         }
     }
+#]]]
 
     #### Info Methods #####
 
-    method Str { 
-	$!po.rd_str()
+    method show { 
+        $!rc.show
     }
 
+    method head { 
+        $!rc.head
+    }
+
+    method column( Str \colname ) {
+        $!rc.column( colname )
+    }
+
+    method select( Array \colspec ) {
+        $!rc.select( colspec )
+    }
+
+    #iamerejh
+    #method with_columns( Array[Series] \cols ) {
+    #    $!rc.with_columns( cols )
+    #}
+
+
+#`[[[
     method dtypes {
-	$!po.rd_dtypes()
+        $!po.rd_dtypes()
     }
 
     method Dan-DataFrame {
-	$.pull;
-	Dan::DataFrame.new( :@!data, :%!index, :%!columns )
+        $.pull;
+        Dan::DataFrame.new( :@!data, :%!index, :%!columns )
     }
 
     #| get index as Array
     multi method ix {
-	$!po.rd_index()
+        $!po.rd_index()
     }
 
     #| get index as Hash
-    method index {
-	my @keys = $!po.rd_index();
+        method index {
+        my @keys = $!po.rd_index();
         @keys.map({ $_ => $++ }).Hash
     }
 
     #| get columns as Array
     multi method cx {
-	$!po.rd_columns()
+        $!po.rd_columns()
     }
 
     #| get columns as Hash
     method columns {
-	my @keys = $!po.rd_columns();
+        my @keys = $!po.rd_columns();
         @keys.map({ $_ => $++ }).Hash
     }
 
@@ -777,8 +796,8 @@ class RakuDataFrame:
         %.index.keys.map: { %!index{$_}:delete };
         @new-index.map:   { %!index{$_} = $++  };
 
-	my $args = self.prep-py-args;
-	$!po.rd_push($args)
+        my $args = self.prep-py-args;
+        $!po.rd_push($args)
     }
 
     #| set columns (relabel) from Array
@@ -786,34 +805,44 @@ class RakuDataFrame:
         %.columns.keys.map: { %!columns{$_}:delete };
         @new-labels.map:    { %!columns{$_} = $++  };
 
-	my $args = self.prep-py-args;
-	$!po.rd_push($args)
+        my $args = self.prep-py-args;
+        $!po.rd_push($args)
     }
 
+#]]]
+
+    #### File Methods #####
+    #### Read & Write #####
+
+    method read_csv( Str \path ) {
+        $!rc.read_csv( path )        
+    }
+
+#`[[[
     #### Sync Methods #####
     #### Pull & Push  #####
 
     #| set raku attrs to rd_array / rd_index / rd_columns
     method pull {
-	%!index   = $.index;
-	%!columns = $.columns;
-	@!data    = $!po.rd_values;
+        %!index   = $.index;
+        %!columns = $.columns;
+        @!data    = $!po.rd_values;
     }
 
     ### Mezzanine methods ###  
     #   (these use Python)  #
 
     method T {
-	$!po.rd_transpose();
-	self
+        $!po.rd_transpose();
+        self
     }
 
     method shape {
-	$!po.rd_shape()
+	    $!po.rd_shape()
     }
 
     method describe {
-	$!po.rd_describe()
+	    $!po.rd_describe()
     }
 
     method series( $k ) {
@@ -821,7 +850,7 @@ class RakuDataFrame:
     }
 
     method sort( &cruton ) {  #&custom-routine-to-use
-	$.pull;
+        $.pull;
 
         my $i;
         loop ( $i=0; $i < @!data; $i++ ) {
@@ -835,7 +864,7 @@ class RakuDataFrame:
             %!index{@!data[$i].pop} = $i
         }
 
-	DataFrame.new( :%!index, :%!columns, :@!data )
+        DataFrame.new( :%!index, :%!columns, :@!data )
     }
 
     method grep( &cruton ) {  #&custom-routine-to-use
@@ -866,7 +895,7 @@ class RakuDataFrame:
 	}
     }
 
-    multi method pd( $exp, Dan::Pandas::Series:D $other ) {
+    multi method pd( $exp, Dan::Polars::Series:D $other ) {
 	$!po.rd_eval2( $exp, $other.po )
     }
 
@@ -881,15 +910,15 @@ class RakuDataFrame:
         Any
     }
     method elems {
-	$.pull;
+	    $.pull;
         @!data.elems
     }
     method AT-POS( $p, $q? ) {
-	$.pull;
+	    $.pull;
         @!data[$p;$q // *]
     }
     method EXISTS-POS( $p ) {
-	$.pull;
+	    $.pull;
         0 <= $p < @!data.elems ?? True !! False
     }
 
@@ -897,19 +926,19 @@ class RakuDataFrame:
     # viz. https://docs.raku.org/type/Iterable
 
     method iterator {
-	$.pull;
+	    $.pull;
         @!data.iterator
     }
     method flat {
-	$.pull;
+	    $.pull;
         @!data.flat
     }
     method lazy {
-	$.pull;
+	    $.pull;
         @!data.lazy
     }
     method hyper {
-	$.pull;
+	    $.pull;
         @!data.hyper
     }
 
@@ -918,16 +947,16 @@ class RakuDataFrame:
 
     method splice( DataFrame:D: $start = 0, $elems?, :ax(:$axis), *@replace ) {
 
-	my $danse = self.Dan-DataFrame;
+        my $danse = self.Dan-DataFrame;
 
-	my @res = $danse.splice( $start, $elems, :$axis, |@replace );
+        my @res = $danse.splice( $start, $elems, :$axis, |@replace );
 
         %!index   = $danse.index;
-	%!columns = $danse.columns;
+        %!columns = $danse.columns;
         @!data    = $danse.data;
 
-	my $args = self.prep-py-args;
-	$!po.rd_push($args);
+        my $args = self.prep-py-args;
+        $!po.rd_push($args);
 
         @res
     }
@@ -943,15 +972,17 @@ class RakuDataFrame:
 	my @res = $danse.concat( $danot, :$axis, :$join, :$ignore-index );
 
         %!index   = $danse.index;
-	%!columns = $danse.columns;
+        %!columns = $danse.columns;
         @!data    = $danse.data;
 
-	my $args = self.prep-py-args;
-	$!po.rd_push($args);
+        my $args = self.prep-py-args;
+        $!po.rd_push($args);
 
         @res
     }
+#]]]
 }
+#`{{
 
 
 ### Postfix '^' as explicit subscript chain terminator

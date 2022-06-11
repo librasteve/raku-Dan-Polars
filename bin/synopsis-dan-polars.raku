@@ -28,7 +28,8 @@ s = Series.new( [b=>1, a=>0, c=>2] );               #from Array of Pairs
 #s = Series.new(data => 1..99, name => 'john' );                          #i32
 
 #say ~s;
-s.Str;
+s.show;
+#`[[
 s.head;
 say s.dtype;
 say s.name;
@@ -42,7 +43,6 @@ say s.index;
 say s.ix;
 #say ~s.reindex(['d','e','f','g','h','i']);
 
-#[[
 say s.map(*+2);
 say [+] s; 
 say s >>+>> 2; 
@@ -58,11 +58,11 @@ s.concat: t;
 s.head;
 
 my \quants = Series.new([100, 15, 50, 15, 25]);
-quants.Str;
+quants.show;
 my \prices = Series.new([1.1, 4.3, 2.2, 7.41, 2.89]);
-prices.Str;
+prices.show;
 my \costs  = Series.new( quants >>*<< prices );
-costs.Str;
+costs.show;
 
 my \u = s.Dan-Series;
 say u.^name;
@@ -70,26 +70,40 @@ say ~u;
 
 my \v = Series.new( u );
 say v.^name;
-v.Str;
+v.show;
 
-#`[ expression (part of query) 
+#`[ expression (part of df query vvvvv) 
 my \costs = quants;
 costs.pd: '.mul', prices;
 #]
 
 #]]
 
-#`[[[
 say "=============================================";
 
 ### DataFrames ###
 
 my \dates = (Date.new("2022-01-01"), *+1 ... *)[^6];
-my \df = DataFrame.new( [[rand xx 4] xx 6], index => dates, columns => <A B C D> );
+my \df = DataFrame.new( data => [[rand xx 4] xx 6], index => dates, columns => <A B C D> );
 #my \df = DataFrame.new( [[rand xx 4] xx 6], columns => <A B C D> );
 #my \df = DataFrame.new( [[rand xx 4] xx 6] );
-say ~df;
 
+#`[
+my \df = DataFrame.new;
+df.read_csv("../dan/src/iris.csv");
+
+my $column = df.column("sepal.length");
+$column.head;
+
+my $select = df.select(["sepal.length", "variety"]);
+$select.head;
+#]
+
+#say ~df;
+df.head;
+df.show;
+
+#`[[[
 #`[
 say "---------------------------------------------";
 

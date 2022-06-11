@@ -1,5 +1,25 @@
 unit module Dan::Polars:ver<0.0.1>:auth<Steve Roe (p6steve@furnival.net)>;
 
+#`[TODOs
+- se functions
+- df functions
+- strip Index
+- single query
+--
+- lazy only
+- pure only
+- opaque only
+-- no chunk controls
+-- no chunk unpack (i32 ...)
+-- no datetime (in v1)
+--
+-- v2
+- apply
+- datetime
+- better value return
+- multiple query
+#]
+
 use Dan;
 use NativeCall;
 
@@ -50,7 +70,8 @@ class SeriesC is repr('CPointer') is export {
 
         if $dtype {
 
-            @data.map({ $_ .= Num if $_ ~~ Rat});     #Coerce stray Rats to Num
+            @data.map({ $_ .= Num if $_ ~~ Rat});                       #Coerce stray Rats to Num
+            @data.map({ $_ .= Num if $_ ~~ Int}) if $dtype eq 'Num';    #Coerce stray Ints to Num
 
             given $dtype {
                 when    'i32' { se_new_i32($name, carray( int32, @data), @data.elems) }
@@ -152,6 +173,7 @@ class DataFrameC is repr('CPointer') {
     sub df_head(DataFrameC)          is native($n-path) { * }
     sub df_column(DataFrameC, Str) returns SeriesC is native($n-path) { * }
     sub df_select(DataFrameC, CArray[Str], size_t) returns DataFrameC is native($n-path) { * }
+    sub df_with_column(DataFrameC, SeriesC) returns DataFrameC is native($n-path) { * }
     sub df_query(DataFrameC) returns DataFrameC is native($n-path) { * }
 
     method new {
@@ -180,6 +202,10 @@ class DataFrameC is repr('CPointer') {
 
     method select( Array \colspec ) {
         df_select(self, carray( Str, colspec ), colspec.elems)
+    }
+
+    method with_column( SeriesC \column ) {
+        df_with_column(self, column)
     }
 
     method query {
@@ -237,7 +263,7 @@ role Series does Positional does Iterable is export {
     has Int     %!index;
     has         $!dtype;
 
-    has SeriesC $!rc;       #Rust container
+    has SeriesC $.rc;       #Rust container
 
     ### Constructors ###
  
@@ -333,14 +359,12 @@ role Series does Positional does Iterable is export {
         $!rc.dtype 
     }
 
-    #| get index as Hash
-    method index {
+    method index {              # get index as Hash
         $.pull; 
         %!index
     }
 
-    #| get index as Array
-    multi method ix {
+    multi method ix {           # get index as Array
         $.index.&sbv
     }
 
@@ -373,17 +397,7 @@ role Series does Positional does Iterable is export {
 
     #| flush SeriesC (with same dtype)
     method push {
-        $!rc = SeriesC.new( $!name, @!data, dtype => $.dtype )
-    }
-
-##FIXME
-    method prep-py-args {
-	my ( @qdata, $args );
-        @qdata = @!data.map({$_ ~~ Str ?? qq/\"$_\"/ !! $_ });
-        $args  = "[{@qdata.join(', ')}]";
-        $args ~~ s:g/NaN/np.nan/;
-        $args ~= ", index=['{%!index.&sbv.join("', '")}']"   if %!index;
-        $args ~= ", name=\"$!name\""   	      		if $!name;
+        $!rc = SeriesC.new( $!name, @!data, :$.dtype )
     }
 
     #### MAC Methods #####
@@ -500,11 +514,11 @@ role Categorical does Series is export {
 }
 
 role DataFrame does Positional does Iterable is export {
-    has Any         @.data;             #redo 2d shaped Array when [; ] implemented
-    has Int         %!index;            #row index
-    has Int         %!columns;          #column index
+    has Any        @.data;             #redo 2d shaped Array when [; ] implemented
+    has Int        %!index;            #row index
+    has Int        %!columns;          #column index
 
-    has DataFrameC $!rc;       #Rust container
+    has DataFrameC $.rc;       #Rust container
     has $.po;			  #ref to Python DataFrame obj  FIXME
 
 
@@ -539,7 +553,7 @@ role DataFrame does Positional does Iterable is export {
             }
         }
 
-        $!rc = DataFrameC.new; #( @!data, dtype => $!dtype )
+        $!rc = DataFrameC.new;
     }
 
 #`[[[
@@ -562,22 +576,6 @@ role DataFrame does Positional does Iterable is export {
         }
     }
 
-    method prep-py-args {   #FIXME
-	my ( @qdata, @rows, $args );
-
-	@qdata = @!data.map(*.map({$_ ~~ Str ?? qq/\"$_\"/ !! $_ }));
-
-	@rows = gather {
-            loop ( my $i=0; $i < @qdata; $i++ ) {
-		take "[{@qdata[$i;*].join(', ')}]"
-            }
-	}
-
-	$args  = "[{@rows.join(', ')}]";
-	$args ~~ s:g/NaN/np.nan/;
-	$args ~= ", index=['{%!index.&sbv.join("', '")}']"       if %!index; 	
-	$args ~= ", columns=['{%!columns.&sbv.join("', '")}']"   if %!columns; 	
-    }
   
     sub prep-py-str( $args ) {  #FIXME
 #`[
@@ -639,14 +637,36 @@ class RakuDataFrame:
 };
 
     }
-
-    submethod init-po( $args ) {
-	my $py-str  = prep-py-str( $args );
-
-	$!py.run( $py-str );
-	$!po = $!py.call('__main__', 'RakuDataFrame');
-    }
 #]
+#]]]
+
+    # helper functions for TWEAK
+
+    method load-from-series( *@series ) {
+        for @series -> \column {
+            $.with_column( column )
+        }
+    }
+
+    #iamerejh
+    method load-from-data {
+    #`[
+        my @series = gather 
+        for @series -> \column {
+            $.with_column( column )
+        }
+    #]
+    }
+
+    method load-from-slices( @slices ) {
+        loop ( my $i=0; $i < @slices; $i++ ) {
+
+            my $key = @slices[$i].name // ~$i;
+            %!index{ $key } = $i;
+
+            @!data[$i] := @slices[$i].data
+        }
+    }
 
     method TWEAK {
 
@@ -668,20 +688,18 @@ class RakuDataFrame:
                     for @!data -> $p {
                         my $name = ~$p.key;
                         given $p.value {
-                            # handle Series/Array with row-elems (auto index)   #TODO: avoid Series.new
-                            when Series { take Series.new( $_.data, :$name, dtype => ::($_.dtype) ) }
+                            # handle Series/Array with row-elems (auto index)
+                            when Series { take Series.new( $_.data, :$name, dtype => ::($_.dtype ) ) }
                             when Array  { take Series.new( $_, :$name ) }
 
-                            # handle Scalar items (set index to auto-expand)    #TODO: lazy expansion
+                            # handle Scalar items (set index to auto-expand)
                             when Str|Real { take Series.new( $_,     :$name, :@index ) }
                             when Date     { take Series.new( $_.Str, :$name, :@index ) }
                         }
                     }
                 }.Array;
 
-                # make stub df (as self) then concat each series 
-                self.init-po: '';
-                self.load-from-series: |@series;
+                $.load-from-series: |@series
             } 
 
 #`[
@@ -711,8 +729,6 @@ class RakuDataFrame:
 
                 # make columns Hash
                 %!columns = @slices.first.index;
-
-                self.init-po: self.prep-py-args
             }
 
             # data arg is 2d Array (already) 
@@ -726,11 +742,10 @@ class RakuDataFrame:
                     @alphi[0..^@!data.first.elems].map( {%!columns{$_} = $++} ).eager;
                 }
 
-                self.init-po: self.prep-py-args
+                $.load-from-data
             } 
         }
     }
-#]]]
 
     #### Info Methods #####
 
@@ -746,14 +761,13 @@ class RakuDataFrame:
         $!rc.column( colname )
     }
 
-    method select( Array \colspec ) {
+    method select( Array[Str] \colspec ) {
         $!rc.select( colspec )
     }
 
-    #iamerejh
-    #method with_columns( Array[Series] \cols ) {
-    #    $!rc.with_columns( cols )
-    #}
+    method with_column( Series \column ) {
+        $!rc.with_column( column.rc )
+    }
 
 
 #`[[[

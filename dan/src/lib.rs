@@ -298,6 +298,10 @@ impl DataFrameC {
         self.df.select(&colvec).unwrap().clone()
     }
 
+    fn with_column(&mut self, series: Series) -> DataFrame {
+        self.df.with_column(series).unwrap().clone()
+    }
+
     fn query(&self) -> DataFrame {
         let result = self.df.clone()
 
@@ -406,6 +410,25 @@ pub extern "C" fn df_select(
     //FIXME adjust to new(df)
     let mut df_n = DataFrameC::new();
     df_n.df = df_c.select(colvec);
+    Box::into_raw(Box::new(df_n))
+}
+
+#[no_mangle]
+pub extern "C" fn df_with_column(
+    d_ptr: *mut DataFrameC,
+    s_ptr: *mut SeriesC,
+) -> *mut DataFrameC {
+    let df_c = unsafe {
+        assert!(!d_ptr.is_null());
+        &mut *d_ptr
+    };
+    let se_c = unsafe {
+        assert!(!s_ptr.is_null());
+        &mut *s_ptr
+    };
+
+    let mut df_n = DataFrameC::new();
+    df_n.df = df_c.with_column(se_c.se.clone()); 
     Box::into_raw(Box::new(df_n))
 }
 

@@ -83,8 +83,8 @@ say "=============================================";
 
 ### DataFrames ###
 
-my \dates = (Date.new("2022-01-01"), *+1 ... *)[^6];
-my \df = DataFrame.new( data => [[rand xx 4] xx 6], index => dates, columns => <A B C D> );
+#my \dates = (Date.new("2022-01-01"), *+1 ... *)[^6];
+#my \df = DataFrame.new( data => [[rand xx 4] xx 6], index => dates, columns => <A B C D> );
 #my \df = DataFrame.new( [[rand xx 4] xx 6], columns => <A B C D> );
 #my \df = DataFrame.new( [[rand xx 4] xx 6] );
 
@@ -100,6 +100,8 @@ $select.head;
 #]
 
 #say ~df;
+my \df = DataFrame.new();
+df.with_column(s);
 df.head;
 df.show;
 
@@ -157,24 +159,26 @@ say ~df.sort: { df.ix[$++] };   # sort by index
 #say ~df.grep( { .[1] < 0.5 } );                                # by 2nd column 
 say ~df.grep( { df.ix[$++] eq <2022-01-02 2022-01-06>.any } ); # by index (multiple) 
 #]
-
+#]]]
 say "---------------------------------------------";
-
+#FIXME align dtype arg 
 my \df2 = DataFrame.new([
         A => 1.0,
         B => Date.new("2022-01-01"),
-        C => Series.new(1, index => [0..^4], dtype => Num),
+        C => Series.new(1, index => [0..^4], dtype => 'Num'),
         D => [3 xx 4],
         E => Categorical.new(<test train test train>),
         F => "foo",
 ]);
-say ~df2;
+#say ~df2;
+df2.show;
 #`[
 say df2.data;
 say df2.dtypes;
 say df2.index;    #Hash (name => row number)   -or- df.ix; #Array
 say df2.columns;  #Hash (label => col number)  -or- df.cx; #Array
 #]
+#`[[[
 say "---------------------------------------------";
 
 #`[

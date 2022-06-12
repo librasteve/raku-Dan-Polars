@@ -818,15 +818,16 @@ class RakuDataFrame:
         my @keys = $!po.rd_index();
         @keys.map({ $_ => $++ }).Hash
     }
+#]]]
 
     #| get columns as Array
     multi method cx {
-        $!po.rd_columns()
+        $.get_column_names
     }
 
     #| get columns as Hash
     method columns {
-        my @keys = $!po.rd_columns();
+        my @keys = $.cx;
         @keys.map({ $_ => $++ }).Hash
     }
 
@@ -838,8 +839,7 @@ class RakuDataFrame:
         %.index.keys.map: { %!index{$_}:delete };
         @new-index.map:   { %!index{$_} = $++  };
 
-        my $args = self.prep-py-args;
-        $!po.rd_push($args)
+        #$.push FIXME changed to require manual push (gonna excise index anyway)
     }
 
     #| set columns (relabel) from Array
@@ -847,11 +847,8 @@ class RakuDataFrame:
         %.columns.keys.map: { %!columns{$_}:delete };
         @new-labels.map:    { %!columns{$_} = $++  };
 
-        my $args = self.prep-py-args;
-        $!po.rd_push($args)
+        #$.push FIXME changed to require manual push (otherwise can use in pull)
     }
-
-#]]]
 
     #### File Methods #####
     #### Read & Write #####
@@ -865,7 +862,14 @@ class RakuDataFrame:
 
     #| set raku attrs to rc_values, reset index
     method pull {
-	    @!data = $!rc.values;
+        $.cx: $.cx;
+
+        my @series;
+        for |$.cx -> $colname {
+            @series.push: $.column( $colname )    
+        }
+
+        $.load-from-series;
 
         %!index = gather {
             for 0..^@!data {
@@ -874,10 +878,10 @@ class RakuDataFrame:
         }.Hash;
     }
 
-    #| flush SeriesC (with same dtype)
-    #method push {
-    #    $!rc = SeriesC.new( $!name, @!data, :$.dtype )
-    #}
+    #| flush DataFrameC 
+    method push {
+        $!rc = DataFrameC.new( :@!data, :%!index, :%!columns )
+    }
 
 #`[[[
     method load-from-data {                     #not using accessors as still constructing

@@ -105,8 +105,8 @@ $select.head;
 df.head;
 df.show;
 say df.get_column_names;
-die;
-df.pull;  #iamerejh
+say df.cx;
+df.pull; 
 dd df.data;
 
 #`[

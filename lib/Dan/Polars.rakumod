@@ -171,6 +171,7 @@ class DataFrameC is repr('CPointer') {
     sub df_read_csv(DataFrameC, Str) is native($n-path) { * }
     sub df_show(DataFrameC)          is native($n-path) { * }
     sub df_head(DataFrameC)          is native($n-path) { * }
+    sub df_dtypes(DataFrameC, &callback (Str)) is native($n-path) { * }
     sub df_get_column_names(DataFrameC, &callback (Str)) is native($n-path) { * }
     sub df_column(DataFrameC, Str) returns SeriesC is native($n-path) { * }
     sub df_select(DataFrameC, CArray[Str], size_t) returns DataFrameC is native($n-path) { * }
@@ -195,6 +196,16 @@ class DataFrameC is repr('CPointer') {
 
     method head {
         df_head(self)
+    }
+
+    method dtypes {
+        my @out;
+        my &line_out = sub ( $line ) {
+            @out.push: $line;
+        }
+
+        df_dtypes(self, &line_out);
+        @out
     }
 
     method get_column_names {
@@ -781,6 +792,10 @@ class RakuDataFrame:
         $!rc.head
     }
 
+    method dtypes {
+        $!rc.dtypes
+    }
+
     method get_column_names {
         $!rc.get_column_names 
     }
@@ -797,12 +812,7 @@ class RakuDataFrame:
         $!rc.with_column( column.rc )
     }
 
-
 #`[[[
-    method dtypes {
-        $!po.rd_dtypes()
-    }
-
     method Dan-DataFrame {
         $.pull;
         Dan::DataFrame.new( :@!data, :%!index, :%!columns )

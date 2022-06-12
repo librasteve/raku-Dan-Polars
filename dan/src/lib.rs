@@ -290,11 +290,19 @@ impl DataFrameC {
         println!{"{}", self.df.head(Some(5))};
     }
 
+    fn dtypes(&self, retline: RetLine) {
+        let dtypes = self.df.dtypes();
+
+        for dtype in dtypes.iter() {
+            let dtype = CString::new(dtype.to_string()).unwrap();
+            retline(dtype.as_ptr());
+        }
+    }
+
     fn get_column_names(&self, retline: RetLine) {
         let names = self.df.get_column_names();
 
         for name in names.iter() {
-            // convert string slice to a C style NULL terminated string
             let name = CString::new(*name).unwrap();
             retline(name.as_ptr());
         }
@@ -375,6 +383,16 @@ pub extern "C" fn df_head(ptr: *mut DataFrameC) {
     };
 
     df_c.head();
+}
+
+#[no_mangle]
+pub extern "C" fn df_dtypes(ptr: *mut DataFrameC, retline: RetLine) {
+    let df_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+
+    df_c.dtypes(retline);
 }
 
 #[no_mangle]

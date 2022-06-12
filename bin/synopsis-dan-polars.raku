@@ -102,12 +102,13 @@ $select.head;
 #say ~df;
 #my \df = DataFrame.new();
 #df.with_column(s);
-df.head;
 df.show;
+df.head;
+say df.dtypes;
 say df.get_column_names;
 say df.cx;
 df.pull; 
-dd df.data;
+say df.data;
 
 #`[
 say "---------------------------------------------";

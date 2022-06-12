@@ -104,6 +104,7 @@ $select.head;
 #df.with_column(s);
 df.show;
 df.head;
+say df.elems;
 say df.dtypes;
 say df.get_column_names;
 say df.cx;
@@ -111,15 +112,17 @@ df.pull;
 say df.data;
 
 #`[
+#FIXME
 say "---------------------------------------------";
-
+dd df;
 # Data Accessors [row;col]
 say df[0;0];
 #df[0;0] = 3;                # set value (not sure why this works, must manual push
 
 # Smart Accessors (mix Positional and Associative)
 say df[0][0];
-say df[0]<A>;
+say df ~~ DataFrame;
+##say df[0]<A>; #... hmm broken!;
 #say df{"2022-01-03"}[1];
 
 # Object Accessors & Slices (see note 1)

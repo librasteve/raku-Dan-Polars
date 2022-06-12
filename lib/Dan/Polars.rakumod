@@ -812,7 +812,6 @@ class RakuDataFrame:
         $!rc.with_column( column.rc )
     }
 
-#`[[[
     method Dan-DataFrame {
         $.pull;
         Dan::DataFrame.new( :@!data, :%!index, :%!columns )
@@ -820,15 +819,18 @@ class RakuDataFrame:
 
     #| get index as Array
     multi method ix {
-        $!po.rd_index()
+        #$!po.rd_index()
+        say 1;
     }
 
     #| get index as Hash
-        method index {
+    method index {
+        say 2;
+#`[[[
         my @keys = $!po.rd_index();
         @keys.map({ $_ => $++ }).Hash
-    }
 #]]]
+    }
 
     #| get columns as Array
     multi method cx {
@@ -857,7 +859,7 @@ class RakuDataFrame:
         %.columns.keys.map: { %!columns{$_}:delete };
         @new-labels.map:    { %!columns{$_} = $++  };
 
-        #$.push FIXME changed to require manual push (otherwise can use in pull)
+        #$.push FIXME changed to require manual push (otherwise cant use in .pull)
     }
 
     #### File Methods #####
@@ -970,7 +972,7 @@ class RakuDataFrame:
             %!index{@!data[$i].pop} = $i
         }
 
-	DataFrame.new( :%!index, :%!columns, :@!data )
+	    DataFrame.new( :%!index, :%!columns, :@!data )
     }
 
     ### Pandas Methods ###
@@ -986,6 +988,7 @@ class RakuDataFrame:
     multi method pd( $exp, Dan::Polars::Series:D $other ) {
         $!po.rd_eval2( $exp, $other.po )
     }
+#]]]
 
     ### Role Support ###
 
@@ -1030,6 +1033,7 @@ class RakuDataFrame:
         @!data.hyper
     }
 
+#`[[[
     ### Splice ###
     #| get self as a Dan::DataFrame, perform splice operation and push back
 
@@ -1070,7 +1074,6 @@ class RakuDataFrame:
     }
 #]]]
 }
-#{{
 
 
 ### Postfix '^' as explicit subscript chain terminator
@@ -1164,4 +1167,3 @@ multi postcircumfix:<{ }>( Dan::DataSlice @aods , @ks ) is export {
     DataFrame.new( sliced-slices(@aods, @s) )
 }
 
-#}}

@@ -85,7 +85,7 @@ say "=============================================";
 
 #my \dates = (Date.new("2022-01-01"), *+1 ... *)[^6];
 #my \df = DataFrame.new( [[rand xx 4] xx 6], index => dates, columns => <A B C D> );
-my \df = DataFrame.new( [[rand xx 4] xx 6], columns => <A B C D> );
+#my \df = DataFrame.new( [[rand xx 4] xx 6], columns => <A B C D> );
 #my \df = DataFrame.new( [[rand xx 4] xx 6] );
 
 #`[
@@ -99,9 +99,10 @@ my $select = df.select(["sepal.length", "variety"]);
 $select.head;
 #]
 
-#say ~df;
+#`[
 #my \df = DataFrame.new();
 #df.with_column(s);
+##say ~df;
 df.show;
 df.head;
 say df.elems;
@@ -110,19 +111,22 @@ say df.get_column_names;
 say df.cx;
 df.pull; 
 say df.data;
+#]
+
+#FIXME (cascading accessors - see PCF redesign text edit - move type to given / when!?)
+#FIXME (have left in state Role Support on, postcircumfix etc off 
+say "---------------------------------------------";
+
+# Data Accessors [row;col]
+#say df[0;0];
+##df[0;0] = 3;                # set value (not sure why this works, must manual push
 
 #`[
-#FIXME
-say "---------------------------------------------";
-dd df;
-# Data Accessors [row;col]
-say df[0;0];
-#df[0;0] = 3;                # set value (not sure why this works, must manual push
-
 # Smart Accessors (mix Positional and Associative)
+say df[0];
 say df[0][0];
-say df ~~ DataFrame;
-##say df[0]<A>; #... hmm broken!;
+say df ~~ DataFrame:D;
+say df[0]<A>; #... hmm broken!;
 #say df{"2022-01-03"}[1];
 
 # Object Accessors & Slices (see note 1)
@@ -130,9 +134,12 @@ say ~df[0];                 # 1d Row 0 (DataSlice)
 say ~df[*]<A>;              # 1d Col A (Series)
 say ~df[0..*-2][1..*-1];    # 2d DataFrame
 #say ~df{dates[0..1]}^;      # the ^ postfix converts an Array of DataSlices into a new DataFrame
+
+# Head & Tail
+say ~df[0..^3]^;            # head
+say ~df[(*-3..*-1)]^;       # tail
 #]
 
-#`[[[
 #`[
 say "---------------------------------------------";
 ### DataFrame Operations ###
@@ -147,38 +154,44 @@ say [+] df[*;*];
 say df >>+>> 2;
 say df >>+<< df;
 
-# Transpose
-say ~df.T;                  
+# Transpose   #FIXME - rust not working
+say ~df.T;                 
 
 # Describe
-say ~df[0..^3]^;            # head
-say ~df[(*-3..*-1)]^;       # tail
-say ~df.shape;
-df.describe;
+say df.height;
+say df.width;
+say df.shape;
+say df.series(<A>).show;
+say ~df.describe;
 
 say "---------------------------------------------";
 # Sort
-say ~df.sort: { .[1] };         # sort by 2nd col (ascending)
-say ~df.sort: { -.[1] };        # sort by 2nd col (descending)
-say ~df.sort: { df[$++]<C> };   # sort by col C
-say ~df.sort: { df.ix[$++] };   # sort by index
+#say ~df.sort: { .[1] };         # sort by 2nd col (ascending)
+df.sort( { .[1] } ).show;         # sort by 2nd col (ascending)
+#say ~df.sort: { -.[1] };        # sort by 2nd col (descending)
+df.sort( { -.[1] } ).show;         # sort by 2nd col (ascending)
+##say ~df.sort: { df[$++]<C> };   # sort by col C  [FIXME cascade dead]
+##say ~df.sort: { df.ix[$++] };   # sort by index 
+df.sort( { df.ix[$++] } ).show;    # sort by index (no-op)
 
 # Grep (binary filter)
-#say ~df.grep( { .[1] < 0.5 } );                                # by 2nd column 
-say ~df.grep( { df.ix[$++] eq <2022-01-02 2022-01-06>.any } ); # by index (multiple) 
+#say ~df.grep( { .[1] < 0.5 } );   # by 2nd column 
+df.grep( { .[1] < 0.5 } ).show;   # by 2nd column 
+##say ~df.grep( { df.ix[$++] eq <2022-01-02 2022-01-06>.any } ); # by index (multiple) 
 #]
-#]]]
+
 say "---------------------------------------------";
-#FIXME align dtype arg 
+#FIXME align dtype arg to Str (Dan & Dan::Pandas)
+#FIXME pull push df.splice needs Dan::Series afiact
 my \df2 = DataFrame.new([
         A => 1.0,
         B => Date.new("2022-01-01"),
-        C => Series.new(1, index => [0..^4], dtype => 'Num'),
+        C => Dan::Series.new(1, index => [0..^4], dtype => 'Num'),
         D => [3 xx 4],
-        E => Categorical.new(<test train test train>),
+        E => Dan::Categorical.new(<test train test train>),
         F => "foo",
 ]);
-#say ~df2;
+##say ~df2;
 df2.show;
 #`[
 say df2.data;
@@ -186,23 +199,26 @@ say df2.dtypes;
 say df2.index;    #Hash (name => row number)   -or- df.ix; #Array
 say df2.columns;  #Hash (label => col number)  -or- df.cx; #Array
 #]
-#`[[[
+
 say "---------------------------------------------";
 
 #`[
-# row-wise splice:
+# row-wise splice:    #FIXME cant get a DataSlice
 my $ds = df2[0];                        # get a DataSlice 
 $ds.splice($ds.index<A>,1,7);           # tweak it a bit
 df2.splice( 1, 2, [j => $ds] );         # default
 
-# column-wise splice:
-my $se = df2[*]<D>;               	# get a Series 
-$se.splice(2,1,8);                      # tweak it a bit
-df2.splice( :ax, 1, 2, [K => $se] );    # axis => 1
-
-say ~df2;
 #]
+# column-wise splice:
+##my $se = df2[*]<D>;              	      # get a Series 
+my $se = df2.series: <D>;               # get a Series 
+$se.splice(2, 1, [2 => 8]);             # tweak it a bit
+$se.show;
 
+df2.splice( :ax, 1, 2, [K => $se] );    # axis => 1
+df2.show;
+
+#`[[[
 #[
 my \dfa = DataFrame.new(
         [['a', 1], ['b', 2]],
@@ -220,16 +236,4 @@ say "---------------------------------------------";
 dfa.concat(dfc);
 say ~dfa;
 #]
-
-#[ pd methods
-df.pd: '.shape';
-df.pd: '.flags';
-df.pd: '.T';
-df.pd: '.to_json("test.json")';
-df.pd: '.to_csv("test.csv")';
-df.pd: '.iloc[2] = 23';
-df.pd: '.iloc[2]';
-say ~df;
-#]
-
 #]]]

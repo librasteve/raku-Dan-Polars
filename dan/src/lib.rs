@@ -8,6 +8,7 @@ use std::path::{Path};
 
 use polars::prelude::*;//{CsvReader, DataType, DataFrame, Series};
 use polars::prelude::{Result as PolarResult};
+use polars::frame::DataFrame;
 
 // Callback Types
 
@@ -46,7 +47,7 @@ impl SeriesC {
         retline(name.as_ptr());
     }
 
-    fn elems(&self) -> u32 {
+    fn len(&self) -> u32 {
         self.se.len().try_into().unwrap()
     }
 
@@ -231,13 +232,13 @@ pub extern "C" fn se_name(ptr: *mut SeriesC, retline: RetLine) {
 }
 
 #[no_mangle]
-pub extern "C" fn se_elems(ptr: *mut SeriesC) -> u32 {
+pub extern "C" fn se_len(ptr: *mut SeriesC) -> u32 {
     let se_c = unsafe {
         assert!(!ptr.is_null());
         &mut *ptr
     };
 
-    se_c.elems()
+    se_c.len()
 }
 
 #[no_mangle]
@@ -288,6 +289,14 @@ impl DataFrameC {
 
     fn head(&self) {
         println!{"{}", self.df.head(Some(5))};
+    }
+
+    fn height(&self) -> u32 {
+        self.df.height().try_into().unwrap()
+    }
+
+    fn width(&self) -> u32 {
+        self.df.width().try_into().unwrap()
     }
 
     fn dtypes(&self, retline: RetLine) {
@@ -383,6 +392,26 @@ pub extern "C" fn df_head(ptr: *mut DataFrameC) {
     };
 
     df_c.head();
+}
+
+#[no_mangle]
+pub extern "C" fn df_height(ptr: *mut DataFrameC) -> u32 {
+    let df_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+
+    df_c.height()
+}
+
+#[no_mangle]
+pub extern "C" fn df_width(ptr: *mut DataFrameC) -> u32 {
+    let df_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+
+    df_c.width()
 }
 
 #[no_mangle]

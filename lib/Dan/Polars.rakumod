@@ -23,6 +23,8 @@ unit module Dan::Polars:ver<0.0.1>:auth<Steve Roe (p6steve@furnival.net)>;
 use Dan;
 use NativeCall;
 
+role Series {...}
+
 ### Helper Items
 
 my regex number {
@@ -32,7 +34,6 @@ my regex number {
 
 sub carray( $dtype, @items ) {
     my $output := CArray[$dtype].new();
-
     loop ( my $i = 0; $i < @items; $i++ ) {
         $output[$i] = @items[$i]
     }
@@ -63,15 +64,15 @@ class SeriesC is repr('CPointer') is export {
     sub se_head(SeriesC)   is native($n-path) { * }
     sub se_dtype(SeriesC,  &callback (Str --> Str)) is native($n-path) { * }
     sub se_name(SeriesC,   &callback (Str --> Str)) is native($n-path) { * }
-    sub se_elems(SeriesC)  returns uint32 is native($n-path) { * }
+    sub se_len(SeriesC) returns uint32 is native($n-path) { * }
     sub se_values(SeriesC, Str) is native($n-path) { * }
 
     method new( $name, @data, :$dtype ) {
 
         if $dtype {
 
-            @data.map({ $_ .= Num if $_ ~~ Rat});                       #Coerce stray Rats to Num
-            @data.map({ $_ .= Num if $_ ~~ Int}) if $dtype eq 'Num';    #Coerce stray Ints to Num
+            @data.map({ $_ .= Num if $_ ~~ Rat});                                               #Coerce stray Rats to Num
+            @data.map({ $_ .= Num if $_ ~~ Int}) if $dtype eq <f32 f64 num32 num64 Num>.any;    #Coerce stray Ints to Num
 
             given $dtype {
                 when    'i32' { se_new_i32($name, carray( int32, @data), @data.elems) }
@@ -86,11 +87,12 @@ class SeriesC is repr('CPointer') is export {
                 when 'uint64' { se_new_u64($name, carray(uint64, @data), @data.elems) }
                 when  'num32' { se_new_f32($name, carray( num32, @data), @data.elems) }
                 when  'num64' { se_new_f64($name, carray( num64, @data), @data.elems) }
+                when    'str' { se_new_str($name, carray(   Str, @data), @data.elems) }
+                when    'Str' { se_new_str($name, carray(   Str, @data), @data.elems) }
                 when   'bool' { se_new_bool($name, carray( bool, @data), @data.elems) }
                 when   'Bool' { se_new_bool($name, carray( bool, @data), @data.elems) }
                 when    'Int' { se_new_i64($name, carray( int64, @data), @data.elems) }
                 when    'Num' { se_new_f64($name, carray( num64, @data), @data.elems) }
-                when    'Str' { se_new_str($name, carray(   Str, @data), @data.elems) }
                 when    'Rat' { die "Rats are not implemented by Polars" }
                 when   'Real' { die "Rats are not implemented by Polars" }
             }
@@ -153,14 +155,16 @@ class SeriesC is repr('CPointer') is export {
         $out
     }
 
-    method elems {
-        se_elems(self)
+    method len {
+        se_len(self)
     }
 
     method values {
         se_values(self, $vals-file);
         my @values = $vals-file.IO.lines;
-        @values.map({ $_ = +$_ if $_ ~~ /<number>/ });     #convert to narrowest Real type
+        if $.dtype ne <str Str>.any { 
+            @values.map({ $_ = +$_ if $_ ~~ /<number>/ });     #convert to narrowest Real type
+        }
         @values
     }
 }
@@ -171,6 +175,8 @@ class DataFrameC is repr('CPointer') {
     sub df_read_csv(DataFrameC, Str) is native($n-path) { * }
     sub df_show(DataFrameC)          is native($n-path) { * }
     sub df_head(DataFrameC)          is native($n-path) { * }
+    sub df_height(DataFrameC) returns uint32 is native($n-path) { * }
+    sub df_width(DataFrameC) returns uint32 is native($n-path) { * }
     sub df_dtypes(DataFrameC, &callback (Str)) is native($n-path) { * }
     sub df_get_column_names(DataFrameC, &callback (Str)) is native($n-path) { * }
     sub df_column(DataFrameC, Str) returns SeriesC is native($n-path) { * }
@@ -198,6 +204,14 @@ class DataFrameC is repr('CPointer') {
         df_head(self)
     }
 
+    method height {
+        df_height(self)
+    }
+
+    method width {
+        df_width(self)
+    }
+
     method dtypes {
         my @out;
         my &line_out = sub ( $line ) {
@@ -219,7 +233,13 @@ class DataFrameC is repr('CPointer') {
     }
 
     method column( Str \colname ) {
-        df_column(self, colname)
+        my $cont = df_column(self, colname);
+
+        my $name = $cont.name;
+        my @data = $cont.values;
+        my $dtype = $cont.dtype;
+
+        Series.new( :@data, :$name, :$dtype )
     }
 
     method select( Array \colspec ) {
@@ -282,7 +302,7 @@ role Series does Positional does Iterable is export {
     ## attrs for construct and pull only: not synched to Rust side ##
     has Str	    $.name;
     has Any     @.data;
-    has Int     %!index;
+    has Int     %.index;
     has         $!dtype;
 
     has SeriesC $.rc;       #Rust container
@@ -364,7 +384,7 @@ role Series does Positional does Iterable is export {
             }.Hash;
         #}
 
-        $!rc = SeriesC.new( $!name, @!data, dtype => $!dtype )
+        $!rc = SeriesC.new( $!name, @!data, :$!dtype )
     }
 
     #### Info Methods #####
@@ -381,17 +401,21 @@ role Series does Positional does Iterable is export {
         $!rc.dtype 
     }
 
+    method name {
+        $!rc.name 
+    }
+
+    method len {
+        $!rc.len 
+    }
+
     method index {              # get index as Hash
         $.pull; 
         %!index
     }
 
     multi method ix {           # get index as Array
-        $.index.&sbv
-    }
-
-    method name {
-        $!rc.name 
+        %!index.&sbv
     }
 
     method values {
@@ -483,7 +507,7 @@ role Series does Positional does Iterable is export {
         Any
     }
     method elems {
-        $!rc.elems()
+        $.len
     }
     method AT-POS( $p ) {
         $.pull;
@@ -527,7 +551,7 @@ role Series does Positional does Iterable is export {
     }
     method EXISTS-KEY( $k ) {
         $.pull;
-        %.index{$k}:exists
+        %!index{$k}:exists
     }
 
 }
@@ -541,7 +565,6 @@ role DataFrame does Positional does Iterable is export {
     has Int        %!columns;          #column index
 
     has DataFrameC $.rc;       #Rust container
-    has $.po;			  #ref to Python DataFrame obj  FIXME
 
 
     ### Constructors ###
@@ -578,90 +601,6 @@ role DataFrame does Positional does Iterable is export {
         $!rc = DataFrameC.new;
     }
 
-#`[[[
-    # helper functions for TWEAK
-
-    method load-from-series( *@series ) {
-        for @series -> $sene {
-            $!po.rd_concat_series($sene.po)
-        }
-        $.pull
-    }
-
-    method load-from-slices( @slices ) {
-        loop ( my $i=0; $i < @slices; $i++ ) {
-
-            my $key = @slices[$i].name // ~$i;
-            %!index{ $key } = $i;
-
-            @!data[$i] := @slices[$i].data
-        }
-    }
-
-  
-    sub prep-py-str( $args ) {  #FIXME
-#`[
-qq{
-
-# since Inline::Python will not pass a DataFrame class back and forth
-# we make and instantiate a standard class 'RakuDataFrame' as container
-# and populate methods over in Python to condition the returns as 
-# supported datastypes (Int, Str, Array, Hash, etc)
-
-class RakuDataFrame:
-    def __init__(self):
-        self.dataframe = pd.DataFrame($args)
-        #print(self.dataframe)
-
-    def rd_str(self):
-        return(str(self.dataframe))
-
-    def rd_dtypes(self):
-        print(str(self.dataframe.dtypes))
-
-    def rd_index(self):
-        return(self.dataframe.index)
-
-    def rd_columns(self):
-        return(self.dataframe.columns)
-
-    def rd_values(self):
-        array = self.dataframe.values
-        result = array.tolist()
-        return(result)
-
-    def rd_eval(self, exp):
-        result = eval('self.dataframe' + exp)
-        print(result) 
-
-    def rd_eval2(self, exp, other):
-        result = eval('self.dataframe' + exp + '(other.dataframe)')
-        print(result) 
-
-    def rd_exec(self, exp):
-        exec('self.dataframe' + exp)
-
-    def rd_push(self, args):
-        self.dataframe = eval('pd.DataFrame(' + args + ')')
-
-    def rd_transpose(self):
-        self.dataframe = self.dataframe.T
-
-    def rd_shape(self):
-        return(self.dataframe.shape)
-
-    def rd_describe(self):
-        print(self.dataframe.describe())
-
-    def rd_concat_series(self, other):
-        self.dataframe = pd.concat([self.dataframe, other.series], axis=1)
-
-};
-
-    }
-#]
-#]]]
-
     # helper functions for TWEAK
 
     method load-from-series( *@series ) {
@@ -671,11 +610,12 @@ class RakuDataFrame:
     }
 
     method load-from-data {                     #not using accessors as still constructing
-
-        my @cx = %!columns.&sbv;
+        say "lfd";
+        dd my @cx = %!columns.&sbv;
 
         my @series = gather {
             loop ( my $i = 0; $i < @!data.first.elems; $i++ ) {
+                say @!data[*;$i];
                 take Series.new( data => @!data[*;$i], name => @cx[$i] ) 
             }
         }
@@ -717,7 +657,7 @@ class RakuDataFrame:
                         my $name = ~$p.key;
                         given $p.value {
                             # handle Series/Array with row-elems (auto index)
-                            when Series { take Series.new( $_.data, :$name, dtype => ::($_.dtype ) ) }
+                            when Series { take Series.new( $_.data, :$name, dtype => $_.dtype ) }
                             when Array  { take Series.new( $_, :$name ) }
 
                             # handle Scalar items (set index to auto-expand)
@@ -792,6 +732,14 @@ class RakuDataFrame:
         $!rc.head
     }
 
+    method height { 
+        $!rc.height
+    }
+
+    method width { 
+        $!rc.width
+    }
+
     method dtypes {
         $!rc.dtypes
     }
@@ -814,22 +762,21 @@ class RakuDataFrame:
 
     method Dan-DataFrame {
         $.pull;
-        Dan::DataFrame.new( :@!data, :%!index, :%!columns )
+        Dan::DataFrame.new( :@!data )
     }
 
     #| get index as Array
     multi method ix {
-        #$!po.rd_index()
-        say 1;
+        $.index.&sbv
     }
 
     #| get index as Hash
     method index {
-        say 2;
-#`[[[
-        my @keys = $!po.rd_index();
-        @keys.map({ $_ => $++ }).Hash
-#]]]
+        %!index = gather {
+            for 0..^$.height {
+                take ( $_ => $_ )
+            }
+        }.Hash
     }
 
     #| get columns as Array
@@ -839,7 +786,7 @@ class RakuDataFrame:
 
     #| get columns as Hash
     method columns {
-        my @keys = $.cx;
+        my @keys = |$.cx;
         @keys.map({ $_ => $++ }).Hash
     }
 
@@ -848,16 +795,16 @@ class RakuDataFrame:
 
     #| set (re)index from Array
     multi method ix( @new-index ) {
-        %.index.keys.map: { %!index{$_}:delete };
-        @new-index.map:   { %!index{$_} = $++  };
+        %!index = %();
+        @new-index.map: { %!index{$_} = $++  };
 
         #$.push FIXME changed to require manual push (gonna excise index anyway)
     }
 
     #| set columns (relabel) from Array
     multi method cx( @new-labels ) {
-        %.columns.keys.map: { %!columns{$_}:delete };
-        @new-labels.map:    { %!columns{$_} = $++  };
+        %!columns = %();
+        @new-labels.map: { %!columns{$_} = $++  };
 
         #$.push FIXME changed to require manual push (otherwise cant use in .pull)
     }
@@ -881,7 +828,7 @@ class RakuDataFrame:
             @series.push: $.column( $colname )    
         }
 
-        $.load-from-series;
+        $.load-from-series: |@series;
 
         %!index = gather {
             for 0..^@!data {
@@ -895,48 +842,24 @@ class RakuDataFrame:
         $!rc = DataFrameC.new( :@!data, :%!index, :%!columns )
     }
 
-#`[[[
-    method load-from-data {                     #not using accessors as still constructing
-
-        my @cx = %!columns.&sbv;
-
-        my @series = gather {
-            loop ( my $i = 0; $i < @!data.first.elems; $i++ ) {
-                take Series.new( data => @!data[*;$i], name => @cx[$i] ) 
-            }
-        }
-
-        $.load-from-series: |@series
-    }
-
-    #### Sync Methods #####
-    #### Pull & Push  #####
-
-    #| set raku attrs to rd_array / rd_index / rd_columns
-    method pull {
-        %!index   = $.index;
-        %!columns = $.columns;
-        @!data    = $!po.rd_values;
-    }
-
     ### Mezzanine methods ###  
-    #   (these use Python)  #
 
-    method T {
-        $!po.rd_transpose();
-        self
+    method T {                      #FIXME - rust not working
+        my \df = $.Dan-DataFrame;
+        df.T
     }
 
     method shape {
-	    $!po.rd_shape()
+	    $.height, $.width 
     }
 
     method describe {
-	    $!po.rd_describe()
+        my \df = $.Dan-DataFrame;
+	    df.describe
     }
 
     method series( $k ) {
-        self.[*]{$k}
+        $.column( $k ) 
     }
 
     method sort( &cruton ) {  #&custom-routine-to-use
@@ -974,21 +897,6 @@ class RakuDataFrame:
 
 	    DataFrame.new( :%!index, :%!columns, :@!data )
     }
-
-    ### Pandas Methods ###
-
-    multi method pd( $exp ) {
-        if $exp ~~ /'='/ {
-	    $!po.rd_exec( $exp )
-	} else {
-	    $!po.rd_eval( $exp )
-	}
-    }
-
-    multi method pd( $exp, Dan::Polars::Series:D $other ) {
-        $!po.rd_eval2( $exp, $other.po )
-    }
-#]]]
 
     ### Role Support ###
 
@@ -1033,26 +941,26 @@ class RakuDataFrame:
         @!data.hyper
     }
 
-#`[[[
     ### Splice ###
     #| get self as a Dan::DataFrame, perform splice operation and push back
 
     method splice( DataFrame:D: $start = 0, $elems?, :ax(:$axis), *@replace ) {
-
         my $danse = self.Dan-DataFrame;
+        dd $danse;
 
         my @res = $danse.splice( $start, $elems, :$axis, |@replace );
 
-        %!index   = $danse.index;
-        %!columns = $danse.columns;
-        @!data    = $danse.data;
+        dd %!index   = $danse.index;
+        dd %!columns = $danse.columns;
+        dd @!data    = $danse.data;
 
-        my $args = self.prep-py-args;
-        $!po.rd_push($args);
-
+        my $x =  DataFrame.new( :@!data, :%!index, :%!columns );
+        $x.height;
+        $.push;
         @res
     }
 
+#`[[[
     ### Concat ###
     #| get self & other as Dan::DataFrames, perform concat operation and push back
 
@@ -1075,7 +983,7 @@ class RakuDataFrame:
 #]]]
 }
 
-
+#`[[[
 ### Postfix '^' as explicit subscript chain terminator
 
 multi postfix:<^>( Dan::DataSlice @ds ) is export {
@@ -1085,6 +993,7 @@ multi postfix:<^>( Dan::DataSlice $ds ) is export {
     DataFrame.new(($ds,)) 
 }
 
+##proto postcircumfix:<[ ]>( DataFrame:D $df, |) { * }
 ### Override first subscript [i] to make Dan::DataSlices (rows)
 
 #| provides single Dan::DataSlice which can be [j] subscripted directly to value 
@@ -1166,4 +1075,4 @@ multi postcircumfix:<{ }>( Dan::DataSlice @aods , @ks ) is export {
     my @s = @aods.first.index{@ks};
     DataFrame.new( sliced-slices(@aods, @s) )
 }
-
+#]]]

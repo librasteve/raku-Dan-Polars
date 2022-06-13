@@ -47,6 +47,10 @@ impl SeriesC {
         retline(name.as_ptr());
     }
 
+    fn rename(&mut self, name: String) {
+        self.se.rename(&name);
+    }
+
     fn len(&self) -> u32 {
         self.se.len().try_into().unwrap()
     }
@@ -229,6 +233,23 @@ pub extern "C" fn se_name(ptr: *mut SeriesC, retline: RetLine) {
     };
 
     se_c.name(retline);
+}
+
+#[no_mangle]
+pub extern "C" fn se_rename(
+    ptr: *mut SeriesC,
+    name: *const c_char,
+) {
+    let se_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+
+    let name = unsafe {
+        CStr::from_ptr(name).to_string_lossy().into_owned()
+    };
+
+    se_c.rename(name);
 }
 
 #[no_mangle]

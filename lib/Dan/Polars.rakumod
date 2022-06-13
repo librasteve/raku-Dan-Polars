@@ -64,6 +64,7 @@ class SeriesC is repr('CPointer') is export {
     sub se_head(SeriesC)   is native($n-path) { * }
     sub se_dtype(SeriesC,  &callback (Str --> Str)) is native($n-path) { * }
     sub se_name(SeriesC,   &callback (Str --> Str)) is native($n-path) { * }
+    sub se_rename(SeriesC, Str) is native($n-path) { * }
     sub se_len(SeriesC) returns uint32 is native($n-path) { * }
     sub se_values(SeriesC, Str) is native($n-path) { * }
 
@@ -153,6 +154,10 @@ class SeriesC is repr('CPointer') is export {
 
         se_name(self, &line_out);
         $out
+    }
+
+    method rename( Str $name ) {
+        se_rename(self,$name)
     }
 
     method len {
@@ -405,6 +410,10 @@ role Series does Positional does Iterable is export {
         $!rc.name 
     }
 
+    method rename( $name ) {
+        $!rc.rename( $name ) 
+    }
+
     method len {
         $!rc.len 
     }
@@ -610,8 +619,7 @@ role DataFrame does Positional does Iterable is export {
     }
 
     method load-from-data {                     #not using accessors as still constructing
-        say "lfd";
-        dd my @cx = %!columns.&sbv;
+        my @cx = %!columns.&sbv;
 
         my @series = gather {
             loop ( my $i = 0; $i < @!data.first.elems; $i++ ) {
@@ -828,7 +836,9 @@ role DataFrame does Positional does Iterable is export {
             @series.push: $.column( $colname )    
         }
 
-        $.load-from-series: |@series;
+        loop ( my $i=0; $i < @series; $i++ ) {
+            @!data[$i].push: @series[$i].values
+        }
 
         %!index = gather {
             for 0..^@!data {
@@ -940,27 +950,88 @@ role DataFrame does Positional does Iterable is export {
 	    $.pull;
         @!data.hyper
     }
+    ### Splicing ###
 
-    ### Splice ###
-    #| get self as a Dan::DataFrame, perform splice operation and push back
+    #| reset attributes
+    method reset( :$axis ) {
 
-    method splice( DataFrame:D: $start = 0, $elems?, :ax(:$axis), *@replace ) {
-        my $danse = self.Dan-DataFrame;
-        dd $danse;
+        @!data = [];
 
-        my @res = $danse.splice( $start, $elems, :$axis, |@replace );
+        if ! $axis {
+            %!index = %()
+        } else {
+            %!columns = %()
+        }
 
-        dd %!index   = $danse.index;
-        dd %!columns = $danse.columns;
-        dd @!data    = $danse.data;
+        $!rc = DataFrameC.new()
+    }
 
-        my $x =  DataFrame.new( :@!data, :%!index, :%!columns );
-        $x.height;
-        $.push;
+    #| get as Array or Array of Pairs - [index|columns =>] DataSlice|Series
+    method get-ap( :$axis, :$pair ) {
+        given $axis, $pair {
+            when 0, 0 {
+                self.[*]
+            }
+            when 0, 1 {
+                my @slices = self.[*];
+                self.ix.map({ $_ => @slices[$++] })
+            }
+            when 1, 0 {
+                self.cx.map({self.series($_)}).Array
+            }
+            when 1, 1 {
+                my @series = self.cx.map({self.series($_)}).Array;
+                self.cx.map({ $_ => @series[$++] })
+            }
+        }
+    }
+
+    #| set from Array or Array of Pairs - [index|columns =>] DataSlice|Series
+    method set-ap( :$axis, :$pair, *@set ) {
+
+        self.reset: :$axis;
+
+        given $axis, $pair {
+            when 0, 0 {                         # row - array
+                self.load-from-slices: @set
+            }
+            when 0, 1 {                         # row - aops
+                self.load-from-slices: @set.map(*.value);
+                self.ix: @set.map(*.key)
+            }
+            when 1, 0 {                         # col - array
+                self.load-from-series: |@set;
+                self.pull
+            }
+            when 1, 1 {                         # col - aops
+                @set.map({ $_.value.rename( $_.key ) });
+                self.load-from-series: |@set.map(*.value);
+                self.pull
+            }
+        }
+    }
+
+    sub clean-axis( :$axis ) {
+        given $axis {
+            when ! .so || /row/ { 0 }
+            when   .so || /col/ { 1 }
+        }
+    }
+
+    #| splice as Array or Array of Pairs - [index|columns =>] DataSlice|Series
+    #| viz. https://docs.raku.org/routine/splice
+    method splice( DataFrame:D: $start = 0, $elems?, :ax(:$axis) is copy, *@replace ) {
+           $axis = clean-axis(:$axis);
+        my $pair = @replace.first ~~ Pair ?? 1 !! 0;
+
+        my @wip = self.get-ap: :$axis, :$pair;
+        my @res = @wip.splice: $start, $elems//*, @replace;   # just an Array splice
+                  self.set-ap: :$axis, :$pair, @wip;
+
         @res
     }
 
-#`[[[
+#[[[
     ### Concat ###
     #| get self & other as Dan::DataFrames, perform concat operation and push back
 

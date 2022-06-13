@@ -180,35 +180,33 @@ df.grep( { .[1] < 0.5 } ).show;   # by 2nd column
 ##say ~df.grep( { df.ix[$++] eq <2022-01-02 2022-01-06>.any } ); # by index (multiple) 
 #]
 
+#`[
 say "---------------------------------------------";
 #FIXME align dtype arg to Str (Dan & Dan::Pandas)
-#FIXME pull push df.splice needs Dan::Series afiact
 my \df2 = DataFrame.new([
         A => 1.0,
         B => Date.new("2022-01-01"),
-        C => Dan::Series.new(1, index => [0..^4], dtype => 'Num'),
+        C => Series.new(1, index => [0..^4], dtype => 'Num'),
         D => [3 xx 4],
-        E => Dan::Categorical.new(<test train test train>),
+        E => Categorical.new(<test train test train>),
         F => "foo",
 ]);
 ##say ~df2;
 df2.show;
-#`[
 say df2.data;
 say df2.dtypes;
 say df2.index;    #Hash (name => row number)   -or- df.ix; #Array
 say df2.columns;  #Hash (label => col number)  -or- df.cx; #Array
 #]
 
+#`[
 say "---------------------------------------------";
 
-#`[
 # row-wise splice:    #FIXME cant get a DataSlice
 my $ds = df2[0];                        # get a DataSlice 
 $ds.splice($ds.index<A>,1,7);           # tweak it a bit
 df2.splice( 1, 2, [j => $ds] );         # default
 
-#]
 # column-wise splice:
 ##my $se = df2[*]<D>;              	      # get a Series 
 my $se = df2.series: <D>;               # get a Series 
@@ -217,6 +215,7 @@ $se.show;
 
 df2.splice( :ax, 1, 2, [K => $se] );    # axis => 1
 df2.show;
+#]
 
 #`[[[
 #[

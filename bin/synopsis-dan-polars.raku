@@ -217,22 +217,25 @@ df2.splice( :ax, 1, 2, [K => $se] );    # axis => 1
 df2.show;
 #]
 
-#`[[[
+#`[[[ iamerejh
 #[
 my \dfa = DataFrame.new(
         [['a', 1], ['b', 2]],
         columns => <letter number>,
 );
-say ~dfa;
+##say ~dfa;
+dfa.show;
 
 my \dfc = DataFrame.new(
         [['c', 3, 'cat'], ['d', 4, 'dog']],
         columns => <animal letter number>,
 );
-say ~dfc;
+##say ~dfc;
+dfc.show;
 
 say "---------------------------------------------";
 dfa.concat(dfc);
-say ~dfa;
+##say ~dfa;
+dfa.show;
 #]
 #]]]

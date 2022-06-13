@@ -623,7 +623,6 @@ role DataFrame does Positional does Iterable is export {
 
         my @series = gather {
             loop ( my $i = 0; $i < @!data.first.elems; $i++ ) {
-                say @!data[*;$i];
                 take Series.new( data => @!data[*;$i], name => @cx[$i] ) 
             }
         }
@@ -1031,24 +1030,22 @@ role DataFrame does Positional does Iterable is export {
         @res
     }
 
-#[[[
+#`[[[iamerejh
     ### Concat ###
     #| get self & other as Dan::DataFrames, perform concat operation and push back
 
     method concat( DataFrame:D $dfr, :ax(:$axis), :jn(:$join) = 'outer', :ii(:$ignore-index) ) {
 
-	my $danse = self.Dan-DataFrame;
-	my $danot = $dfr.Dan-DataFrame;
+        my $danse = self.Dan-DataFrame;
+        my $danot = $dfr.Dan-DataFrame;
 
-	my @res = $danse.concat( $danot, :$axis, :$join, :$ignore-index );
+        my @res = $danse.concat( $danot, :$axis, :$join, :$ignore-index );
 
         %!index   = $danse.index;
         %!columns = $danse.columns;
         @!data    = $danse.data;
 
-        my $args = self.prep-py-args;
-        $!po.rd_push($args);
-
+        $.push;
         @res
     }
 #]]]

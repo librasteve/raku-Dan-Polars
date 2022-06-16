@@ -645,7 +645,9 @@ role DataFrame does Positional does Iterable is export {
 
     method TWEAK {
 
-        given @!data.first {
+        return unless @!data;
+
+        given @!data.first {            #FIXME .first should be Array[Pair]
 
             # data arg is 1d Array of Pairs (label => Series)
             when Pair {
@@ -759,7 +761,7 @@ role DataFrame does Positional does Iterable is export {
         $!rc.column( colname )
     }
 
-    method select( Array[Str] \colspec ) {
+    method select( Array \colspec ) {
         $!rc.select( colspec )
     }
 
@@ -795,6 +797,12 @@ role DataFrame does Positional does Iterable is export {
     method columns {
         my @keys = |$.cx;
         @keys.map({ $_ => $++ }).Hash
+    }
+
+    #### Query Methods #####
+
+    method lazy {
+        $!rc.lazy
     }
 
     #### MAC Methods #####

@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 libc = "0.2.126"
-polars = "0.21.1"
+polars = {version = "0.22.1", features = ["lazy"]}
 
 [lib]
 name = "dan"

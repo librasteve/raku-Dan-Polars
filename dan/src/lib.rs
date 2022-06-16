@@ -8,7 +8,10 @@ use std::path::{Path};
 
 use polars::prelude::*;//{CsvReader, DataType, DataFrame, Series};
 use polars::prelude::{Result as PolarResult};
-use polars::frame::DataFrame;
+
+//use polars_lazy::prelude::*;
+
+//use polars_core::prelude::*;
 
 // Callback Types
 
@@ -533,5 +536,40 @@ pub extern "C" fn df_query(
     let mut df_n = DataFrameC::new();
     df_n.df = df_c.query();
     Box::into_raw(Box::new(df_n))
+}
+
+// LazyFrame Container
+
+pub struct LazyFrameC {
+    lf: LazyFrame,
+}
+
+impl LazyFrameC {
+    fn new(df_c: &mut DataFrameC) -> LazyFrameC {
+        LazyFrameC {
+            lf: df_c.df.clone().lazy(), 
+        }
+    }
+}
+
+// extern functions for LazyFrame Container
+#[no_mangle]
+pub extern "C" fn lf_new(ptr: *mut DataFrameC) -> *mut LazyFrameC {
+    let df_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+
+    Box::into_raw(Box::new(LazyFrameC::new(df_c)))
+}
+
+#[no_mangle]
+pub extern "C" fn lf_free(ptr: *mut LazyFrameC) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
 }
 

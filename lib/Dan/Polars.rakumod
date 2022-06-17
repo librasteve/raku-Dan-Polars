@@ -24,6 +24,7 @@ use Dan;
 use NativeCall;
 
 role Series {...}
+role LazyFrame {...}
 
 ### Helper Items
 
@@ -257,6 +258,24 @@ class DataFrameC is repr('CPointer') {
 
     method query {
         df_query(self)
+    }
+}
+
+class LazyFrameC is repr('CPointer') {
+    sub lf_new(DataFrameC) returns LazyFrameC  is native($n-path) { * }
+    sub lf_free(LazyFrameC)          is native($n-path) { * }
+    sub lf_sum(LazyFrameC)           is native($n-path) { * }
+
+    method new( DataFrameC \df_c ) {
+        lf_new( df_c )
+    }
+
+    submethod DESTROY {              #Free data when the object is garbage collected.
+        lf_free(self);
+    }
+
+    method sum {
+        lf_sum(self)
     }
 }
 
@@ -574,6 +593,7 @@ role DataFrame does Positional does Iterable is export {
     has Int        %!columns;          #column index
 
     has DataFrameC $.rc;       #Rust container
+    has LazyFrameC $.lc;       #Rust container
 
 
     ### Constructors ###
@@ -801,8 +821,12 @@ role DataFrame does Positional does Iterable is export {
 
     #### Query Methods #####
 
-    method lazy {
-        $!rc.lazy
+    method prepare {
+        $!lc = LazyFrameC.new( $!rc );
+    }
+
+    method sum {
+        $!lc.sum
     }
 
     #### MAC Methods #####

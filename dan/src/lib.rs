@@ -550,6 +550,19 @@ impl LazyFrameC {
             lf: df_c.df.clone().lazy(), 
         }
     }
+
+    fn groupby(&self) {
+    //fn groupby(&self, colvec: Vec::<String>) {
+        let ret = self.lf.clone().sum();    // .unwrap()   // .clone()
+        //let ret = self.lf.clone().groupby(["variety"]);    // .unwrap()   // .clone()
+        println!("{:?}", ret.collect().unwrap().head(Some(5)));
+        //self.lf.groupby(&colvec);    // .unwrap()   // .clone()
+    }
+
+    fn sum(&self) {
+        let ret = self.lf.clone().sum();    // .unwrap()   // .clone()
+        println!("{:?}", ret.collect().unwrap().head(Some(5)));
+    }
 }
 
 // extern functions for LazyFrame Container
@@ -573,3 +586,44 @@ pub extern "C" fn lf_free(ptr: *mut LazyFrameC) {
     }
 }
 
+#[no_mangle]
+pub extern "C" fn lf_groupby(
+    ptr: *mut LazyFrameC,
+    colspec: *const *const c_char,
+    len: size_t, 
+//) -> *mut DataFrameC {
+) {
+    let lf_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+
+//    let mut colvec = Vec::<String>::new();
+//    unsafe {
+//        assert!(!colspec.is_null());
+//
+//        for item in slice::from_raw_parts(colspec, len as usize) {
+//            colvec.push(CStr::from_ptr(*item).to_string_lossy().into_owned());
+//        };
+//    };
+
+    lf_c.groupby();
+    //lf_c.groupby(colspec);
+}
+
+#[no_mangle]
+pub extern "C" fn lf_sum(
+    ptr: *mut LazyFrameC,
+) {
+    let lf_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+
+    lf_c.sum();
+}
+//    .groupby(["variety"])
+//    .unwrap()
+//    .select(["petal.length"])
+//    .sum()
+//    .unwrap()

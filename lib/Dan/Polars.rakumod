@@ -265,7 +265,9 @@ class LazyFrameC is repr('CPointer') {
     sub lf_new(DataFrameC) returns LazyFrameC  is native($n-path) { * }
     sub lf_free(LazyFrameC)          is native($n-path) { * }
     sub lf_sum(LazyFrameC)           is native($n-path) { * }
-    sub lf_collect(LazyFrameC) returns DataFrameC  is native($n-path) { * }
+    sub lf_groupby(LazyFrameC, CArray[Str], size_t) is native($n-path) { * }
+    sub lf_agg(LazyFrameC)           is native($n-path) { * }
+    sub lf_collect(LazyFrameC) returns DataFrameC   is native($n-path) { * }
 
     method new( DataFrameC \df_c ) {
         lf_new( df_c )
@@ -275,12 +277,20 @@ class LazyFrameC is repr('CPointer') {
         lf_free(self);
     }
 
+    method collect {
+        lf_collect(self)
+    }
+
     method sum {
         lf_sum(self)
     }
 
-    method collect {
-        lf_collect(self)
+    method groupby( Array \colspec ) {
+        lf_groupby(self, carray( Str, colspec ), colspec.elems)
+    }
+
+    method agg {
+        lf_agg(self)
     }
 }
 
@@ -831,15 +841,25 @@ role DataFrame does Positional does Iterable is export {
         self
     }
 
+    method collect( --> DataFrame ) {
+        my \df = DataFrame.new;
+        df.rc: $!lc.collect;
+        df
+    }
+
     method sum {
         $!lc.sum;
         self
     }
 
-    method collect( --> DataFrame ) {
-        my \df = DataFrame.new;
-        df.rc: $!lc.collect;
-        df
+    method groupby( Array \colspec ) {
+        $!lc.groupby( colspec );
+        self
+    }
+
+    method agg {
+        $!lc.agg;
+        self
     }
 
     #### MAC Methods #####

@@ -265,6 +265,7 @@ class LazyFrameC is repr('CPointer') {
     sub lf_new(DataFrameC) returns LazyFrameC  is native($n-path) { * }
     sub lf_free(LazyFrameC)          is native($n-path) { * }
     sub lf_sum(LazyFrameC)           is native($n-path) { * }
+    sub lf_collect(LazyFrameC) returns DataFrameC  is native($n-path) { * }
 
     method new( DataFrameC \df_c ) {
         lf_new( df_c )
@@ -276,6 +277,10 @@ class LazyFrameC is repr('CPointer') {
 
     method sum {
         lf_sum(self)
+    }
+
+    method collect {
+        lf_collect(self)
     }
 }
 
@@ -823,10 +828,18 @@ role DataFrame does Positional does Iterable is export {
 
     method prepare {
         $!lc = LazyFrameC.new( $!rc );
+        self
     }
 
     method sum {
-        $!lc.sum
+        $!lc.sum;
+        self
+    }
+
+    method collect( --> DataFrame ) {
+        my \df = DataFrame.new;
+        df.rc: $!lc.collect;
+        df
     }
 
     #### MAC Methods #####
@@ -846,6 +859,10 @@ role DataFrame does Positional does Iterable is export {
         @new-labels.map: { %!columns{$_} = $++  };
 
         #$.push FIXME changed to require manual push (otherwise cant use in .pull)
+    }
+
+    method rc( $rc ) {
+        $!rc = $rc
     }
 
     #### File Methods #####

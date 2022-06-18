@@ -551,17 +551,27 @@ impl LazyFrameC {
         }
     }
 
+    fn set_lf(&mut self, lf_n: LazyFrame) {
+        self.lf = lf_n;
+    }
+
+    fn collect(&self) -> DataFrameC {
+        let df = self.lf.clone().collect().unwrap();
+        let mut df_c = DataFrameC::new();
+        df_c.df = df;
+        df_c
+    }
+
     fn groupby(&self) {
     //fn groupby(&self, colvec: Vec::<String>) {
-        let ret = self.lf.clone().sum();    // .unwrap()   // .clone()
+        let ret = self.lf.clone().sum();
         //let ret = self.lf.clone().groupby(["variety"]);    // .unwrap()   // .clone()
         println!("{:?}", ret.collect().unwrap().head(Some(5)));
         //self.lf.groupby(&colvec);    // .unwrap()   // .clone()
     }
 
-    fn sum(&self) {
-        let ret = self.lf.clone().sum();    // .unwrap()   // .clone()
-        println!("{:?}", ret.collect().unwrap().head(Some(5)));
+    fn sum(&mut self) {
+        self.lf = self.lf.clone().sum();
     }
 }
 
@@ -584,6 +594,16 @@ pub extern "C" fn lf_free(ptr: *mut LazyFrameC) {
     unsafe {
         Box::from_raw(ptr);
     }
+}
+
+#[no_mangle]
+pub extern "C" fn lf_collect(ptr: *mut LazyFrameC) -> *mut DataFrameC {
+    let lf_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+
+    Box::into_raw(Box::new(lf_c.collect()))
 }
 
 #[no_mangle]
@@ -622,6 +642,7 @@ pub extern "C" fn lf_sum(
 
     lf_c.sum();
 }
+
 //    .groupby(["variety"])
 //    .unwrap()
 //    .select(["petal.length"])

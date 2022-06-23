@@ -9,6 +9,14 @@ use std::path::{Path};
 use polars::prelude::*;//{CsvReader, DataType, DataFrame, Series};
 use polars::prelude::{Result as PolarResult};
 
+// these from nodejs lazy/dsl.rs
+use polars::lazy::dsl;
+use polars::lazy::dsl::Expr;
+//use polars::lazy::dsl::Operator;
+//use polars_core::series::ops::NullBehavior;
+//use std::borrow::Cow;
+
+
 //use polars_lazy::prelude::*;
 
 //use polars_core::prelude::*;
@@ -16,6 +24,112 @@ use polars::prelude::{Result as PolarResult};
 // Callback Types
 
 type RetLine = extern fn(line: *const u8);
+
+// these from nodejs lazy/dsl.rs
+// Expressions
+
+pub struct ExprC {
+    pub(crate) inner: dsl::Expr,
+}
+
+//pub(crate) trait ToExprs {
+//    fn to_exprs(self) -> Vec<Expr>;
+//}
+impl ExprC {
+    pub(crate) fn new(inner: dsl::Expr) -> ExprC {
+        ExprC { inner }
+    }    
+}
+impl From<dsl::Expr> for ExprC {
+    fn from(s: dsl::Expr) -> ExprC {
+        ExprC::new(s)
+    }    
+}
+//impl ToExprs for Vec<ExprC> {
+//    fn to_exprs(self) -> Vec<Expr> {
+//        // Safety
+//        // repr is transparent
+//        // and has only got one inner field`
+//        unsafe { std::mem::transmute(self) }
+//    }    
+//}
+//impl ToExprs for Vec<&ExprC> {
+//    fn to_exprs(self) -> Vec<Expr> {
+//        self.into_iter()
+//            .map(|e| e.inner.clone())
+//            .collect::<Vec<Expr>>()
+//    }    
+//}
+
+//iamerejh - need to think ... what is coming in and out...
+impl ExprC {
+    //pub fn sum(&self) -> ExprC {
+    fn sum(&self) -> ExprC {
+        self.clone().inner.sum().into()
+    }
+}
+#[no_mangle]
+pub extern "C" fn ex_sum() -> *mut ExprC {
+    let mut ex_c = ExprC::new(dsl::Expr::sum());
+    Box::into_raw(Box::new(ex_c))
+}
+//#[no_mangle]
+//pub extern "C" fn ex_sum(ptr: *mut ExprC) -> *mut ExprC {
+//    let ex_c = unsafe {
+//        assert!(!ptr.is_null());
+//        &mut *ptr
+//    };
+//
+//    Box::into_raw(Box::new(ex_c.sum()))
+//    //ex_c.sum();
+//}
+
+
+//    #[napi]
+//    pub fn to_js(&self, env: Env) -> napi::Result<napi::JsUnknown> {
+//        env.to_js_value(&self.inner)
+//    }    
+//
+//    #[napi]
+//    pub fn serialize(&self, format: String) -> napi::Result<Buffer> {
+//        let buf = match format.as_ref() {
+//            "bincode" => bincode::serialize(&self.inner)
+//                .map_err(|err| napi::Error::from_reason(format!("{:?}", err)))?,
+//            "json" => serde_json::to_vec(&self.inner)
+//                .map_err(|err| napi::Error::from_reason(format!("{:?}", err)))?,
+//            _ => { 
+//                return Err(napi::Error::from_reason(
+//                    "unexpected format. \n supported options are 'json', 'bincode'".to_owned(),
+//                ))   
+//            }    
+//        };   
+//        Ok(Buffer::from(buf))
+//    }    
+//
+//    #[napi(factory)]
+//    pub fn deserialize(buf: Buffer, format: String) -> napi::Result<ExprC> {
+//        // Safety
+//        // we skipped the serializing/deserializing of the static in lifetime in `DataType`
+//        // so we actually don't have a lifetime at all when serializing.
+//
+//        // &[u8] still has a lifetime. But its ok, because we drop it immediately
+//        // in this scope
+//        let bytes: &[u8] = &buf;
+//        let bytes = unsafe { std::mem::transmute::<&'_ [u8], &'static [u8]>(bytes) };
+//        let expr: Expr = match format.as_ref() {
+//            "bincode" => bincode::deserialize(bytes)
+//                .map_err(|err| napi::Error::from_reason(format!("{:?}", err)))?,
+//            "json" => serde_json::from_slice(bytes)
+//                .map_err(|err| napi::Error::from_reason(format!("{:?}", err)))?,
+//            _ => { 
+//                return Err(napi::Error::from_reason(
+//                    "unexpected format. \n supported options are 'json', 'bincode'".to_owned(),
+//                ))   
+//            }    
+//        };   
+//        Ok(expr.into())
+//    }    
+
 
 // Series Container
 

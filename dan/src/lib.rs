@@ -9,16 +9,63 @@ use std::path::{Path};
 use polars::prelude::*;//{CsvReader, DataType, DataFrame, Series};
 use polars::prelude::{Result as PolarResult};
 
-// these from nodejs lazy/dsl.rs
+// these from nodejs lazy/dsl.rs...
 use polars::lazy::dsl;
 use polars::lazy::dsl::Expr;
 //use polars::lazy::dsl::Operator;
 //use polars_core::series::ops::NullBehavior;
 //use std::borrow::Cow;
 
-
+// maybe also these...
 //use polars_lazy::prelude::*;
 //use polars_core::prelude::*;
+
+// Serde Example from nodejs for later
+//    #[napi]
+//    pub fn to_js(&self, env: Env) -> napi::Result<napi::JsUnknown> {
+//        env.to_js_value(&self.inner)
+//    }    
+//
+//    #[napi]
+//    pub fn serialize(&self, format: String) -> napi::Result<Buffer> {
+//        let buf = match format.as_ref() {
+//            "bincode" => bincode::serialize(&self.inner)
+//                .map_err(|err| napi::Error::from_reason(format!("{:?}", err)))?,
+//            "json" => serde_json::to_vec(&self.inner)
+//                .map_err(|err| napi::Error::from_reason(format!("{:?}", err)))?,
+//            _ => { 
+//                return Err(napi::Error::from_reason(
+//                    "unexpected format. \n supported options are 'json', 'bincode'".to_owned(),
+//                ))   
+//            }    
+//        };   
+//        Ok(Buffer::from(buf))
+//    }    
+//
+//    #[napi(factory)]
+//    pub fn deserialize(buf: Buffer, format: String) -> napi::Result<ExprC> {
+//        // Safety
+//        // we skipped the serializing/deserializing of the static in lifetime in `DataType`
+//        // so we actually don't have a lifetime at all when serializing.
+//
+//        // &[u8] still has a lifetime. But its ok, because we drop it immediately
+//        // in this scope
+//        let bytes: &[u8] = &buf;
+//        let bytes = unsafe { std::mem::transmute::<&'_ [u8], &'static [u8]>(bytes) };
+//        let expr: Expr = match format.as_ref() {
+//            "bincode" => bincode::deserialize(bytes)
+//                .map_err(|err| napi::Error::from_reason(format!("{:?}", err)))?,
+//            "json" => serde_json::from_slice(bytes)
+//                .map_err(|err| napi::Error::from_reason(format!("{:?}", err)))?,
+//            _ => { 
+//                return Err(napi::Error::from_reason(
+//                    "unexpected format. \n supported options are 'json', 'bincode'".to_owned(),
+//                ))   
+//            }    
+//        };   
+//        Ok(expr.into())
+//    }    
+
 
 // Callback Types
 
@@ -101,51 +148,6 @@ pub extern "C" fn ex_sum(ptr: *mut ExprC) -> *mut ExprC {
 
     Box::into_raw(Box::new(ex_c.sum()))
 }
-
-//    #[napi]
-//    pub fn to_js(&self, env: Env) -> napi::Result<napi::JsUnknown> {
-//        env.to_js_value(&self.inner)
-//    }    
-//
-//    #[napi]
-//    pub fn serialize(&self, format: String) -> napi::Result<Buffer> {
-//        let buf = match format.as_ref() {
-//            "bincode" => bincode::serialize(&self.inner)
-//                .map_err(|err| napi::Error::from_reason(format!("{:?}", err)))?,
-//            "json" => serde_json::to_vec(&self.inner)
-//                .map_err(|err| napi::Error::from_reason(format!("{:?}", err)))?,
-//            _ => { 
-//                return Err(napi::Error::from_reason(
-//                    "unexpected format. \n supported options are 'json', 'bincode'".to_owned(),
-//                ))   
-//            }    
-//        };   
-//        Ok(Buffer::from(buf))
-//    }    
-//
-//    #[napi(factory)]
-//    pub fn deserialize(buf: Buffer, format: String) -> napi::Result<ExprC> {
-//        // Safety
-//        // we skipped the serializing/deserializing of the static in lifetime in `DataType`
-//        // so we actually don't have a lifetime at all when serializing.
-//
-//        // &[u8] still has a lifetime. But its ok, because we drop it immediately
-//        // in this scope
-//        let bytes: &[u8] = &buf;
-//        let bytes = unsafe { std::mem::transmute::<&'_ [u8], &'static [u8]>(bytes) };
-//        let expr: Expr = match format.as_ref() {
-//            "bincode" => bincode::deserialize(bytes)
-//                .map_err(|err| napi::Error::from_reason(format!("{:?}", err)))?,
-//            "json" => serde_json::from_slice(bytes)
-//                .map_err(|err| napi::Error::from_reason(format!("{:?}", err)))?,
-//            _ => { 
-//                return Err(napi::Error::from_reason(
-//                    "unexpected format. \n supported options are 'json', 'bincode'".to_owned(),
-//                ))   
-//            }    
-//        };   
-//        Ok(expr.into())
-//    }    
 
 
 // Series Container

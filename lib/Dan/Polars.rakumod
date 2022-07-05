@@ -289,12 +289,13 @@ sub col( Str \colname ) is export {
 }
 
 class LazyFrameC is repr('CPointer') {
-    sub lf_new(DataFrameC) returns LazyFrameC  is native($n-path) { * }
-    sub lf_free(LazyFrameC)          is native($n-path) { * }
-    sub lf_sum(LazyFrameC)           is native($n-path) { * }
+    sub lf_new(DataFrameC)      returns LazyFrameC  is native($n-path) { * }
+    sub lf_free(LazyFrameC)                         is native($n-path) { * }
+    sub lf_sum(LazyFrameC)                          is native($n-path) { * }
     sub lf_groupby(LazyFrameC, CArray[Str], size_t) is native($n-path) { * }
-    sub lf_agg(LazyFrameC, ExprC)    is native($n-path) { * }
-    sub lf_collect(LazyFrameC) returns DataFrameC   is native($n-path) { * }
+    sub lf_agg(LazyFrameC, CArray[Pointer], size_t) is native($n-path) { * }
+    #sub lf_agg(LazyFrameC, ExprC)                   is native($n-path) { * }
+    sub lf_collect(LazyFrameC)  returns DataFrameC  is native($n-path) { * }
 
     method new( DataFrameC \df_c ) {
         lf_new( df_c )
@@ -317,42 +318,10 @@ class LazyFrameC is repr('CPointer') {
     }
 
     method agg( Array \exprvec ) {
-        lf_agg(self, exprvec[0])
+        #lf_agg(self, exprvec[0])
+        lf_agg(self, carray( Pointer, exprvec ), exprvec.elems)
     }
 }
-
-class Query {
-    has Str $.s;
-
-    submethod TWEAK {
-
-        if "$raku-dir/$raku-file".IO.modified > "$rust-dir/$rust-file".IO.modified {
-
-            indir( $rust-dir, {
-                my $template = slurp $tmpl-file;
-                $template ~~ s/'//%INSERT-QUERY%'/$!s/;;
-                spurt $rust-file, $template;
-
-                run <cargo build>;
-            });
-
-        }
-    }
-}
-
-#`[ off
-Query.new( s => q{
-    .groupby(["variety"])
-    .unwrap()
-    .select(["petal.length"])
-    .sum()
-    .unwrap()
-});
-
-my \x = df.query;
-x.head;
-#]
-
 
 ### Series, DataFrame [..] Roles that are exported for Script Usage ###
 

@@ -25,15 +25,16 @@ use polars::lazy::dsl::Expr;
 type RetLine = extern fn(line: *const u8);
 
 // these from nodejs lazy/dsl.rs
+
 // Expressions
 
 pub struct ExprC {
     pub inner: dsl::Expr,
 }
 
-//pub(crate) trait ToExprs {
-//    fn to_exprs(self) -> Vec<Expr>;
-//}
+pub trait ToExprs {
+    fn to_exprs(self) -> Vec<Expr>;
+}
 
 impl ExprC {
     fn new(inner: dsl::Expr) -> ExprC {
@@ -46,21 +47,21 @@ impl From<dsl::Expr> for ExprC {
     }    
 }
 
-//impl ToExprs for Vec<ExprC> {
-//    fn to_exprs(self) -> Vec<Expr> {
-//        // Safety
-//        // repr is transparent
-//        // and has only got one inner field`
-//        unsafe { std::mem::transmute(self) }
-//    }    
-//}
-//impl ToExprs for Vec<&ExprC> {
-//    fn to_exprs(self) -> Vec<Expr> {
-//        self.into_iter()
-//            .map(|e| e.inner.clone())
-//            .collect::<Vec<Expr>>()
-//    }    
-//}
+impl ToExprs for Vec<ExprC> {
+    fn to_exprs(self) -> Vec<Expr> {
+        // Safety
+        // repr is transparent
+        // and has only got one inner field`
+        unsafe { std::mem::transmute(self) }
+    }    
+}
+impl ToExprs for Vec<&ExprC> {
+    fn to_exprs(self) -> Vec<Expr> {
+        self.into_iter()
+            .map(|e| e.inner.clone())
+            .collect::<Vec<Expr>>()
+    }    
+}
 
 impl ExprC {
     fn sum(&self) -> ExprC {
@@ -668,17 +669,6 @@ pub extern "C" fn df_query(
     Box::into_raw(Box::new(df_n))
 }
 
-fn str_to_len(str_val: Series) -> Result<Series> {
-    let x = str_val
-        .utf8()
-        .unwrap()
-        .into_iter()
-        // your actual custom function would be in this map
-        .map(|opt_name: Option<&str>| opt_name.map(|name: &str| name.len() as u32))
-        .collect::<UInt32Chunked>();
-    Ok(x.into_series())
-}
-
 // LazyFrame Container
 
 pub struct LazyFrameC {
@@ -701,44 +691,33 @@ impl LazyFrameC {
         df_c
     }
 
-    fn sum(&mut self) {
-        self.lf = self.lf.clone().sum();
-    }
-
     fn groupby(&mut self, colvec: Vec::<String>) {
-
-        let o = GetOutput::from_type(DataType::UInt32);
-        //self.lf = self.lf.clone().with_column(col("variety").apply(str_to_len, o));
-        let lf = self.lf.clone().with_column(col("variety").apply(str_to_len, o));
-        println!("{:?}", lf.describe_plan());
-
-        //self.lf = self.lf.clone().groupby(["variety"]).agg([col("petal.length").sum()]);
-        //self.gb = Some(self.lf.clone().groupby(["variety"]));
         let colrefs: Vec<&str> = colvec.iter().map(AsRef::as_ref).collect();
         self.gb = Some(self.lf.clone().groupby(colrefs));
-
-        //self.lf = self.lf.clone();
-        //self.gb = Some(self.lf.groupby(["variety"]));
-        //let ret = self.lf.clone().groupby(["variety"]);    // .unwrap()   // .clone()
-        //println!("{:?}", self.gb.agg().collect());
-        //self.lf.groupby(&colvec);    // .unwrap()   // .clone()
     }
 
-//    fn agg(&mut self) {
-//        //let x = col("petal.length").sum();
-//        //println!("{:?}", x);
-//        let x = col("petal.length");
-//        println!("{:?}", x);
-//        let y = x.sum();
-//        println!("{:?}", y);
-//
-//        //self.lf = self.gb.clone().unwrap().agg([col("petal.length").sum()]);
-//        self.lf = self.gb.clone().unwrap().agg([y]);
-//    }
     fn agg(&mut self, exprvec: Vec::<Expr>) {
         self.lf = self.gb.clone().unwrap().agg(exprvec);
     }
+
+//    fn apply {  #FIXME 
+//        let o = GetOutput::from_type(DataType::UInt32);
+//        //self.lf = self.lf.clone().with_column(col("variety").apply(str_to_len, o));
+//        let lf = self.lf.clone().with_column(col("variety").apply(str_to_len, o));
+//        //println!("{:?}", lf.describe_plan());
+//    }
 }
+
+//fn str_to_len(str_val: Series) -> Result<Series> {
+//    let x = str_val
+//        .utf8()
+//        .unwrap()
+//        .into_iter()
+//        // your actual custom function would be in this map
+//        .map(|opt_name: Option<&str>| opt_name.map(|name: &str| name.len() as u32))
+//        .collect::<UInt32Chunked>();
+//    Ok(x.into_series())
+//}
 
 // extern functions for LazyFrame Container
 #[no_mangle]
@@ -772,18 +751,6 @@ pub extern "C" fn lf_collect(ptr: *mut LazyFrameC) -> *mut DataFrameC {
 }
 
 #[no_mangle]
-pub extern "C" fn lf_sum(
-    ptr: *mut LazyFrameC,
-) {
-    let lf_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
-
-    lf_c.sum();
-}
-
-#[no_mangle]
 pub extern "C" fn lf_groupby(
     ptr: *mut LazyFrameC,
     colspec: *const *const c_char,
@@ -809,19 +776,22 @@ pub extern "C" fn lf_groupby(
 #[no_mangle]
 pub extern "C" fn lf_agg(
     ptr: *mut LazyFrameC,
-    expr: *mut ExprC,
+    exprarr: *const &ExprC,
+    len: size_t, 
 ) {
     let lf_c = unsafe {
         assert!(!ptr.is_null());
         &mut *ptr
     };
 
-    let ex_c = unsafe {
-        assert!(!expr.is_null());
-        &mut *expr
+    let mut exprvec = Vec::<&ExprC>::new();
+    unsafe {
+        for item in slice::from_raw_parts(exprarr, len as usize) {
+            exprvec.push(item);
+        };
     };
 
-    lf_c.agg([ex_c.inner.clone()].to_vec());
+    lf_c.agg(exprvec.to_exprs());
 }
 
 

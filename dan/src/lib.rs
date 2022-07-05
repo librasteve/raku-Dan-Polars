@@ -18,7 +18,6 @@ use polars::lazy::dsl::Expr;
 
 
 //use polars_lazy::prelude::*;
-
 //use polars_core::prelude::*;
 
 // Callback Types
@@ -29,14 +28,15 @@ type RetLine = extern fn(line: *const u8);
 // Expressions
 
 pub struct ExprC {
-    pub(crate) inner: dsl::Expr,
+    pub inner: dsl::Expr,
 }
 
 //pub(crate) trait ToExprs {
 //    fn to_exprs(self) -> Vec<Expr>;
 //}
+
 impl ExprC {
-    pub(crate) fn new(inner: dsl::Expr) -> ExprC {
+    fn new(inner: dsl::Expr) -> ExprC {
         ExprC { inner }
     }    
 }
@@ -45,6 +45,7 @@ impl From<dsl::Expr> for ExprC {
         ExprC::new(s)
     }    
 }
+
 //impl ToExprs for Vec<ExprC> {
 //    fn to_exprs(self) -> Vec<Expr> {
 //        // Safety
@@ -61,30 +62,44 @@ impl From<dsl::Expr> for ExprC {
 //    }    
 //}
 
-//iamerejh - need to think ... what is coming in and out...
-//impl ExprC {
-//    //pub fn sum(&self) -> ExprC {
-//    fn sum(&self) -> ExprC {
-//        self.clone().inner.sum().into()
-//    }
-//}
-//#[no_mangle]
-//pub extern "C" fn ex_sum() -> *mut ExprC {
-//    let mut ex_c = ExprC::new(dsl::Expr::sum());
-//    Box::into_raw(Box::new(ex_c))
-//}
+impl ExprC {
+    fn sum(&self) -> ExprC {
+        self.clone().inner.clone().sum().into()
+    }
+}
 
-//#[no_mangle]
-//pub extern "C" fn ex_sum(ptr: *mut ExprC) -> *mut ExprC {
-//    let ex_c = unsafe {
-//        assert!(!ptr.is_null());
-//        &mut *ptr
-//    };
-//
-//    Box::into_raw(Box::new(ex_c.sum()))
-//    //ex_c.sum();
-//}
+#[no_mangle]
+pub extern "C" fn ex_col(
+    string: *const c_char,
+) -> *mut ExprC {
 
+    let colname = unsafe {
+        CStr::from_ptr(string).to_string_lossy().into_owned()
+    };
+
+    let ex_c = ExprC::new(col(&colname));
+    Box::into_raw(Box::new(ex_c))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_free(ptr: *mut ExprC) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn ex_sum(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+
+    Box::into_raw(Box::new(ex_c.sum()))
+}
 
 //    #[napi]
 //    pub fn to_js(&self, env: Env) -> napi::Result<napi::JsUnknown> {
@@ -709,16 +724,19 @@ impl LazyFrameC {
         //self.lf.groupby(&colvec);    // .unwrap()   // .clone()
     }
 
-    fn agg(&mut self) {
-        //let x = col("petal.length").sum();
-        //println!("{:?}", x);
-        let x = col("petal.length");
-        println!("{:?}", x);
-        let y = x.sum();
-        println!("{:?}", y);
-
-        //self.lf = self.gb.clone().unwrap().agg([col("petal.length").sum()]);
-        self.lf = self.gb.clone().unwrap().agg([y]);
+//    fn agg(&mut self) {
+//        //let x = col("petal.length").sum();
+//        //println!("{:?}", x);
+//        let x = col("petal.length");
+//        println!("{:?}", x);
+//        let y = x.sum();
+//        println!("{:?}", y);
+//
+//        //self.lf = self.gb.clone().unwrap().agg([col("petal.length").sum()]);
+//        self.lf = self.gb.clone().unwrap().agg([y]);
+//    }
+    fn agg(&mut self, exprvec: Vec::<Expr>) {
+        self.lf = self.gb.clone().unwrap().agg(exprvec);
     }
 }
 
@@ -791,13 +809,19 @@ pub extern "C" fn lf_groupby(
 #[no_mangle]
 pub extern "C" fn lf_agg(
     ptr: *mut LazyFrameC,
+    expr: *mut ExprC,
 ) {
     let lf_c = unsafe {
         assert!(!ptr.is_null());
         &mut *ptr
     };
 
-    lf_c.agg();
+    let ex_c = unsafe {
+        assert!(!expr.is_null());
+        &mut *expr
+    };
+
+    lf_c.agg([ex_c.inner.clone()].to_vec());
 }
 
 

@@ -11,19 +11,10 @@ df.read_csv("../dan/src/iris.csv");
 df.column("sepal.length").head;
 df.select(["sepal.length", "variety"]).head;
 
-#df.prepare().groupby(["variety"]).agg([col("petal.length").sum()]);
+df.prepare().groupby(["variety"]).agg([col("petal.length").sum]).collect.head;
 
-df.prepare().groupby(["variety"]).agg.collect.head;
+my $expr = col("petal.length");
+$expr .= sum;
 
-#essence
+df.prepare().groupby(["variety"]).agg([$expr]).collect.head;
 
-
-
-
-#`[
-474     .groupby(["variety"])
-475     .unwrap()
-476     .select(["petal.length"])
-477     .sum()
-478     .unwrap()
-#]

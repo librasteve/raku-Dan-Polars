@@ -261,12 +261,39 @@ class DataFrameC is repr('CPointer') {
     }
 }
 
+class ExprC is repr('CPointer') {
+    sub ex_new()           returns ExprC is native($n-path) { * }
+    sub ex_free(ExprC)                   is native($n-path) { * }
+    sub ex_col(Str)        returns ExprC is native($n-path) { * }
+    sub ex_sum(ExprC)      returns ExprC is native($n-path) { * }
+
+    method new {
+        ex_new
+    }
+
+    submethod DESTROY {              #Free data when the object is garbage collected.
+        ex_free(self)
+    }
+
+    method col( Str \colname ) {
+        ex_col(colname)
+    }
+
+    method sum {
+        ex_sum(self)
+    }
+}
+
+sub col( Str \colname ) is export {
+    ExprC.col(colname)
+}
+
 class LazyFrameC is repr('CPointer') {
     sub lf_new(DataFrameC) returns LazyFrameC  is native($n-path) { * }
     sub lf_free(LazyFrameC)          is native($n-path) { * }
     sub lf_sum(LazyFrameC)           is native($n-path) { * }
     sub lf_groupby(LazyFrameC, CArray[Str], size_t) is native($n-path) { * }
-    sub lf_agg(LazyFrameC)           is native($n-path) { * }
+    sub lf_agg(LazyFrameC, ExprC)    is native($n-path) { * }
     sub lf_collect(LazyFrameC) returns DataFrameC   is native($n-path) { * }
 
     method new( DataFrameC \df_c ) {
@@ -289,8 +316,8 @@ class LazyFrameC is repr('CPointer') {
         lf_groupby(self, carray( Str, colspec ), colspec.elems)
     }
 
-    method agg {
-        lf_agg(self)
+    method agg( Array \exprvec ) {
+        lf_agg(self, exprvec[0])
     }
 }
 
@@ -325,6 +352,7 @@ Query.new( s => q{
 my \x = df.query;
 x.head;
 #]
+
 
 ### Series, DataFrame [..] Roles that are exported for Script Usage ###
 
@@ -856,9 +884,14 @@ role DataFrame does Positional does Iterable is export {
         $!lc.groupby( colspec );
         self
     }
-
+#`[
     method agg {
         $!lc.agg;
+        self
+    }
+#]
+    method agg( Array \exprs ) {
+        $!lc.agg( exprs );
         self
     }
 

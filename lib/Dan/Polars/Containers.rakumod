@@ -14,6 +14,7 @@ sub carray( $dtype, @items ) {
     loop ( my $i = 0; $i < @items; $i++ ) {
         $output[$i] = @items[$i]
     }
+    say $output;
     $output
 }
 
@@ -265,6 +266,7 @@ class ExprC is repr('CPointer') is export {
     sub ex_free(ExprC)                   is native($n-path) { * }
     sub ex_col(Str)        returns ExprC is native($n-path) { * }
     sub ex_sum(ExprC)      returns ExprC is native($n-path) { * }
+    sub ex_mean(ExprC)     returns ExprC is native($n-path) { * }
 
     method new {
         ex_new
@@ -280,6 +282,10 @@ class ExprC is repr('CPointer') is export {
 
     method sum {
         ex_sum(self)
+    }
+
+    method mean {
+        ex_mean(self)
     }
 }
 

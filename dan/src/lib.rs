@@ -66,88 +66,9 @@ use polars::lazy::dsl::Expr;
 //        Ok(expr.into())
 //    }    
 
-
 // Callback Types
 
 type RetLine = extern fn(line: *const u8);
-
-// these from nodejs lazy/dsl.rs
-
-// Expressions
-
-pub struct ExprC {
-    pub inner: dsl::Expr,
-}
-
-pub trait ToExprs {
-    fn to_exprs(self) -> Vec<Expr>;
-}
-
-impl ExprC {
-    fn new(inner: dsl::Expr) -> ExprC {
-        ExprC { inner }
-    }    
-}
-impl From<dsl::Expr> for ExprC {
-    fn from(s: dsl::Expr) -> ExprC {
-        ExprC::new(s)
-    }    
-}
-
-impl ToExprs for Vec<ExprC> {
-    fn to_exprs(self) -> Vec<Expr> {
-        // Safety
-        // repr is transparent
-        // and has only got one inner field`
-        unsafe { std::mem::transmute(self) }
-    }    
-}
-impl ToExprs for Vec<&ExprC> {
-    fn to_exprs(self) -> Vec<Expr> {
-        self.into_iter()
-            .map(|e| e.inner.clone())
-            .collect::<Vec<Expr>>()
-    }    
-}
-
-impl ExprC {
-    fn sum(&self) -> ExprC {
-        self.clone().inner.clone().sum().into()
-    }
-}
-
-#[no_mangle]
-pub extern "C" fn ex_col(
-    string: *const c_char,
-) -> *mut ExprC {
-
-    let colname = unsafe {
-        CStr::from_ptr(string).to_string_lossy().into_owned()
-    };
-
-    let ex_c = ExprC::new(col(&colname));
-    Box::into_raw(Box::new(ex_c))
-}
-
-#[no_mangle]
-pub extern "C" fn ex_free(ptr: *mut ExprC) {
-    if ptr.is_null() {
-        return;
-    }
-    unsafe {
-        Box::from_raw(ptr);
-    }
-}
-
-#[no_mangle]
-pub extern "C" fn ex_sum(ptr: *mut ExprC) -> *mut ExprC {
-    let ex_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
-
-    Box::into_raw(Box::new(ex_c.sum()))
-}
 
 
 // Series Container
@@ -794,6 +715,98 @@ pub extern "C" fn lf_agg(
     };
 
     lf_c.agg(exprvec.to_exprs());
+}
+
+
+// Expressions
+// these from nodejs lazy/dsl.rs...
+
+pub struct ExprC {
+    pub inner: dsl::Expr,
+}
+
+pub trait ToExprs {
+    fn to_exprs(self) -> Vec<Expr>;
+}
+
+impl ExprC {
+    fn new(inner: dsl::Expr) -> ExprC {
+        ExprC { inner }
+    }    
+}
+impl From<dsl::Expr> for ExprC {
+    fn from(s: dsl::Expr) -> ExprC {
+        ExprC::new(s)
+    }    
+}
+
+impl ToExprs for Vec<ExprC> {
+    fn to_exprs(self) -> Vec<Expr> {
+        // Safety
+        // repr is transparent
+        // and has only got one inner field`
+        unsafe { std::mem::transmute(self) }
+    }    
+}
+impl ToExprs for Vec<&ExprC> {
+    fn to_exprs(self) -> Vec<Expr> {
+        self.into_iter()
+            .map(|e| e.inner.clone())
+            .collect::<Vec<Expr>>()
+    }    
+}
+
+impl ExprC {
+    fn sum(&self) -> ExprC {
+        self.clone().inner.clone().sum().into()
+    }
+
+    fn mean(&self) -> ExprC {
+        self.clone().inner.clone().mean().into()
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn ex_col(
+    string: *const c_char,
+) -> *mut ExprC {
+
+    let colname = unsafe {
+        CStr::from_ptr(string).to_string_lossy().into_owned()
+    };
+
+    let ex_c = ExprC::new(col(&colname));
+    Box::into_raw(Box::new(ex_c))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_free(ptr: *mut ExprC) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn ex_sum(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+
+    Box::into_raw(Box::new(ex_c.sum()))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_mean(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    };
+
+    Box::into_raw(Box::new(ex_c.mean()))
 }
 
 

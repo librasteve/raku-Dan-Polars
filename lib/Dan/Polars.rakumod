@@ -314,7 +314,6 @@ role DataFrame does Positional does Iterable is export {
     has DataFrameC $.rc;       #Rust container
     has LazyFrameC $.lc;       #Rust container
 
-
     ### Constructors ###
  
     # Positional data array arg => redispatch as Named
@@ -387,7 +386,7 @@ role DataFrame does Positional does Iterable is export {
         return unless @!data;
 
         given @!data.first {            #FIXME .first should be Array[Pair]
-
+dd @!data;
             # data arg is 1d Array of Pairs (label => Series)
             when Pair {
 

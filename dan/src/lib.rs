@@ -62,17 +62,18 @@ impl From<dsl::Expr> for ExprC {
 //}
 
 //iamerejh - need to think ... what is coming in and out...
-impl ExprC {
-    //pub fn sum(&self) -> ExprC {
-    fn sum(&self) -> ExprC {
-        self.clone().inner.sum().into()
-    }
-}
-#[no_mangle]
-pub extern "C" fn ex_sum() -> *mut ExprC {
-    let mut ex_c = ExprC::new(dsl::Expr::sum());
-    Box::into_raw(Box::new(ex_c))
-}
+//impl ExprC {
+//    //pub fn sum(&self) -> ExprC {
+//    fn sum(&self) -> ExprC {
+//        self.clone().inner.sum().into()
+//    }
+//}
+//#[no_mangle]
+//pub extern "C" fn ex_sum() -> *mut ExprC {
+//    let mut ex_c = ExprC::new(dsl::Expr::sum());
+//    Box::into_raw(Box::new(ex_c))
+//}
+
 //#[no_mangle]
 //pub extern "C" fn ex_sum(ptr: *mut ExprC) -> *mut ExprC {
 //    let ex_c = unsafe {
@@ -652,6 +653,17 @@ pub extern "C" fn df_query(
     Box::into_raw(Box::new(df_n))
 }
 
+fn str_to_len(str_val: Series) -> Result<Series> {
+    let x = str_val
+        .utf8()
+        .unwrap()
+        .into_iter()
+        // your actual custom function would be in this map
+        .map(|opt_name: Option<&str>| opt_name.map(|name: &str| name.len() as u32))
+        .collect::<UInt32Chunked>();
+    Ok(x.into_series())
+}
+
 // LazyFrame Container
 
 pub struct LazyFrameC {
@@ -678,12 +690,16 @@ impl LazyFrameC {
         self.lf = self.lf.clone().sum();
     }
 
-    //fn groupby(&mut self) {
     fn groupby(&mut self, colvec: Vec::<String>) {
+
+        let o = GetOutput::from_type(DataType::UInt32);
+        //self.lf = self.lf.clone().with_column(col("variety").apply(str_to_len, o));
+        let lf = self.lf.clone().with_column(col("variety").apply(str_to_len, o));
+        println!("{:?}", lf.describe_plan());
+
         //self.lf = self.lf.clone().groupby(["variety"]).agg([col("petal.length").sum()]);
         //self.gb = Some(self.lf.clone().groupby(["variety"]));
         let colrefs: Vec<&str> = colvec.iter().map(AsRef::as_ref).collect();
-        //let colrefs = colvec.iter().map(|s| s.as_ref());
         self.gb = Some(self.lf.clone().groupby(colrefs));
 
         //self.lf = self.lf.clone();
@@ -694,7 +710,15 @@ impl LazyFrameC {
     }
 
     fn agg(&mut self) {
-        self.lf = self.gb.clone().unwrap().agg([col("petal.length").sum()]);
+        //let x = col("petal.length").sum();
+        //println!("{:?}", x);
+        let x = col("petal.length");
+        println!("{:?}", x);
+        let y = x.sum();
+        println!("{:?}", y);
+
+        //self.lf = self.gb.clone().unwrap().agg([col("petal.length").sum()]);
+        self.lf = self.gb.clone().unwrap().agg([y]);
     }
 }
 

@@ -406,19 +406,6 @@ impl DataFrameC {
     fn with_column(&mut self, series: Series) -> DataFrame {
         self.df.with_column(series).unwrap().clone()
     }
-
-    fn query(&self) -> DataFrame {
-        let result = self.df.clone()
-
-    .groupby(["variety"])
-    .unwrap()
-    .select(["petal.length"])
-    .sum()
-    .unwrap()
-
-            ;
-       result 
-    }
 }
 
 // extern functions for DataFrame Container

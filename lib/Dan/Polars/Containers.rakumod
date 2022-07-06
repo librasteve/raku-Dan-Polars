@@ -14,18 +14,12 @@ sub carray( $dtype, @items ) {
     loop ( my $i = 0; $i < @items; $i++ ) {
         $output[$i] = @items[$i]
     }
-    say $output;
     $output
 }
 
 ### Container Classes (CStruct) that interface to Rust lib.rs ###
 
 constant $n-path    = '../dan/target/debug/dan';
-constant $rust-dir  = '../dan/src/';
-constant $rust-file = 'lib.rs';
-constant $tmpl-file = 'lib.rs.template';
-constant $raku-dir  = '../lib/Dan/';
-constant $raku-file = 'Polars.rakumod';
 constant $vals-file = 'dan-values.txt';
 
 class SeriesC is repr('CPointer') is export {

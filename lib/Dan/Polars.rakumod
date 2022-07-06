@@ -14,6 +14,7 @@ unit module Dan::Polars:ver<0.0.1>:auth<Steve Roe (p6steve@furnival.net)>;
 -- no datetime (in v1)
 --
 -- v2
+- clone (then retest h2o-par
 - apply
 - operators
 - datetime
@@ -386,7 +387,7 @@ role DataFrame does Positional does Iterable is export {
         return unless @!data;
 
         given @!data.first {            #FIXME .first should be Array[Pair]
-dd @!data;
+
             # data arg is 1d Array of Pairs (label => Series)
             when Pair {
 

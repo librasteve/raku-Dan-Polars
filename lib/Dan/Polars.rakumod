@@ -14,13 +14,15 @@ unit module Dan::Polars:ver<0.0.1>:auth<Steve Roe (p6steve@furnival.net)>;
 -- no datetime (in v1)
 --
 -- v2
-- clone (then retest h2o-par
+- clone (then retest h2o-par)
+- reset @data after load rc (also to Pandas)
 - apply
 - operators
 - datetime
 - better value return
 - multiple query
 - serde
+- auto prepare / collect
 #]
 
 use Dan;

@@ -256,11 +256,14 @@ class LazyFrameC is repr('CPointer') is export {
 }
 
 class ExprC is repr('CPointer') is export {
-    sub ex_new()           returns ExprC is native($n-path) { * }
-    sub ex_free(ExprC)                   is native($n-path) { * }
-    sub ex_col(Str)        returns ExprC is native($n-path) { * }
-    sub ex_sum(ExprC)      returns ExprC is native($n-path) { * }
-    sub ex_mean(ExprC)     returns ExprC is native($n-path) { * }
+    sub ex_new()            returns ExprC is native($n-path) { * }
+    sub ex_free(ExprC)                    is native($n-path) { * }
+    sub ex_col(Str)         returns ExprC is native($n-path) { * }
+    sub ex_alias(Str)       returns ExprC is native($n-path) { * }
+    sub ex_sum(ExprC)       returns ExprC is native($n-path) { * }
+    sub ex_mean(ExprC)      returns ExprC is native($n-path) { * }
+    sub ex_min(ExprC)       returns ExprC is native($n-path) { * }
+    sub ex_max(ExprC)       returns ExprC is native($n-path) { * }
 
     method new {
         ex_new
@@ -274,12 +277,24 @@ class ExprC is repr('CPointer') is export {
         ex_col(colname)
     }
 
+    method alias( Str \colname ) {
+        ex_alias(colname)
+    }
+
     method sum {
         ex_sum(self)
     }
 
     method mean {
         ex_mean(self)
+    }
+
+    method min {
+        ex_min(self)
+    }
+
+    method max {
+        ex_max(self)
     }
 }
 

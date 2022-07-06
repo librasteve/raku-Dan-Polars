@@ -70,6 +70,14 @@ use polars::lazy::dsl::Expr;
 
 type RetLine = extern fn(line: *const u8);
 
+// Helpers for Safety Checks
+
+fn check_ptr<'a, T>(ptr: *mut T) -> &'a mut T {
+    unsafe {
+        assert!(!ptr.is_null());
+        &mut *ptr
+    }
+}
 
 // Series Container
 
@@ -254,41 +262,25 @@ pub extern "C" fn se_free(ptr: *mut SeriesC) {
 
 #[no_mangle]
 pub extern "C" fn se_show(ptr: *mut SeriesC) {
-    let se_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
-
+    let se_c = check_ptr(ptr);
     se_c.show();
 }
 
 #[no_mangle]
 pub extern "C" fn se_head(ptr: *mut SeriesC) {
-    let se_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
-
+    let se_c = check_ptr(ptr);
     se_c.head();
 }
 
 #[no_mangle]
 pub extern "C" fn se_dtype(ptr: *mut SeriesC, retline: RetLine) {
-    let se_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
-
+    let se_c = check_ptr(ptr);
     se_c.dtype(retline);
 }
 
 #[no_mangle]
 pub extern "C" fn se_name(ptr: *mut SeriesC, retline: RetLine) {
-    let se_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
-
+    let se_c = check_ptr(ptr);
     se_c.name(retline);
 }
 
@@ -297,10 +289,7 @@ pub extern "C" fn se_rename(
     ptr: *mut SeriesC,
     name: *const c_char,
 ) {
-    let se_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
+    let se_c = check_ptr(ptr);
 
     let name = unsafe {
         CStr::from_ptr(name).to_string_lossy().into_owned()
@@ -311,11 +300,7 @@ pub extern "C" fn se_rename(
 
 #[no_mangle]
 pub extern "C" fn se_len(ptr: *mut SeriesC) -> u32 {
-    let se_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
-
+    let se_c = check_ptr(ptr);
     se_c.len()
 }
 
@@ -324,10 +309,7 @@ pub extern "C" fn se_values(
     ptr: *mut SeriesC,
     string: *const c_char,
 ) {
-    let se_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
+    let se_c = check_ptr(ptr);
     let vfile = unsafe {
         CStr::from_ptr(string).to_string_lossy().into_owned()
     };
@@ -429,10 +411,8 @@ pub extern "C" fn df_read_csv(
     ptr: *mut DataFrameC,
     string: *const c_char,
 ) {
-    let df_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
+    let df_c = check_ptr(ptr);
+
     let spath = unsafe {
         CStr::from_ptr(string).to_string_lossy().into_owned()
     };
@@ -441,61 +421,37 @@ pub extern "C" fn df_read_csv(
 
 #[no_mangle]
 pub extern "C" fn df_show(ptr: *mut DataFrameC) {
-    let df_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
-
+    let df_c = check_ptr(ptr);
     df_c.show();
 }
 
 #[no_mangle]
 pub extern "C" fn df_head(ptr: *mut DataFrameC) {
-    let df_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
-
+    let df_c = check_ptr(ptr);
     df_c.head();
 }
 
 #[no_mangle]
 pub extern "C" fn df_height(ptr: *mut DataFrameC) -> u32 {
-    let df_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
-
+    let df_c = check_ptr(ptr);
     df_c.height()
 }
 
 #[no_mangle]
 pub extern "C" fn df_width(ptr: *mut DataFrameC) -> u32 {
-    let df_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
-
+    let df_c = check_ptr(ptr);
     df_c.width()
 }
 
 #[no_mangle]
 pub extern "C" fn df_dtypes(ptr: *mut DataFrameC, retline: RetLine) {
-    let df_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
-
+    let df_c = check_ptr(ptr);
     df_c.dtypes(retline);
 }
 
 #[no_mangle]
 pub extern "C" fn df_get_column_names(ptr: *mut DataFrameC, retline: RetLine) {
-    let df_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
-
+    let df_c = check_ptr(ptr);
     df_c.get_column_names(retline);
 }
 
@@ -504,11 +460,7 @@ pub extern "C" fn df_column(
     ptr: *mut DataFrameC,
     string: *const c_char,
 ) -> *mut SeriesC {
-
-    let df_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
+    let df_c = check_ptr(ptr);
 
     let colname = unsafe {
         CStr::from_ptr(string).to_string_lossy().into_owned()
@@ -525,10 +477,7 @@ pub extern "C" fn df_select(
     colspec: *const *const c_char,
     len: size_t, 
 ) -> *mut DataFrameC {
-    let df_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
+    let df_c = check_ptr(ptr);
 
     let mut colvec = Vec::<String>::new();
     unsafe {
@@ -550,32 +499,11 @@ pub extern "C" fn df_with_column(
     d_ptr: *mut DataFrameC,
     s_ptr: *mut SeriesC,
 ) -> *mut DataFrameC {
-    let df_c = unsafe {
-        assert!(!d_ptr.is_null());
-        &mut *d_ptr
-    };
-    let se_c = unsafe {
-        assert!(!s_ptr.is_null());
-        &mut *s_ptr
-    };
+    let df_c = check_ptr(d_ptr);
+    let se_c = check_ptr(s_ptr);
 
     let mut df_n = DataFrameC::new();
     df_n.df = df_c.with_column(se_c.se.clone()); 
-    Box::into_raw(Box::new(df_n))
-}
-
-#[no_mangle]
-pub extern "C" fn df_query(
-    ptr: *mut DataFrameC,
-) -> *mut DataFrameC {
-    let df_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
-
-    //FIXME adjust to new(df)
-    let mut df_n = DataFrameC::new();
-    df_n.df = df_c.query();
     Box::into_raw(Box::new(df_n))
 }
 
@@ -632,11 +560,7 @@ impl LazyFrameC {
 // extern functions for LazyFrame Container
 #[no_mangle]
 pub extern "C" fn lf_new(ptr: *mut DataFrameC) -> *mut LazyFrameC {
-    let df_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
-
+    let df_c = check_ptr(ptr);
     Box::into_raw(Box::new(LazyFrameC::new(df_c)))
 }
 
@@ -652,11 +576,7 @@ pub extern "C" fn lf_free(ptr: *mut LazyFrameC) {
 
 #[no_mangle]
 pub extern "C" fn lf_collect(ptr: *mut LazyFrameC) -> *mut DataFrameC {
-    let lf_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
-
+    let lf_c = check_ptr(ptr);
     Box::into_raw(Box::new(lf_c.collect()))
 }
 
@@ -666,10 +586,7 @@ pub extern "C" fn lf_groupby(
     colspec: *const *const c_char,
     len: size_t, 
 ) {
-    let lf_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
+    let lf_c = check_ptr(ptr);
 
     let mut colvec = Vec::<String>::new();
     unsafe {
@@ -689,10 +606,7 @@ pub extern "C" fn lf_agg(
     exprarr: *const &ExprC,
     len: size_t, 
 ) {
-    let lf_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
+    let lf_c = check_ptr(ptr);
 
     let mut exprvec = Vec::<&ExprC>::new();
     unsafe {
@@ -744,6 +658,11 @@ impl ToExprs for Vec<&ExprC> {
 }
 
 impl ExprC {
+    //iamerejh
+    fn alias(&self, string: String ) -> ExprC {
+        self.clone().inner.clone().alias(&string).into()
+    }
+
     fn sum(&self) -> ExprC {
         self.clone().inner.clone().sum().into()
     }
@@ -751,8 +670,17 @@ impl ExprC {
     fn mean(&self) -> ExprC {
         self.clone().inner.clone().mean().into()
     }
+
+    fn min(&self) -> ExprC {
+        self.clone().inner.clone().min().into()
+    }
+
+    fn max(&self) -> ExprC {
+        self.clone().inner.clone().max().into()
+    }
 }
 
+//col() is the extern for new()
 #[no_mangle]
 pub extern "C" fn ex_col(
     string: *const c_char,
@@ -764,6 +692,21 @@ pub extern "C" fn ex_col(
 
     let ex_c = ExprC::new(col(&colname));
     Box::into_raw(Box::new(ex_c))
+}
+
+//iamerejh
+#[no_mangle]
+pub extern "C" fn ex_alias(
+    ptr: *mut ExprC,
+    string: *const c_char,
+) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+
+    let colname = unsafe {
+        CStr::from_ptr(string).to_string_lossy().into_owned()
+    };
+
+    Box::into_raw(Box::new(ex_c.alias(colname)))
 }
 
 #[no_mangle]
@@ -788,12 +731,19 @@ pub extern "C" fn ex_sum(ptr: *mut ExprC) -> *mut ExprC {
 
 #[no_mangle]
 pub extern "C" fn ex_mean(ptr: *mut ExprC) -> *mut ExprC {
-    let ex_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
-
+    let ex_c = check_ptr(ptr);
     Box::into_raw(Box::new(ex_c.mean()))
 }
 
 
+#[no_mangle]
+pub extern "C" fn ex_min(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.min()))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_max(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.max()))
+}

@@ -256,14 +256,23 @@ class LazyFrameC is repr('CPointer') is export {
 }
 
 class ExprC is repr('CPointer') is export {
-    sub ex_new()            returns ExprC is native($n-path) { * }
-    sub ex_free(ExprC)                    is native($n-path) { * }
-    sub ex_col(Str)         returns ExprC is native($n-path) { * }
-    sub ex_alias(Str)       returns ExprC is native($n-path) { * }
-    sub ex_sum(ExprC)       returns ExprC is native($n-path) { * }
-    sub ex_mean(ExprC)      returns ExprC is native($n-path) { * }
-    sub ex_min(ExprC)       returns ExprC is native($n-path) { * }
-    sub ex_max(ExprC)       returns ExprC is native($n-path) { * }
+    sub ex_new()                 returns ExprC is native($n-path) { * }
+    sub ex_free(ExprC)                        is native($n-path) { * }
+    sub ex_col(Str)              returns ExprC is native($n-path) { * }
+    sub ex_alias(Str)            returns ExprC is native($n-path) { * }
+    sub ex_sum(ExprC)            returns ExprC is native($n-path) { * }
+    sub ex_mean(ExprC)           returns ExprC is native($n-path) { * }
+    sub ex_min(ExprC)            returns ExprC is native($n-path) { * }
+    sub ex_max(ExprC)            returns ExprC is native($n-path) { * }
+    sub ex_first(ExprC)          returns ExprC is native($n-path) { * }
+    sub ex_last(ExprC)           returns ExprC is native($n-path) { * }
+    sub ex_unique(ExprC)         returns ExprC is native($n-path) { * }
+    sub ex_count(ExprC)          returns ExprC is native($n-path) { * }
+    sub ex_forward_fill(ExprC)   returns ExprC is native($n-path) { * }
+    sub ex_backward_fill(ExprC)  returns ExprC is native($n-path) { * }
+    sub ex_reverse(ExprC)        returns ExprC is native($n-path) { * }
+    sub ex_std(ExprC)            returns ExprC is native($n-path) { * }
+    sub ex_var(ExprC)            returns ExprC is native($n-path) { * }
 
     method new {
         ex_new
@@ -295,6 +304,42 @@ class ExprC is repr('CPointer') is export {
 
     method max {
         ex_max(self)
+    }
+
+    method first {
+        ex_first(self)
+    }
+
+    method last {
+        ex_last(self)
+    }
+
+    method unique {
+        ex_unique(self)
+    }
+
+    method count {
+        ex_count(self)
+    }
+
+    method forward_fill {
+        ex_forward_fill(self)
+    }
+
+    method backward_fill {
+        ex_backward_fill(self)
+    }
+
+    method reverse {
+        ex_reverse(self)
+    }
+
+    method std {
+        ex_std(self)
+    }
+
+    method var {
+        ex_var(self)
     }
 }
 

@@ -678,6 +678,42 @@ impl ExprC {
     fn max(&self) -> ExprC {
         self.clone().inner.clone().max().into()
     }
+
+    fn first(&self) -> ExprC {
+        self.clone().inner.clone().first().into()
+    }
+
+    fn last(&self) -> ExprC {
+        self.clone().inner.clone().last().into()
+    }
+
+    fn unique(&self) -> ExprC {
+        self.clone().inner.clone().unique().into()
+    }
+
+    fn count(&self) -> ExprC {
+        self.clone().inner.clone().count().into()
+    }
+
+    fn forward_fill(&self) -> ExprC {
+        self.clone().inner.clone().forward_fill(None).into()
+    }
+
+    fn backward_fill(&self) -> ExprC {
+        self.clone().inner.clone().backward_fill(None).into()
+    }
+
+    fn reverse(&self) -> ExprC {
+        self.clone().inner.clone().reverse().into()
+    }
+
+    fn std(&self) -> ExprC {
+        self.clone().inner.clone().std().into()
+    }
+
+    fn var(&self) -> ExprC {
+        self.clone().inner.clone().var().into()
+    }
 }
 
 //col() is the extern for new()
@@ -735,7 +771,6 @@ pub extern "C" fn ex_mean(ptr: *mut ExprC) -> *mut ExprC {
     Box::into_raw(Box::new(ex_c.mean()))
 }
 
-
 #[no_mangle]
 pub extern "C" fn ex_min(ptr: *mut ExprC) -> *mut ExprC {
     let ex_c = check_ptr(ptr);
@@ -747,3 +782,60 @@ pub extern "C" fn ex_max(ptr: *mut ExprC) -> *mut ExprC {
     let ex_c = check_ptr(ptr);
     Box::into_raw(Box::new(ex_c.max()))
 }
+
+#[no_mangle]
+pub extern "C" fn ex_first(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.first()))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_unique(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.unique()))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_last(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.last()))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_count(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.count()))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_forward_fill(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.forward_fill()))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_backward_fill(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.backward_fill()))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_reverse(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.reverse()))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_std(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.std()))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_var(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.var()))
+}
+
+
+

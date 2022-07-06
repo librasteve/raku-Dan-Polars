@@ -1,6 +1,6 @@
 {
-  "name": "Dan::Pandas",
-  "description": "Bridge Dan to Python Pandas",
+  "name": "Dan::Polars",
+  "description": "Bridge Dan to Rust Polars",
   "version": "0.0.1",
   "perl": "6.d",
   "authors": [
@@ -9,12 +9,12 @@
   "auth": "zef:p6steve",
   "depends": [
     "Dan",
-    "Inline::Python"
+    "Timers"
   ],
   "build-depends": [],
   "test-depends": [],
   "provides": {
-    "Dan::Pandas": "lib/Dan/Pandas.rakumod"
+    "Dan::Polars": "lib/Dan/Polars.rakumod"
   },
   "resources": [],
   "license": "Artistic-2.0",
@@ -23,8 +23,8 @@
     "Series",
     "DataSlice",
     "DataFrame",
-    "Pandas",
-    "Python"
+    "Rust",
+    "Polars"
   ],
   "api": "1",
   "source-url": "git://github.com/p6steve/raku-dan-pandas.git"

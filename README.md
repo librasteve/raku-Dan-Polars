@@ -13,7 +13,7 @@ The following broad capabilities are envisaged:
 - broad datatype support & mapping
 - concurrency
 
-The ultimate aim is to emulate the examples in the [Rust Polars Cookbook](https://pola-rs.github.io/polars/polars/docs/eager/index.html)
+The ultimate aim is to emulate the examples in the [Polars User Guide](https://pola-rs.github.io/polars-book/user-guide/dsl/expressions.html)
  
  Installation
  

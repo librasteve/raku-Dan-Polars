@@ -503,10 +503,6 @@ role DataFrame does Positional does Iterable is export {
         Series.new( :$data, :$name, :$dtype )
     }
 
-    method select( Array \colspec ) {
-        $!rc.select( colspec )
-    }
-
     method with_column( Series \column ) {
         $!rc.with_column( column.rc )
     }
@@ -554,8 +550,8 @@ role DataFrame does Positional does Iterable is export {
         df
     }
 
-    method sum {
-        $!lc.sum;
+    method select( Array \exprs ) {
+        $!lc.select( exprs );
         self
     }
 
@@ -563,12 +559,7 @@ role DataFrame does Positional does Iterable is export {
         $!lc.groupby( colspec );
         self
     }
-#`[
-    method agg {
-        $!lc.agg;
-        self
-    }
-#]
+
     method agg( Array \exprs ) {
         $!lc.agg( exprs );
         self

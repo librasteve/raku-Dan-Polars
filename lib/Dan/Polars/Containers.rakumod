@@ -228,11 +228,12 @@ class DataFrameC is repr('CPointer') is export {
 }
 
 class LazyFrameC is repr('CPointer') is export {
-    sub lf_new(DataFrameC)      returns LazyFrameC  is native($n-path) { * }
-    sub lf_free(LazyFrameC)                         is native($n-path) { * }
-    sub lf_groupby(LazyFrameC, CArray[Str], size_t) is native($n-path) { * }
-    sub lf_agg(LazyFrameC, CArray[Pointer], size_t) is native($n-path) { * }
-    sub lf_collect(LazyFrameC)  returns DataFrameC  is native($n-path) { * }
+    sub lf_new(DataFrameC)         returns LazyFrameC  is native($n-path) { * }
+    sub lf_free(LazyFrameC)                            is native($n-path) { * }
+    sub lf_select(LazyFrameC, CArray[Pointer], size_t) is native($n-path) { * }
+    sub lf_groupby(LazyFrameC, CArray[Str], size_t)    is native($n-path) { * }
+    sub lf_agg(LazyFrameC, CArray[Pointer], size_t)    is native($n-path) { * }
+    sub lf_collect(LazyFrameC)     returns DataFrameC  is native($n-path) { * }
 
     method new( DataFrameC \df_c ) {
         lf_new( df_c )
@@ -240,6 +241,10 @@ class LazyFrameC is repr('CPointer') is export {
 
     submethod DESTROY {              #Free data when the object is garbage collected.
         lf_free(self);
+    }
+
+    method select( Array \exprvec ) {
+        lf_select(self, carray( Pointer, exprvec ), exprvec.elems)
     }
 
     method collect {
@@ -257,9 +262,9 @@ class LazyFrameC is repr('CPointer') is export {
 
 class ExprC is repr('CPointer') is export {
     sub ex_new()                 returns ExprC is native($n-path) { * }
-    sub ex_free(ExprC)                        is native($n-path) { * }
+    sub ex_free(ExprC)                         is native($n-path) { * }
     sub ex_col(Str)              returns ExprC is native($n-path) { * }
-    sub ex_alias(Str)            returns ExprC is native($n-path) { * }
+    sub ex_alias(ExprC,Str)      returns ExprC is native($n-path) { * }
     sub ex_sum(ExprC)            returns ExprC is native($n-path) { * }
     sub ex_mean(ExprC)           returns ExprC is native($n-path) { * }
     sub ex_min(ExprC)            returns ExprC is native($n-path) { * }
@@ -287,7 +292,7 @@ class ExprC is repr('CPointer') is export {
     }
 
     method alias( Str \colname ) {
-        ex_alias(colname)
+        ex_alias(self, colname)
     }
 
     method sum {

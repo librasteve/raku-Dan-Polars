@@ -529,6 +529,10 @@ impl LazyFrameC {
         df_c
     }
 
+    fn select(&mut self, exprvec: Vec::<Expr>) {
+        self.lf = self.lf.clone().select(exprvec);
+    }
+
     fn groupby(&mut self, colvec: Vec::<String>) {
         let colrefs: Vec<&str> = colvec.iter().map(AsRef::as_ref).collect();
         self.gb = Some(self.lf.clone().groupby(colrefs));
@@ -578,6 +582,24 @@ pub extern "C" fn lf_free(ptr: *mut LazyFrameC) {
 pub extern "C" fn lf_collect(ptr: *mut LazyFrameC) -> *mut DataFrameC {
     let lf_c = check_ptr(ptr);
     Box::into_raw(Box::new(lf_c.collect()))
+}
+
+#[no_mangle]
+pub extern "C" fn lf_select(
+    ptr: *mut LazyFrameC,
+    exprarr: *const &ExprC,
+    len: size_t, 
+) {
+    let lf_c = check_ptr(ptr);
+
+    let mut exprvec = Vec::<&ExprC>::new();
+    unsafe {
+        for item in slice::from_raw_parts(exprarr, len as usize) {
+            exprvec.push(item);
+        };
+    };
+
+    lf_c.select(exprvec.to_exprs());
 }
 
 #[no_mangle]
@@ -658,7 +680,6 @@ impl ToExprs for Vec<&ExprC> {
 }
 
 impl ExprC {
-    //iamerejh
     fn alias(&self, string: String ) -> ExprC {
         self.clone().inner.clone().alias(&string).into()
     }

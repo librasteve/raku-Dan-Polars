@@ -17,7 +17,7 @@ The ultimate aim is to emulate the examples in the [Polars User Guide](https://p
  
  Installation
  
- Use [p6steve/raku-Dockerfiles/raku-dan-polars/stage-2](https://github.com/p6steve/raku-Dockerfiles/blob/main/raku-dan-polars/stage-2/Dockerfile), image something like [p6steve/raku-dan:polars-2022.02-arm64](hub.docker.com) on Docker Hub 
+ Use [p6steve/raku-Dockerfiles/raku-dan-polars/stage-2](https://github.com/p6steve/raku-Dockerfiles/blob/main/raku-dan-polars/stage-2/Dockerfile), Docker Hub images are named something like [p6steve/raku-dan:polars-2022.02-arm64](hub.docker.com) - choose arm64 / amd64 for your machine.
  
  make dan like this ...
  ```

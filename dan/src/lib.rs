@@ -728,6 +728,10 @@ impl ExprC {
         self.clone().inner.clone().reverse().into()
     }
 
+    fn sort(&self) -> ExprC {
+        self.clone().inner.clone().sort(false).into()
+    }
+
     fn std(&self) -> ExprC {
         self.clone().inner.clone().std().into()
     }
@@ -838,6 +842,12 @@ pub extern "C" fn ex_forward_fill(ptr: *mut ExprC) -> *mut ExprC {
 pub extern "C" fn ex_backward_fill(ptr: *mut ExprC) -> *mut ExprC {
     let ex_c = check_ptr(ptr);
     Box::into_raw(Box::new(ex_c.backward_fill()))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_sort(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.sort()))
 }
 
 #[no_mangle]

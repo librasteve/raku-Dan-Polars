@@ -8,30 +8,42 @@ use Dan::Polars;
 #viz. https://pola-rs.github.io/polars-book/user-guide/dsl/expressions.html
 
 my \df = DataFrame.new([
-    nrs    => [1, 2, 3, NaN, 5],
+    nrs    => [1, 2, 3, 4, 5],
     names  => ["foo", "ham", "spam", "egg", ""],
     random => [1.rand xx 5],
     groups => ["A", "A", "B", "C", "B"],
 ]);
 df.head;
 
-df.prepare.select([col("names").unique.count.alias("smith&jones")]).collect.head;
+df.select([col("names").unique.count.alias("smith&jones")]).head;
 
 my $expr;
 $expr  = col("random");
 $expr .= sum;
 $expr .= alias("x");
-df.prepare.groupby(["groups"]).agg([$expr]).collect.head;
+df.groupby(["groups"]).agg([$expr]).head;
 
-my \out = df.prepare.select([
-    col("random").sum.alias("sum"),
-    col("random").min.alias("min"),
-    col("random").max.alias("max"),
-    col("random").std.alias("std dev"),
-    col("random").var.alias("variance"),
-]).collect;
-out.head;
+my $out;
+$out = df.select(
+    [
+        col("random").sum.alias("sum"),
+        col("random").min.alias("min"),
+        col("random").max.alias("max"),
+        col("random").std.alias("std dev"),
+        col("random").var.alias("variance"),
+    ]
+);
+$out.head;
 
+$out = df.select(
+    [
+        col("nrs").sum,
+        col("names").sort,
+        col("names").first.alias("first name"),
+        #(pl.mean("nrs") * 10).alias("10xnrs"),
+    ]
+);
+$out.head;
 
 #`[
 do basic (non regex) sort & filter

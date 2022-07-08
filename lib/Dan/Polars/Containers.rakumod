@@ -276,6 +276,7 @@ class ExprC is repr('CPointer') is export {
     sub ex_forward_fill(ExprC)   returns ExprC is native($n-path) { * }
     sub ex_backward_fill(ExprC)  returns ExprC is native($n-path) { * }
     sub ex_reverse(ExprC)        returns ExprC is native($n-path) { * }
+    sub ex_sort(ExprC)           returns ExprC is native($n-path) { * }
     sub ex_std(ExprC)            returns ExprC is native($n-path) { * }
     sub ex_var(ExprC)            returns ExprC is native($n-path) { * }
 
@@ -337,6 +338,10 @@ class ExprC is repr('CPointer') is export {
 
     method reverse {
         ex_reverse(self)
+    }
+
+    method sort {
+        ex_sort(self)
     }
 
     method std {

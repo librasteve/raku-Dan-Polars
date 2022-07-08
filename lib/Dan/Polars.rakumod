@@ -8,6 +8,7 @@ unit module Dan::Polars:ver<0.0.1>:auth<Steve Roe (p6steve@furnival.net)>;
 --
 - lazy only
 - pure only
+- auto prepare / collect
 - opaque only
 -- no chunk controls
 -- no chunk unpack (i32 ...)
@@ -22,7 +23,6 @@ unit module Dan::Polars:ver<0.0.1>:auth<Steve Roe (p6steve@furnival.net)>;
 - better value return
 - multiple query
 - serde
-- auto prepare / collect
 #]
 
 use Dan;
@@ -544,25 +544,28 @@ role DataFrame does Positional does Iterable is export {
         self
     }
 
-    method collect( --> DataFrame ) {
+    submethod collect( --> DataFrame ) {
         my \df = DataFrame.new;
         df.rc: $!lc.collect;
         df
     }
 
     method select( Array \exprs ) {
+        $!lc = LazyFrameC.new( $!rc );
         $!lc.select( exprs );
-        self
+        $.collect
     }
 
+    #autocollect means groupby must always have an agg
     method groupby( Array \colspec ) {
+        $!lc = LazyFrameC.new( $!rc );
         $!lc.groupby( colspec );
         self
     }
 
     method agg( Array \exprs ) {
         $!lc.agg( exprs );
-        self
+        $.collect
     }
 
     #### MAC Methods #####

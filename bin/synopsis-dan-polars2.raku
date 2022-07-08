@@ -9,16 +9,18 @@ my \df = DataFrame.new;
 df.read_csv("../dan/src/iris.csv");
 
 df.column("sepal.length").head;
-df.select(["sepal.length", "variety"]).head;
 
-df.prepare.groupby(["variety"]).agg([col("petal.length").sum]).collect.head;
+#this version of select no longer works
+#df.select(["sepal.length", "variety"]).head;
+
+df.groupby(["variety"]).agg([col("petal.length").sum]).head;
 
 my $expr;
 $expr  = col("petal.length");
 $expr .= sum;
-df.prepare.groupby(["variety"]).agg([$expr]).collect.head;
+df.groupby(["variety"]).agg([$expr]).head;
 
-df.prepare.groupby(["variety"]).agg([col("petal.length").sum,col("sepal.length").sum]).collect.head;
+df.groupby(["variety"]).agg([col("petal.length").sum,col("sepal.length").sum]).head;
 
 my @exprs;
 @exprs.push: col("petal.length").sum;
@@ -34,7 +36,7 @@ my @exprs;
 #@exprs.push: col("sepal.length").reverse;
 #@exprs.push: col("sepal.length").std;
 @exprs.push: col("sepal.length").var;
-df.prepare.groupby(["variety"]).agg(@exprs).collect.head;
+df.groupby(["variety"]).agg(@exprs).head;
 
 ## todos from https://github.com/p6steve/polars/blob/master/nodejs-polars/src/lazy/dsl.rs
 #skip: all __add__ operators
@@ -48,7 +50,7 @@ df.prepare.groupby(["variety"]).agg(@exprs).collect.head;
 #skip: agg_groups                   - internal detail
 #skip: value_counts, unique_counts  - internal detail
 #skip: cast                         - arity
-#skip: sort_with, sort_by           - arity
+#skip: sort_with, sort_by           - arity / think
 #skip: arg_sort                     - internal detail
 #skip: arg_max, arg_min             - think
 #skip: take                         - arity

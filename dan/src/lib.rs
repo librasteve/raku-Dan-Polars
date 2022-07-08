@@ -503,7 +503,7 @@ pub extern "C" fn df_with_column(
     let se_c = check_ptr(s_ptr);
 
     let mut df_n = DataFrameC::new();
-    df_n.df = df_c.with_column(se_c.se.clone()); 
+    df_n.df = df_c.with_column(se_c.se.clone());
     Box::into_raw(Box::new(df_n))
 }
 
@@ -531,6 +531,10 @@ impl LazyFrameC {
 
     fn select(&mut self, exprvec: Vec::<Expr>) {
         self.lf = self.lf.clone().select(exprvec);
+    }
+
+    fn with_columns(&mut self, exprvec: Vec::<Expr>) {
+        self.lf = self.lf.clone().with_columns(exprvec);
     }
 
     fn groupby(&mut self, colvec: Vec::<String>) {
@@ -600,6 +604,24 @@ pub extern "C" fn lf_select(
     };
 
     lf_c.select(exprvec.to_exprs());
+}
+
+#[no_mangle]
+pub extern "C" fn lf_with_columns(
+    ptr: *mut LazyFrameC,
+    exprarr: *const &ExprC,
+    len: size_t, 
+) {
+    let lf_c = check_ptr(ptr);
+
+    let mut exprvec = Vec::<&ExprC>::new();
+    unsafe {
+        for item in slice::from_raw_parts(exprarr, len as usize) {
+            exprvec.push(item);
+        };
+    };
+
+    lf_c.with_columns(exprvec.to_exprs());
 }
 
 #[no_mangle]

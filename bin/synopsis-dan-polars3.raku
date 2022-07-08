@@ -6,6 +6,7 @@ use Dan;
 use Dan::Polars;
 
 #viz. https://pola-rs.github.io/polars-book/user-guide/dsl/expressions.html
+#viz. https://pola-rs.github.io/polars-book/user-guide/dsl/contexts.html
 
 my \df = DataFrame.new([
     nrs    => [1, 2, 3, 4, 5],
@@ -23,8 +24,7 @@ $expr .= sum;
 $expr .= alias("x");
 df.groupby(["groups"]).agg([$expr]).head;
 
-my $out;
-$out = df.select(
+df.select(
     [
         col("random").sum.alias("sum"),
         col("random").min.alias("min"),
@@ -32,18 +32,32 @@ $out = df.select(
         col("random").std.alias("std dev"),
         col("random").var.alias("variance"),
     ]
-);
-$out.head;
+).head;
 
-$out = df.select(
+df.select(
     [
         col("nrs").sum,
         col("names").sort,
         col("names").first.alias("first name"),
         #(pl.mean("nrs") * 10).alias("10xnrs"),
     ]
-);
-$out.head;
+).head;
+
+df.with_columns(
+    [
+        col("nrs").sum.alias("nrs_sum"),
+        col("random").count.alias("count"),
+    ]
+).head;
+
+df.groupby(["groups"]).agg(
+    [
+        col("nrs").sum,  # sum nrs by groups
+        col("random").count().alias("count"),  # count group members
+        #col("random").filter(col("names").is_not_null).sum.alias("random_sum"),
+        col("names").reverse.alias("reversed names"),
+    ]
+).head;
 
 #`[
 do basic (non regex) sort & filter
@@ -58,9 +72,7 @@ print(df)
 #]
 
 #notes
-#- can use ""  for None Str
-#- can use NaN for None Num
-#- FIXME refactor for (Num), (Str)... (1,2,3,(Int)).are (Int) dd (1e0, NaN, (Num)).are (Num) 
+#- FIXME refactor for (Num), (Str) == None... (1,2,3,(Int)).are (Int) dd (1e0, NaN, (Num)).are (Num) 
 #- FIXME accept List for <a b c>
 #https://pola-rs.github.io/polars-book/user-guide/dsl/expressions.html#filter-and-conditionals
 #- imo embedded regex/str ops are unfriendly --- aim for this in raku map/apply -- build on Dan sort/grep

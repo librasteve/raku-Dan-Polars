@@ -539,11 +539,6 @@ role DataFrame does Positional does Iterable is export {
 
     #### Query Methods #####
 
-    method prepare {
-        $!lc = LazyFrameC.new( $!rc );
-        self
-    }
-
     submethod collect( --> DataFrame ) {
         my \df = DataFrame.new;
         df.rc: $!lc.collect;
@@ -551,14 +546,20 @@ role DataFrame does Positional does Iterable is export {
     }
 
     method select( Array \exprs ) {
-        $!lc = LazyFrameC.new( $!rc );
+        $!lc = LazyFrameC.new( $!rc ); #autolazy 
         $!lc.select( exprs );
+        $.collect
+    }
+
+    method with_columns( Array \exprs ) {
+        $!lc = LazyFrameC.new( $!rc ); #autolazy 
+        $!lc.with_columns( exprs );
         $.collect
     }
 
     #autocollect means groupby must always have an agg
     method groupby( Array \colspec ) {
-        $!lc = LazyFrameC.new( $!rc );
+        $!lc = LazyFrameC.new( $!rc ); #autolazy 
         $!lc.groupby( colspec );
         self
     }

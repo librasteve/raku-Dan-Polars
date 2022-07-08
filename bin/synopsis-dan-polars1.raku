@@ -96,7 +96,7 @@ $select.head;
 
 #`[
 #my \df = DataFrame.new();
-#df.with_column(s);
+#df.with_column(s);  ##moved to lf
 ##say ~df;
 df.show;
 df.head;

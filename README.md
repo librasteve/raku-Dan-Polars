@@ -56,3 +56,7 @@ Some other notes:
 https://news.ycombinator.com/item?id=27051573#27053712
 https://www.youtube.com/watch?v=OtIU7HsHCE8&t=2731s
 https://arrow.apache.org
+
+
+20:37	discord-raku-bot	<Anton Antonov> @japhb I got a CBOR file -- how do I read it in Raku? Using `slurp` with ":bin" ?
+20:49	discord-raku-bot	<Anton Antonov> @japhp Yeah, I got it working. And, yes, the CBOR utilization gives me the fastest ingestion of ≈700MB CSV file in Raku.

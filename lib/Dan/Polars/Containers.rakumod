@@ -40,6 +40,7 @@ class SeriesC is repr('CPointer') is export {
     sub se_len(SeriesC) returns uint32 is native($n-path) { * }
     sub se_values(SeriesC, Str) is native($n-path) { * }
     sub se_get_data(SeriesC) returns CArray[num64] is native($n-path) { * }
+    sub se_get_f64(SeriesC, CArray[num64]) is native($n-path) { * }
 
     method new( $name, @data, :$dtype ) {
 
@@ -160,8 +161,12 @@ class SeriesC is repr('CPointer') is export {
         @out
     }
 #]
+    # viz. https://docs.raku.org/language/nativecall#Arrays
     method get-data {
-        se_get_data(self) 
+        my $elems = 100;
+        my $array = CArray[num64].allocate($elems); # instantiates an array with 10 elements
+        se_get_f64(self, $array);
+        $array
     }
 }
 

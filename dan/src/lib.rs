@@ -204,6 +204,25 @@ impl SeriesC {
             &_ => todo!(),
         }
     }
+    //fn get_data(&self, retarray: RetArray) {
+    fn get_f64(&self) -> *mut CArray<f64> {
+        let dtype: &str = &self.se.dtype().to_string();
+        match dtype {
+            "f64" => { 
+                // flatten (i) to de-Chunk Array, flatten (ii) to unwrap Option
+                let asvec: Vec<f64> = self.se.f64().into_iter().flatten().flatten().collect();
+                println!("{:?}", &asvec);
+
+                //let csvec: CArray::<f64> = CArray::<f64>::c_repr_of(bsvec).unwrap();
+                //let csvec: CArray<f64> = CArray::<f64>::c_repr_of(asvec).unwrap();
+                //println!("{:?}", &csvec.as_ref());
+                //retarray(csvec.unwrap());
+                //csvec.as_ptr()
+                //Box::into_raw(Box::new(csvec))
+            },
+            &_ => todo!(),
+        }
+    }
 }
 
 fn se_new_vec<T>(
@@ -344,6 +363,12 @@ pub extern "C" fn se_values(
 pub extern "C" fn se_get_data(ptr: *mut SeriesC) -> *mut CArray<f64> {
     let se_c = check_ptr(ptr);
     se_c.get_data()
+}
+
+pub extern "C" fn se_get_f64(ptr: *mut SeriesC, res: *mut CArray<f64> ) {
+    let se_c = check_ptr(ptr);
+    let res = check_ptr(res);
+    se_c.get_f64(res)
 }
 
 

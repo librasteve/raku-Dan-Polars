@@ -39,6 +39,7 @@ class SeriesC is repr('CPointer') is export {
     sub se_rename(SeriesC, Str) is native($n-path) { * }
     sub se_len(SeriesC) returns uint32 is native($n-path) { * }
     sub se_values(SeriesC, Str) is native($n-path) { * }
+    sub se_get_data(SeriesC) returns CArray[num64] is native($n-path) { * }
 
     method new( $name, @data, :$dtype ) {
 
@@ -143,6 +144,24 @@ class SeriesC is repr('CPointer') is export {
             @values.map({ $_ = +$_ if $_ ~~ /<number>/ });     #convert to narrowest Real type
         }
         @values
+    }
+
+#`[
+    #get data via carray ptr
+    method get-data {
+        my @out;
+        my &array_out = sub ( @array ) {
+            say 'yo';
+            dd @array;
+            @out := @array 
+        }
+
+        se_get_data(self, &array_out);
+        @out
+    }
+#]
+    method get-data {
+        se_get_data(self) 
     }
 }
 
@@ -284,6 +303,7 @@ class ExprC is repr('CPointer') is export {
     sub ex_sort(ExprC)           returns ExprC is native($n-path) { * }
     sub ex_std(ExprC)            returns ExprC is native($n-path) { * }
     sub ex_var(ExprC)            returns ExprC is native($n-path) { * }
+    sub ex_exclude(ExprC,CArray[Str], size_t) returns ExprC is native($n-path) { * }
 
     method new {
         ex_new
@@ -333,6 +353,10 @@ class ExprC is repr('CPointer') is export {
         ex_count(self)
     }
 
+    method elems {
+        ex_count(self)
+    }
+
     method forward_fill {
         ex_forward_fill(self)
     }
@@ -355,6 +379,10 @@ class ExprC is repr('CPointer') is export {
 
     method var {
         ex_var(self)
+    }
+
+    method exclude( Array \colspec ) {
+        ex_exclude(self, carray( Str, colspec ), colspec.elems)
     }
 }
 

@@ -5,6 +5,7 @@ use std::ffi::*; //{CStr, CString,}
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path};
+use ffi_convert::{CReprOf, AsRust, CDrop, CArray};
 
 use polars::prelude::*;//{CsvReader, DataType, DataFrame, Series};
 use polars::prelude::{Result as PolarResult};
@@ -68,7 +69,8 @@ use polars::lazy::dsl::Expr;
 
 // Callback Types
 
-type RetLine = extern fn(line: *const u8);
+type RetLine  = extern fn(line: *const u8);
+type RetArray = extern fn(array: CArray<f64>);
 
 // Helpers for Safety Checks
 
@@ -179,6 +181,25 @@ impl SeriesC {
                 for value in bsvec.iter() { 
                     writeln!(&mut w, "{}", value.unwrap()).unwrap();
                 }
+            },
+            &_ => todo!(),
+        }
+    }
+    //fn get_data(&self, retarray: RetArray) {
+    fn get_data(&self) -> *mut CArray<f64> {
+        let dtype: &str = &self.se.dtype().to_string();
+        match dtype {
+            "f64" => { 
+                // flatten (i) to de-Chunk Array, flatten (ii) to unwrap Option
+                let asvec: Vec<f64> = self.se.f64().into_iter().flatten().flatten().collect();
+                println!("{:?}", &asvec);
+
+                //let csvec: CArray::<f64> = CArray::<f64>::c_repr_of(bsvec).unwrap();
+                let csvec: CArray<f64> = CArray::<f64>::c_repr_of(asvec).unwrap();
+                //println!("{:?}", &csvec.as_ref());
+                //retarray(csvec.unwrap());
+                //csvec.as_ptr()
+                Box::into_raw(Box::new(csvec))
             },
             &_ => todo!(),
         }
@@ -316,6 +337,15 @@ pub extern "C" fn se_values(
 
     se_c.values(vfile);
 }
+
+#[no_mangle]
+//iamerejh - try making a CArrayC??
+//pub extern "C" fn se_get_data(ptr: *mut SeriesC, retarray: RetArray) {
+pub extern "C" fn se_get_data(ptr: *mut SeriesC) -> *mut CArray<f64> {
+    let se_c = check_ptr(ptr);
+    se_c.get_data()
+}
+
 
 // DataFrame Container
 
@@ -761,6 +791,10 @@ impl ExprC {
     fn var(&self) -> ExprC {
         self.clone().inner.clone().var().into()
     }
+
+    fn exclude(&self, colvec: Vec::<String>) -> ExprC {
+        self.clone().inner.clone().exclude(colvec).into()
+    }
 }
 
 //col() is the extern for new()
@@ -888,6 +922,26 @@ pub extern "C" fn ex_std(ptr: *mut ExprC) -> *mut ExprC {
 pub extern "C" fn ex_var(ptr: *mut ExprC) -> *mut ExprC {
     let ex_c = check_ptr(ptr);
     Box::into_raw(Box::new(ex_c.var()))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_exclude(
+    ptr: *mut ExprC,
+    colspec: *const *const c_char,
+    len: size_t, 
+) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+
+    let mut colvec = Vec::<String>::new();
+    unsafe {
+        assert!(!colspec.is_null());
+
+        for item in slice::from_raw_parts(colspec, len as usize) {
+            colvec.push(CStr::from_ptr(*item).to_string_lossy().into_owned());
+        };
+    };
+
+    Box::into_raw(Box::new(ex_c.exclude(colvec)))
 }
 
 

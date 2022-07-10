@@ -1,10 +1,9 @@
 unit module Dan::Polars:ver<0.0.1>:auth<Steve Roe (p6steve@furnival.net)>;
 
 #`[TODOs
-- se functions
-- df functions
-- strip Index
-- single query
+- se functions - ok
+- df functions - ok
+- unary exprs - s2 -ok
 --
 - lazy only
 - pure only
@@ -15,14 +14,20 @@ unit module Dan::Polars:ver<0.0.1>:auth<Steve Roe (p6steve@furnival.net)>;
 -- no datetime (in v1)
 --
 -- v2
+- expr arity > 1
 - clone (then retest h2o-par)
 - reset @data after load rc (also to Pandas)
-- apply
+- map & apply
 - operators
 - datetime
 - better value return
-- multiple query
 - serde
+- strip / fold Index
+
+Snagging
+- splice & concat - s1
+- sort & filter - s3
+- cross join
 #]
 
 use Dan;
@@ -170,6 +175,10 @@ role Series does Positional does Iterable is export {
 
     method values {
         $!rc.values 
+    }
+
+    method get-data {
+        $!rc.get-data 
     }
 
     method Dan-Series {

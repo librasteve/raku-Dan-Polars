@@ -186,16 +186,17 @@ impl SeriesC {
         }
     }
 
-    fn get_f64(&self, buffer: *mut c_double, len: size_t) {
-        // flatten (i) to de-Chunk Array, flatten (ii) to unwrap Option
-        let asvec: Vec<f64> = self.se.f64().into_iter().flatten().flatten().collect();
+    fn get_data(&self, buffer: *mut f64, len: size_t, asvec: Vec<f64>) {
         let slice: &[f64] = &asvec;
-        
         unsafe {
-            let buffer: &mut [c_double] = 
-                       slice::from_raw_parts_mut(buffer as *mut c_double, len as usize);
+            let buffer: &mut [f64] = 
+                            slice::from_raw_parts_mut(buffer as *mut f64, len as usize);
             ptr::copy_nonoverlapping(slice.as_ptr(), buffer.as_mut_ptr(), len as usize);
         }
+    }
+    fn get_f64(&self, buffer: *mut f64, len: size_t) {
+        let asvec = self.se.f64().into_iter().flatten().flatten().collect();
+        self.get_data(buffer, len, asvec);
     }
 
     fn get_str(&self, retline: RetLine) {

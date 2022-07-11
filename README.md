@@ -14,22 +14,26 @@ The following broad capabilities are envisaged:
 - concurrency
 
 The ultimate aim is to emulate the examples in the [Polars User Guide](https://pola-rs.github.io/polars-book/user-guide/dsl/expressions.html)
+
+## All is strictly pre-release and only if you know what you are doing!!!
  
- Installation
+## Installation
  
- Use [p6steve/raku-Dockerfiles/raku-dan-polars/stage-2](https://github.com/p6steve/raku-Dockerfiles/blob/main/raku-dan-polars/stage-2/Dockerfile), Docker Hub images are named something like [p6steve/raku-dan:polars-2022.02-arm64](hub.docker.com) - choose arm64 / amd64 for your machine.
+Use [p6steve/raku-Dockerfiles/raku-dan-polars/stage-2](https://github.com/p6steve/raku-Dockerfiles/blob/main/raku-dan-polars/stage-2/Dockerfile), Docker Hub images are named something like [p6steve/raku-dan:polars-2022.02-arm64](hub.docker.com) - choose arm64 / amd64 for your machine.
  
- make dan like this ...
- ```
- cargo new dan && cd dan
- vi Cargo.toml, add polars = "0.21.1"
- vi src/main.rs (write some code)
- cargo build
- cargo run
- ```
-  
-First step is to get a Dockerfile up...
-- rakudo + rust + polars minimal (no python!)
+deploy Dan::Polars like this ...
+```
+docker run -it p6steve/raku-dan:polars-2022.02-arm64 #(or -amd64)
+zef install Dan;
+git clone https://github.com/p6steve/raku-Dan-Polars.git
+cd raku-Dan-Polars
+cd dan
+cargo build
+cd ../bin
+./synopsis-dan-polars4.raku #(or 1,2,3)
+```
+
+## Steve's randon notes
 
 Notes from Polars Discord
 

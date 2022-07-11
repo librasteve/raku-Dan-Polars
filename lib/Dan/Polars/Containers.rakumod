@@ -23,7 +23,7 @@ constant $n-path    = '../dan/target/debug/dan';
 constant $vals-file = 'dan-values.txt';
 
 class SeriesC is repr('CPointer') is export {
-    sub se_new_bool(Str, CArray[bool],  size_t) returns SeriesC is native($n-path) { * }
+    sub se_new_bool(Str, CArray[bool], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_i32(Str, CArray[int32], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_i64(Str, CArray[int64], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_u32(Str, CArray[uint32],size_t) returns SeriesC is native($n-path) { * }
@@ -39,8 +39,15 @@ class SeriesC is repr('CPointer') is export {
     sub se_rename(SeriesC, Str) is native($n-path) { * }
     sub se_len(SeriesC) returns uint32 is native($n-path) { * }
     sub se_values(SeriesC, Str) is native($n-path) { * }
-    sub se_get_data(SeriesC) returns CArray[num64] is native($n-path) { * }
-    sub se_get_f64(SeriesC, CArray[num64]) is native($n-path) { * }
+    sub se_get_bool(SeriesC, CArray[bool], size_t) is native($n-path) { * }
+    sub se_get_i32(SeriesC, CArray[int32], size_t) is native($n-path) { * }
+    sub se_get_i64(SeriesC, CArray[int64], size_t) is native($n-path) { * }
+    sub se_get_u32(SeriesC, CArray[uint32],size_t) is native($n-path) { * }
+    sub se_get_u64(SeriesC, CArray[uint64],size_t) is native($n-path) { * }
+    sub se_get_f32(SeriesC, CArray[num32], size_t) is native($n-path) { * }
+    sub se_get_f64(SeriesC, CArray[num64], size_t) is native($n-path) { * }
+    ##sub se_get_str(SeriesC, CArray[Str],   size_t) is native($n-path) { * }
+    sub se_get_str(SeriesC,   &callback (Str --> Str)) is native($n-path) { * }
 
     method new( $name, @data, :$dtype ) {
 
@@ -147,29 +154,65 @@ class SeriesC is repr('CPointer') is export {
         @values
     }
 
-#`[
-    #get data via carray ptr
-    method get-data {
-        my @out;
-        my &array_out = sub ( @array ) {
-            say 'yo';
-            dd @array;
-            @out := @array 
+    method get-str {
+        my $out;
+        my &line_out = sub ( $line ) {
+            $out := $line
         }
 
-        se_get_data(self, &array_out);
-        @out
+        se_get_str(self, &line_out);
+        $out.split('","')
     }
-#]
+
+
     # viz. https://docs.raku.org/language/nativecall#Arrays
     method get-data {
-        my $elems = 100;
-        my $array := CArray[num64].allocate($elems); # instantiates an array with 10 elements
-        se_get_f64(self, $array);
-        dd $array;
-        $array
+        my $elems = self.len;
+        say my $dtype = self.dtype;
+
+        given $dtype {
+            when 'bool' {
+                my $array := CArray[bool].allocate($elems); 
+                se_get_bool(self, $array, $elems);
+                $array.list
+            }
+            when 'i32' {
+                my $array := CArray[int32].allocate($elems);
+                se_get_i32(self, $array, $elems);
+                $array.list
+            }
+            when 'i64' {
+                my $array := CArray[int64].allocate($elems);
+                se_get_i64(self, $array, $elems);
+                $array.list
+            }
+            when 'u32' {
+                my $array := CArray[uint32].allocate($elems);
+                se_get_u32(self, $array, $elems);
+                $array.list
+            }
+            when 'u64' {
+                my $array := CArray[uint64].allocate($elems);
+                se_get_u64(self, $array, $elems);
+                $array.list
+            }
+            when 'f32' {
+                my $array := CArray[num32].allocate($elems);
+                se_get_f32(self, $array, $elems);
+                $array.list
+            }
+            when 'f64' {
+                my $array := CArray[num64].allocate($elems);
+                se_get_f64(self, $array, $elems);
+                $array.list
+            }
+            when 'str' {
+                self.get-str
+            }
+        }
     }
 }
+
 
 class DataFrameC is repr('CPointer') is export {
     sub df_new() returns DataFrameC  is native($n-path) { * }

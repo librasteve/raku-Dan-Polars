@@ -7,7 +7,6 @@ use std::ffi::*; //{CStr, CString,}
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path};
-use ffi_convert::{CReprOf, CArray};
 
 use polars::prelude::*;//{CsvReader, DataType, DataFrame, Series};
 use polars::prelude::{Result as PolarResult};
@@ -186,42 +185,26 @@ impl SeriesC {
             &_ => todo!(),
         }
     }
-    //fn get_data(&self, retarray: RetArray) {
-    fn get_data(&self) -> *mut CArray<f64> {
-        let dtype: &str = &self.se.dtype().to_string();
-        match dtype {
-            "f64" => { 
-                // flatten (i) to de-Chunk Array, flatten (ii) to unwrap Option
-                let asvec: Vec<f64> = self.se.f64().into_iter().flatten().flatten().collect();
-                println!("{}", 3);
-                println!("{:?}", &asvec);
 
-                let csvec: CArray<f64> = CArray::<f64>::c_repr_of(asvec).unwrap();
-                Box::into_raw(Box::new(csvec))
-            },
-            &_ => todo!(),
-        }
-    } 
-    fn get_f64(&self, mut buffer: *mut c_double ) {
-        let dtype: &str = &self.se.dtype().to_string();
-        match dtype {
-            "f64" => { 
-                // flatten (i) to de-Chunk Array, flatten (ii) to unwrap Option
-                //let mut asvec: Vec<f64> = self.se.f64().into_iter().flatten().flatten().collect();
-                let mut asvec: Vec<f64> = vec![1e1, 2.0, 3.1];
-                println!("{}", 1);
-                println!("{:?}", &asvec);
-                let mut slice: &mut [f64] = &mut asvec;
-                
-                unsafe {
-                    let buffer: &mut [c_double] = 
-                            slice::from_raw_parts_mut(buffer as *mut c_double, 100);
-                    ptr::copy_nonoverlapping(slice.as_ptr(), buffer.as_mut_ptr(), 100);
-                }
-            },
-            &_ => todo!(),
+    fn get_f64(&self, buffer: *mut c_double, len: size_t) {
+        // flatten (i) to de-Chunk Array, flatten (ii) to unwrap Option
+        let asvec: Vec<f64> = self.se.f64().into_iter().flatten().flatten().collect();
+        let slice: &[f64] = &asvec;
+        
+        unsafe {
+            let buffer: &mut [c_double] = 
+                       slice::from_raw_parts_mut(buffer as *mut c_double, len as usize);
+            ptr::copy_nonoverlapping(slice.as_ptr(), buffer.as_mut_ptr(), len as usize);
         }
     }
+
+    fn get_str(&self, retline: RetLine) {
+        // flatten (i) to de-Chunk Array, flatten (ii) to unwrap Option
+        let asvec: Vec<_> = self.se.utf8().into_iter().flatten().flatten().collect(); 
+        let asstr: String = asvec.join("\",\"");
+        retline(asstr.as_ptr());
+    }
+
 }
 
 fn se_new_vec<T>(
@@ -356,20 +339,18 @@ pub extern "C" fn se_values(
     se_c.values(vfile);
 }
 
-//iamerejh - try making a CArrayC??
-//pub extern "C" fn se_get_data(ptr: *mut SeriesC, retarray: RetArray) {
 #[no_mangle]
-pub extern "C" fn se_get_data(ptr: *mut SeriesC) -> *mut CArray<f64> {
+pub extern "C" fn se_get_f64(ptr: *mut SeriesC, res: *mut c_double, len: size_t ) {
     let se_c = check_ptr(ptr);
-    se_c.get_data()
+    se_c.get_f64(res, len)
+}
+//iamerejh
+#[no_mangle]
+pub extern "C" fn se_get_str(ptr: *mut SeriesC, retline: RetLine) {
+    let se_c = check_ptr(ptr);
+    se_c.get_str(retline);
 }
 
-//let's try with ptr copy ...
-#[no_mangle]
-pub extern "C" fn se_get_f64(ptr: *mut SeriesC, res: *mut c_double ) {
-    let se_c = check_ptr(ptr);
-    se_c.get_f64(res)
-}
 
 // DataFrame Container
 

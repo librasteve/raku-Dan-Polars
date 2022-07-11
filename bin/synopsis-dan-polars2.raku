@@ -10,23 +10,18 @@ df.read_csv("../dan/src/iris.csv");
 
 df.column("sepal.length").head;
 
-my $se = df.column("sepal.length");
+my $se;
+$se = df.column("sepal.length");
+say $se.get-data;
+
+my $se = df.column("variety");
 my @da = $se.get-data;
-dd @da;
-
-$se = df.column("petal.length");
-@da = $se.get-data;
-dd @da;
-
-$se = df.column("variety");
-@da = $se.get-data;
 say @da[0];
 say @da[57];
 
 $se.pull;
-dd $se.data;
+say $se.data;
 
-die;
 #this version of select no longer works
 #df.select(["sepal.length", "variety"]).head;
 

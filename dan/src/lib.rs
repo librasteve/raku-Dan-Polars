@@ -1,11 +1,9 @@
 use libc::c_char;
-use libc::c_double;
 use libc::size_t;
 use std::slice;
 use std::ptr;
 use std::ffi::*; //{CStr, CString,}
 use std::fs::File;
-use std::io::Write;
 use std::path::{Path};
 
 use polars::prelude::*;//{CsvReader, DataType, DataFrame, Series};
@@ -122,81 +120,49 @@ impl SeriesC {
         self.se.len().try_into().unwrap()
     }
 
-    fn values(&self, vfile: String) {
-        let mut w = File::create(vfile).unwrap();
-        let dtype: &str = &self.se.dtype().to_string();
-        match dtype {
-            "i32" => { 
-                let asvec: Vec<_> = self.se.i32().into_iter().collect(); 
-                let bsvec: Vec<_> = asvec[0].into_iter().collect();
-                for value in bsvec.iter() { 
-                    writeln!(&mut w, "{}", value.unwrap()).unwrap();
-                }
-            },
-            "u32" => { 
-                let asvec: Vec<_> = self.se.u32().into_iter().collect(); 
-                let bsvec: Vec<_> = asvec[0].into_iter().collect();
-                for value in bsvec.iter() { 
-                    writeln!(&mut w, "{}", value.unwrap()).unwrap();
-                }
-            },
-            "i64" => { 
-                let asvec: Vec<_> = self.se.i64().into_iter().collect(); 
-                let bsvec: Vec<_> = asvec[0].into_iter().collect();
-                for value in bsvec.iter() { 
-                    writeln!(&mut w, "{}", value.unwrap()).unwrap();
-                }
-            },
-            "u64" => { 
-                let asvec: Vec<_> = self.se.u64().into_iter().collect(); 
-                let bsvec: Vec<_> = asvec[0].into_iter().collect();
-                for value in bsvec.iter() { 
-                    writeln!(&mut w, "{}", value.unwrap()).unwrap();
-                }
-            },
-            "f32" => { 
-                let asvec: Vec<_> = self.se.f32().into_iter().collect(); 
-                let bsvec: Vec<_> = asvec[0].into_iter().collect();
-                for value in bsvec.iter() { 
-                    writeln!(&mut w, "{}", value.unwrap()).unwrap();
-                }
-            },
-            "f64" => { 
-                let asvec: Vec<_> = self.se.f64().into_iter().collect(); 
-                let bsvec: Vec<_> = asvec[0].into_iter().collect();
-                for value in bsvec.iter() { 
-                    writeln!(&mut w, "{}", value.unwrap()).unwrap();
-                }
-            },
-            "str" => { 
-                let asvec: Vec<_> = self.se.utf8().into_iter().collect(); 
-                let bsvec: Vec<_> = asvec[0].into_iter().collect();
-                for value in bsvec.iter() { 
-                    writeln!(&mut w, "{}", value.unwrap()).unwrap();
-                }
-            },
-            "bool" => { 
-                let asvec: Vec<_> = self.se.bool().into_iter().collect(); 
-                let bsvec: Vec<_> = asvec[0].into_iter().collect();
-                for value in bsvec.iter() { 
-                    writeln!(&mut w, "{}", value.unwrap()).unwrap();
-                }
-            },
-            &_ => todo!(),
+    fn get_data<T>(&self, buffer: *mut T, len: size_t, asvec: Vec<T>) {
+        let slice: &[T] = &asvec;
+        unsafe {
+            let buffer: &mut [T] = 
+                              slice::from_raw_parts_mut(buffer as *mut T, len as usize);
+            ptr::copy_nonoverlapping(slice.as_ptr(), buffer.as_mut_ptr(), len as usize);
         }
     }
 
-    fn get_data(&self, buffer: *mut f64, len: size_t, asvec: Vec<f64>) {
-        let slice: &[f64] = &asvec;
-        unsafe {
-            let buffer: &mut [f64] = 
-                            slice::from_raw_parts_mut(buffer as *mut f64, len as usize);
-            ptr::copy_nonoverlapping(slice.as_ptr(), buffer.as_mut_ptr(), len as usize);
-        }
+    fn get_bool(&self, buffer: *mut bool, len: size_t) {
+        let asvec = self.se.bool().into_iter().flatten().flatten().collect();
+        self.get_data(buffer, len, asvec);
+    }
+    fn get_i32(&self, buffer: *mut i32, len: size_t) {
+        let asvec = self.se.i32().into_iter().flatten().flatten().collect();
+        self.get_data(buffer, len, asvec);
+    }
+    fn get_i64(&self, buffer: *mut i64, len: size_t) {
+        let asvec = self.se.i64().into_iter().flatten().flatten().collect();
+        self.get_data(buffer, len, asvec);
+    }
+    fn get_u32(&self, buffer: *mut u32, len: size_t) {
+        let asvec = self.se.u32().into_iter().flatten().flatten().collect();
+        self.get_data(buffer, len, asvec);
+    }
+    fn get_u64(&self, buffer: *mut u64, len: size_t) {
+        let asvec = self.se.u64().into_iter().flatten().flatten().collect();
+        self.get_data(buffer, len, asvec);
+    }
+    fn get_f32(&self, buffer: *mut f32, len: size_t) {
+        let asvec = self.se.f32().into_iter().flatten().flatten().collect();
+        self.get_data(buffer, len, asvec);
     }
     fn get_f64(&self, buffer: *mut f64, len: size_t) {
         let asvec = self.se.f64().into_iter().flatten().flatten().collect();
         self.get_data(buffer, len, asvec);
+    }
+    fn get_u8(&self, buffer: *mut u8, len: size_t) {
+        let asvec: Vec<_> = self.se.utf8().into_iter().flatten().flatten().collect();
+        let asstr: String = asvec.join("\",\"");
+        let asu8:  Vec<u8> = asstr.into_bytes();
+
+        self.get_data(buffer, len, asu8);
     }
 
     fn get_str(&self, retline: RetLine) {
@@ -206,6 +172,20 @@ impl SeriesC {
         retline(asstr.as_ptr());
     }
 
+    fn str_lengths(&self) -> u32 {
+        let dtype: &str = &self.se.dtype().to_string();
+        match dtype {
+            "str" => {
+                let asvec: Vec<_> = self.se.utf8().into_iter().flatten().flatten().collect(); 
+                let mut res: usize = 0;
+                for item in asvec.iter() {
+                    res = res + item.len();
+                }
+                res as u32
+            },
+            &_ => todo!(),
+        }
+    }
 }
 
 fn se_new_vec<T>(
@@ -328,30 +308,58 @@ pub extern "C" fn se_len(ptr: *mut SeriesC) -> u32 {
 }
 
 #[no_mangle]
-pub extern "C" fn se_values(
-    ptr: *mut SeriesC,
-    string: *const c_char,
-) {
+pub extern "C" fn se_get_bool(ptr: *mut SeriesC, res: *mut bool, len: size_t ) {
     let se_c = check_ptr(ptr);
-    let vfile = unsafe {
-        CStr::from_ptr(string).to_string_lossy().into_owned()
-    };
-
-    se_c.values(vfile);
+    se_c.get_bool(res, len)
 }
-
 #[no_mangle]
-pub extern "C" fn se_get_f64(ptr: *mut SeriesC, res: *mut c_double, len: size_t ) {
+pub extern "C" fn se_get_i32(ptr: *mut SeriesC, res: *mut i32, len: size_t ) {
+    let se_c = check_ptr(ptr);
+    se_c.get_i32(res, len)
+}
+#[no_mangle]
+pub extern "C" fn se_get_i64(ptr: *mut SeriesC, res: *mut i64, len: size_t ) {
+    let se_c = check_ptr(ptr);
+    se_c.get_i64(res, len)
+}
+#[no_mangle]
+pub extern "C" fn se_get_u32(ptr: *mut SeriesC, res: *mut u32, len: size_t ) {
+    let se_c = check_ptr(ptr);
+    se_c.get_u32(res, len)
+}
+#[no_mangle]
+pub extern "C" fn se_get_u64(ptr: *mut SeriesC, res: *mut u64, len: size_t ) {
+    let se_c = check_ptr(ptr);
+    se_c.get_u64(res, len)
+}
+#[no_mangle]
+pub extern "C" fn se_get_f32(ptr: *mut SeriesC, res: *mut f32, len: size_t ) {
+    let se_c = check_ptr(ptr);
+    se_c.get_f32(res, len)
+}
+#[no_mangle]
+pub extern "C" fn se_get_f64(ptr: *mut SeriesC, res: *mut f64, len: size_t ) {
     let se_c = check_ptr(ptr);
     se_c.get_f64(res, len)
 }
-//iamerejh
+
+#[no_mangle]
+pub extern "C" fn se_get_u8(ptr: *mut SeriesC, res: *mut u8, len: size_t ) {
+    let se_c = check_ptr(ptr);
+    se_c.get_u8(res, len)
+}
+//iamerejh - del next
 #[no_mangle]
 pub extern "C" fn se_get_str(ptr: *mut SeriesC, retline: RetLine) {
     let se_c = check_ptr(ptr);
     se_c.get_str(retline);
 }
 
+#[no_mangle]
+pub extern "C" fn se_str_lengths(ptr: *mut SeriesC) -> u32 {
+    let se_c = check_ptr(ptr);
+    se_c.str_lengths()
+}
 
 // DataFrame Container
 

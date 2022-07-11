@@ -20,7 +20,6 @@ sub carray( $dtype, @items ) {
 ### Container Classes (CStruct) that interface to Rust lib.rs ###
 
 constant $n-path    = '../dan/target/debug/dan';
-constant $vals-file = 'dan-values.txt';
 
 class SeriesC is repr('CPointer') is export {
     sub se_new_bool(Str, CArray[bool], size_t) returns SeriesC is native($n-path) { * }
@@ -38,7 +37,6 @@ class SeriesC is repr('CPointer') is export {
     sub se_name(SeriesC,   &callback (Str --> Str)) is native($n-path) { * }
     sub se_rename(SeriesC, Str) is native($n-path) { * }
     sub se_len(SeriesC) returns uint32 is native($n-path) { * }
-    sub se_values(SeriesC, Str) is native($n-path) { * }
     sub se_get_bool(SeriesC, CArray[bool], size_t) is native($n-path) { * }
     sub se_get_i32(SeriesC, CArray[int32], size_t) is native($n-path) { * }
     sub se_get_i64(SeriesC, CArray[int64], size_t) is native($n-path) { * }
@@ -46,8 +44,9 @@ class SeriesC is repr('CPointer') is export {
     sub se_get_u64(SeriesC, CArray[uint64],size_t) is native($n-path) { * }
     sub se_get_f32(SeriesC, CArray[num32], size_t) is native($n-path) { * }
     sub se_get_f64(SeriesC, CArray[num64], size_t) is native($n-path) { * }
-    ##sub se_get_str(SeriesC, CArray[Str],   size_t) is native($n-path) { * }
-    sub se_get_str(SeriesC,   &callback (Str --> Str)) is native($n-path) { * }
+    #sub se_get_str(SeriesC, &callback (Str --> Str)) is native($n-path) { * }
+    sub se_get_u8(SeriesC, CArray[uint8], size_t) is native($n-path) { * }
+    sub se_str_lengths(SeriesC) returns uint32 is native($n-path) { * }
 
     method new( $name, @data, :$dtype ) {
 
@@ -145,32 +144,31 @@ class SeriesC is repr('CPointer') is export {
         se_len(self)
     }
 
-    method values {
-        se_values(self, $vals-file);
-        my @values = $vals-file.IO.lines;
-        if $.dtype ne <str Str>.any { 
-            @values.map({ $_ = +$_ if $_ ~~ /<number>/ });     #convert to narrowest Real type
-        }
-        @values
+    method str-lengths {
+        se_str_lengths(self)
     }
 
+    #iamerejh - need to fix malformed utf8 error - from Retline to u8 buffer
+    #implement some kind of char count and then add "," splitter
+    #`[[
     method get-str {
+        say 1;
         my $out;
         my &line_out = sub ( $line ) {
             $out := $line
         }
 
         se_get_str(self, &line_out);
+        say 2;
         $out.split('","')
     }
-
+    #]]
 
     # viz. https://docs.raku.org/language/nativecall#Arrays
     method get-data {
         my $elems = self.len;
-        say my $dtype = self.dtype;
 
-        given $dtype {
+        given self.dtype {
             when 'bool' {
                 my $array := CArray[bool].allocate($elems); 
                 se_get_bool(self, $array, $elems);
@@ -207,7 +205,13 @@ class SeriesC is repr('CPointer') is export {
                 $array.list
             }
             when 'str' {
-                self.get-str
+                my $chars = self.str-lengths;
+                   $chars += ($elems-1) * 3;  #pad for join '","' 
+                my $array := CArray[uint8].allocate($chars);
+
+                se_get_u8(self, $array, $chars);
+                
+                Buf.new($array.list).decode.split('","')
             }
         }
     }
@@ -279,7 +283,7 @@ class DataFrameC is repr('CPointer') is export {
 
     method column( Str \colname ) {
         my $cont = df_column(self, colname);
-        ( $cont.name, $cont.dtype, $cont.values )
+        ( $cont.name, $cont.dtype, $cont.get-data )
     }
 
     method select( Array \colspec ) {

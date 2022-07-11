@@ -173,8 +173,8 @@ role Series does Positional does Iterable is export {
         %!index.&sbv
     }
 
-    method values {
-        $!rc.values 
+    method str-lengths {
+        $!rc.str-lengths
     }
 
     method get-data {
@@ -182,16 +182,16 @@ role Series does Positional does Iterable is export {
     }
 
     method Dan-Series {
-        @!data = $!rc.values;
-        Dan::Series.new( :$!name, :@!data )
+        my @data := $.get-data;
+        Dan::Series.new( :$!name, :@data )
     }
 
     #### Sync Methods #####
     #### Pull & Push  #####
 
-    #| set raku attrs to rc_values, reset index
+    #| set raku attrs to rc_data, reset index
     method pull {
-	    @!data = $!rc.values;
+	    @!data = $.get-data.flat;
 
         %!index = gather {
             for 0..^@!data {
@@ -611,7 +611,7 @@ role DataFrame does Positional does Iterable is export {
     #### Sync Methods #####
     #### Pull & Push  #####
 
-    #| set raku attrs to rc_values, reset index
+    #| set raku attrs to rc_data, reset index
     method pull {
         $.cx: $.cx;
 

@@ -383,7 +383,6 @@ role DataFrame does Positional does Iterable is export {
     method load-from-slices( @slices ) {
 
         loop ( my $i=0; $i < @slices; $i++ ) {
-
             my $key = @slices[$i].name // ~$i;
             %!index{ $key } = $i;
 
@@ -519,6 +518,23 @@ role DataFrame does Positional does Iterable is export {
     method Dan-DataFrame {
         $.pull;
         Dan::DataFrame.new( :@!data )
+    }
+
+    method to-dataset {
+        my $dataset = [;];
+        my $colname;
+        my $series;
+
+        $.pull;
+        loop ( my $j=0; $j < $.shape[1]; $j++ ) {    #for each Series column
+            $colname = $.cx[$j];
+            $series  = $.column($colname);
+                
+            loop ( my $i=0; $i < $.shape[0]; $i++ ) { 
+                $dataset[$i;$j] = ($colname => $series[$i])
+            }   
+        }
+        $dataset
     }
 
     #| get index as Array

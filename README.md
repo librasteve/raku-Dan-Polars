@@ -33,7 +33,7 @@ cd ../bin
 ./synopsis-dan-polars4.raku #(or 1,2,3)
 ```
 
-## Steve's randon notes
+## Steve's random notes
 
 Notes from Polars Discord
 

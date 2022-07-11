@@ -1,11 +1,13 @@
 use libc::c_char;
+use libc::c_double;
 use libc::size_t;
 use std::slice;
+use std::ptr;
 use std::ffi::*; //{CStr, CString,}
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path};
-use ffi_convert::{CReprOf, AsRust, CDrop, CArray};
+use ffi_convert::{CReprOf, CArray};
 
 use polars::prelude::*;//{CsvReader, DataType, DataFrame, Series};
 use polars::prelude::{Result as PolarResult};
@@ -70,7 +72,6 @@ use polars::lazy::dsl::Expr;
 // Callback Types
 
 type RetLine  = extern fn(line: *const u8);
-type RetArray = extern fn(array: CArray<f64>);
 
 // Helpers for Safety Checks
 
@@ -192,33 +193,31 @@ impl SeriesC {
             "f64" => { 
                 // flatten (i) to de-Chunk Array, flatten (ii) to unwrap Option
                 let asvec: Vec<f64> = self.se.f64().into_iter().flatten().flatten().collect();
+                println!("{}", 3);
                 println!("{:?}", &asvec);
 
-                //let csvec: CArray::<f64> = CArray::<f64>::c_repr_of(bsvec).unwrap();
                 let csvec: CArray<f64> = CArray::<f64>::c_repr_of(asvec).unwrap();
-                //println!("{:?}", &csvec.as_ref());
-                //retarray(csvec.unwrap());
-                //csvec.as_ptr()
                 Box::into_raw(Box::new(csvec))
             },
             &_ => todo!(),
         }
-    }
-    //fn get_data(&self, retarray: RetArray) {
-    fn get_f64(&self) -> *mut CArray<f64> {
+    } 
+    fn get_f64(&self, mut buffer: *mut c_double ) {
         let dtype: &str = &self.se.dtype().to_string();
         match dtype {
             "f64" => { 
                 // flatten (i) to de-Chunk Array, flatten (ii) to unwrap Option
-                let asvec: Vec<f64> = self.se.f64().into_iter().flatten().flatten().collect();
+                //let mut asvec: Vec<f64> = self.se.f64().into_iter().flatten().flatten().collect();
+                let mut asvec: Vec<f64> = vec![1e1, 2.0, 3.1];
+                println!("{}", 1);
                 println!("{:?}", &asvec);
-
-                //let csvec: CArray::<f64> = CArray::<f64>::c_repr_of(bsvec).unwrap();
-                //let csvec: CArray<f64> = CArray::<f64>::c_repr_of(asvec).unwrap();
-                //println!("{:?}", &csvec.as_ref());
-                //retarray(csvec.unwrap());
-                //csvec.as_ptr()
-                //Box::into_raw(Box::new(csvec))
+                let mut slice: &mut [f64] = &mut asvec;
+                
+                unsafe {
+                    let buffer: &mut [c_double] = 
+                            slice::from_raw_parts_mut(buffer as *mut c_double, 100);
+                    ptr::copy_nonoverlapping(slice.as_ptr(), buffer.as_mut_ptr(), 100);
+                }
             },
             &_ => todo!(),
         }
@@ -357,20 +356,20 @@ pub extern "C" fn se_values(
     se_c.values(vfile);
 }
 
-#[no_mangle]
 //iamerejh - try making a CArrayC??
 //pub extern "C" fn se_get_data(ptr: *mut SeriesC, retarray: RetArray) {
+#[no_mangle]
 pub extern "C" fn se_get_data(ptr: *mut SeriesC) -> *mut CArray<f64> {
     let se_c = check_ptr(ptr);
     se_c.get_data()
 }
 
-pub extern "C" fn se_get_f64(ptr: *mut SeriesC, res: *mut CArray<f64> ) {
+//let's try with ptr copy ...
+#[no_mangle]
+pub extern "C" fn se_get_f64(ptr: *mut SeriesC, res: *mut c_double ) {
     let se_c = check_ptr(ptr);
-    let res = check_ptr(res);
     se_c.get_f64(res)
 }
-
 
 // DataFrame Container
 

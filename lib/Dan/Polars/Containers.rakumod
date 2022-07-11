@@ -164,8 +164,9 @@ class SeriesC is repr('CPointer') is export {
     # viz. https://docs.raku.org/language/nativecall#Arrays
     method get-data {
         my $elems = 100;
-        my $array = CArray[num64].allocate($elems); # instantiates an array with 10 elements
+        my $array := CArray[num64].allocate($elems); # instantiates an array with 10 elements
         se_get_f64(self, $array);
+        dd $array;
         $array
     }
 }

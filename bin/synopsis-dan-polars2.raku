@@ -11,9 +11,10 @@ df.read_csv("../dan/src/iris.csv");
 df.column("sepal.length").head;
 
 my \se = df.column("sepal.length");
-my @da = se.get-data;
-dd @da;
-say @da[1];
+my $da = se.get-data;
+say $da[0];
+say $da.list;
+dd $da;
 die;
 #this version of select no longer works
 #df.select(["sepal.length", "variety"]).head;

@@ -508,7 +508,7 @@ role DataFrame does Positional does Iterable is export {
 
     method column( Str \colname ) {
         my SeriesC $cont = $!rc.column( colname );
-        my $news = Series.new( data => [0], name => $cont.name, dtype => $cont.dtype );
+        my $news = Series.new( data => [<0>], name => $cont.name, dtype => $cont.dtype );
         $news.rc = $cont;
         $news
     }
@@ -524,18 +524,22 @@ role DataFrame does Positional does Iterable is export {
 
     method to-dataset {
         my $dataset = [;];
+        my @aoa = [];
         my $colname;
         my $series;
 
-        $.pull;
-        loop ( my $j=0; $j < $.shape[1]; $j++ ) {    #for each Series column
+        say DateTime.now, "...converting to dataset";
+        for 0..^$.cx -> $j {
             $colname = $.cx[$j];
-            $series  = $.column($colname);
-                
-            loop ( my $i=0; $i < $.shape[0]; $i++ ) { 
-                $dataset[$i;$j] = ($colname => $series[$i])
-            }   
+
+            say DateTime.now, "...column $colname";
+            $series = $.column($colname);
+
+            @aoa.push: [$series.get-data.map({$colname => $_})];
         }
+
+        say DateTime.now, "...transpose dataset";
+        $dataset = [Z] @aoa;
         $dataset
     }
 

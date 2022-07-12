@@ -56,7 +56,7 @@ role Series does Positional does Iterable is export {
     has Int     %.index;
     has         $!dtype;
 
-    has SeriesC $.rc;       #Rust container
+    has SeriesC $.rc is rw;       #Rust container
 
     ### Constructors ###
  
@@ -508,7 +508,7 @@ role DataFrame does Positional does Iterable is export {
 
     method column( Str \colname ) {
         my SeriesC $cont = $!rc.column( colname );
-        my $news = Series.new( data => [0], $cont.name, $cont.dtype );
+        my $news = Series.new( data => [0], name => $cont.name, dtype => $cont.dtype );
         $news.rc = $cont;
         $news
     }

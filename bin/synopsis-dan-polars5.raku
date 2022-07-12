@@ -5,9 +5,6 @@ use lib '../lib';
 use Dan;
 use Dan::Polars;
 
-my $testseries = Series.new([0]);
-dd $testseries;
-die;
 
 say DateTime.now, "...loading from csv";
 

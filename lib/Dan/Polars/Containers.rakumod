@@ -281,9 +281,8 @@ class DataFrameC is repr('CPointer') is export {
         @out
     }
 
-    method column( Str \colname ) {
-        my $cont = df_column(self, colname);
-        ( $cont.name, $cont.dtype, $cont.get-data )
+    method column( Str \colname --> SeriesC ) {
+        df_column(self, colname)
     }
 
     method select( Array \colspec ) {

@@ -507,8 +507,10 @@ role DataFrame does Positional does Iterable is export {
     }
 
     method column( Str \colname ) {
-        my ($name, $dtype, $data) = $!rc.column( colname );
-        Series.new( :$data, :$name, :$dtype )
+        my SeriesC $cont = $!rc.column( colname );
+        my $news = Series.new( data => [0], $cont.name, $cont.dtype );
+        $news.rc = $cont;
+        $news
     }
 
     method with_column( Series \column ) {

@@ -1,35 +1,5 @@
 unit module Dan::Polars:ver<0.0.1>:auth<Steve Roe (p6steve@furnival.net)>;
 
-#`[TODOs
-- se functions - ok
-- df functions - ok
-- unary exprs - s2 -ok
---
-- lazy only
-- pure only
-- auto prepare / collect
-- opaque only
--- no chunk controls
--- no chunk unpack (i32 ...)
--- no datetime (in v1)
---
--- v2
-- expr arity > 1
-- clone (then retest h2o-par)
-- reset @data after load rc (also to Pandas)
-- map & apply
-- operators
-- datetime
-- better value return
-- serde
-- strip / fold Index
-
-Snagging
-- splice & concat - s1
-- sort & filter - s3
-- cross join
-#]
-
 use Dan;
 use Dan::Polars::Containers;
 

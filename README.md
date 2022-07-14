@@ -64,3 +64,45 @@ https://arrow.apache.org
 
 20:37	discord-raku-bot	<Anton Antonov> @japhb I got a CBOR file -- how do I read it in Raku? Using `slurp` with ":bin" ?
 20:49	discord-raku-bot	<Anton Antonov> @japhp Yeah, I got it working. And, yes, the CBOR utilization gives me the fastest ingestion of ≈700MB CSV file in Raku.
+
+------
+
+## TODOs
+
+1. [ ] Dan API
+   - [x] Dan::Series base methods
+   - [x] Dan::DataFrame base methods
+   - [ ] Dan Accessors
+   - [ ] Dan Slice / Concat
+   
+2. [ ] Polars Shadow
+   - [x] Polars::Series base methods
+   - [x] Polars::DataFrame base methods
+   - [x] .push/.pull
+   
+3. [ ] Exprs (synopsis..2.raku)
+     - [x] unary exprs
+--
+- lazy only
+- pure only
+- auto prepare / collect
+- opaque only
+-- no chunk controls
+-- no chunk unpack (i32 ...)
+-- no datetime (in v1)
+--
+-- v2
+- expr arity > 1
+- clone (then retest h2o-par)
+- reset @data after load rc (also to Pandas)
+- map & apply
+- operators
+- datetime
+- better value return
+- serde
+- strip / fold Index
+Snagging
+- splice & concat - s1
+- sort & filter - s3
+- cross join
+

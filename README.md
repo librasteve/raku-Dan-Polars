@@ -5,8 +5,8 @@
 This is a new module to bind raku [Dan](https://github.com/p6steve/raku-Dan) to Polars via Raku NativeCall / Rust FFI.
 
 The following broad capabilities are envisaged:
-- Polars objects (Series, DataFrames) as shadows
-- Polars object methods (ie. auto-generate & export, access via .fallback)
+- Polars structures (Series, DataFrames) as shadows
+- Polars expressions (maps Polars::dsl)
 - Polars lazy APIs via raku lazy semantics
 - handle map & apply (with raku callbacks)
 - raku Dan features (accessors, dtypes)
@@ -75,17 +75,53 @@ https://arrow.apache.org
    - [ ] Dan Accessors
    - [ ] Dan Slice / Concat
    
-2. [ ] Polars Shadow
+2. [x] Polars Structs / Modules
    - [x] Polars::Series base methods
    - [x] Polars::DataFrame base methods
-   - [x] .push/.pull
+   - [x] .push/.pull (set-new/get-data)
    
-3. [ ] Exprs (synopsis..2.raku)
-     - [x] unary exprs
+3. [ ] Polars Exprs (synopsis..2.raku)
+   - [x] unary exprs
+ 
+ 
+## Design Principles
 --
-- lazy only
-- pure only
-- auto prepare / collect
+1. lazy
+
+Polars implements both lazy and eager APIs, these are functionally similar. Dan::Polars offers only the most efficient lazy API for simplicity since it has better query optimisation with a very low additional overhead.
+
+2. auto
+
+In Rust & Python Polars, lazy must be explicitly requested with .lazy .. .collect methods around expressions. In contrast, Dan::Polars auto-generates the .lazy .. .collect as the default for concise syntax.
+
+3. pure
+
+[Polars Expressions](https://pola-rs.github.io/polars-book/user-guide/dsl/intro.html) are a function mapping from a series to a series (or mathematically ```Fn(Series) -> Series```). As expressions have a Series as an input and a Series as an output then it is straightforward to do a pipeline of expressions.
+
+4. opaque
+ 
+In general each raku object such as Dan::Polars::Series or Dan::Polars::DataFrame maintains a unique pointer to a rust container SeriesC, DataFrameC and the containers map to a shadow Rust Polars Struct. Methods invoked on the raku object are then proxied over to the Rust Polars shadow. 
+ 
+5. dynamic lib.so
+ 
+A connection is made via Raku Nativecall to Rust FFI using a ```lib.so`` dynmaic library or equivalent.
+ 
+5. data flow
+
+Usually no data needs to be transferred from Raku to Rust (or vice versa). For example, a raku script can command a Rust Polars DataFrame to be read from a csv file, apply expressions and output the result. The data items all remain on the Rust side of the connection.
+ 
+Some use cases are supported - such as using the Rust fast read_csv to import a DataFrame from disk like this:
+ 
+```
+use Dan;
+use Dan::Polars;
+
+my \df = DataFrame.new;
+df.read_csv("/tmp/docdir/1mSalesRecords.csv");
+
+say ~df.Dan-DataFrame;   #cast Dan::Polars::DataFrame to raku native Dan::DataFrame
+ ```
+
 - opaque only
 -- no chunk controls
 -- no chunk unpack (i32 ...)

@@ -5,11 +5,11 @@
 This is a new module to bind raku [Dan](https://github.com/p6steve/raku-Dan) to Polars via Raku NativeCall / Rust FFI.
 
 The following broad capabilities are envisaged:
-- Polars structures (Series, DataFrames) as shadows
+- Polars structures (Series, DataFrames) as opaque shadows
 - Polars expressions (via Polars::dsl)
 - Polars lazy APIs via raku lazy semantics
 - handle map & apply (with raku callbacks)
-- raku Dan features (accessors, dtypes)
+- raku Dan features (accessors, dtypes, base methods)
 - broad datatype support & mapping
 - concurrency
 
@@ -19,7 +19,7 @@ The ultimate aim is to emulate the examples in the [Polars User Guide](https://p
  
 ## Installation
  
-Use [p6steve/raku-Dockerfiles/raku-dan-polars/stage-2](https://github.com/p6steve/raku-Dockerfiles/blob/main/raku-dan-polars/stage-2/Dockerfile), Docker Hub images are named something like [p6steve/raku-dan:polars-2022.02-arm64](hub.docker.com) - choose arm64 / amd64 for your machine.
+Utilize [p6steve/raku-Dockerfiles/raku-dan-polars/stage-2](https://github.com/p6steve/raku-Dockerfiles/blob/main/raku-dan-polars/stage-2/Dockerfile) directly, Docker Hub images are named something like [p6steve/raku-dan:polars-2022.02-arm64](hub.docker.com) - choose arm64 / amd64 for your machine. Or plunder the Dockerfiles for how to build your own environment.
  
 deploy Dan::Polars like this ...
 ```
@@ -100,17 +100,17 @@ In Rust & Python Polars, lazy must be explicitly requested with ```.lazy .. .col
 
 4. opaque
  
-In general each raku object such as Dan::Polars::Series or Dan::Polars::DataFrame maintains a unique pointer to a rust container SeriesC, DataFrameC and the containers map to a shadow Rust Polars Struct. Methods invoked on the raku object are then proxied over to the Rust Polars shadow. 
+In general each raku object (Dan::Polars::Series, Dan::Polars::DataFrame) maintains a unique pointer to a rust container (SeriesC, DataFrameC) and they contain a shadow Rust Polars Struct. Methods invoked on the raku object are then proxied over to the Rust Polars shadow. 
  
 5. dynamic lib.so
  
-A connection is made via Raku Nativecall to Rust FFI using a ```lib.so`` dynmaic library or equivalent.
+A connection is made via Raku Nativecall to Rust FFI using a ```lib.so`` dymanic library or equivalent.
  
-5. data flow
+5. data transfer
 
 Usually no data needs to be transferred from Raku to Rust (or vice versa). For example, a raku script can command a Rust Polars DataFrame to be read from a csv file, apply expressions and output the result. The data items all remain on the Rust side of the connection.
  
-Some use cases are supported - such as using the Rust fast read_csv to import a DataFrame from disk like this:
+Some use cases require data transfer - such as using the Rust fast read_csv to import a DataFrame from disk like this:
  
 ```
 use Dan;
@@ -119,14 +119,20 @@ use Dan::Polars;
 my \df = DataFrame.new;
 df.read_csv("/tmp/docdir/1mSalesRecords.csv");
 
-say ~df.Dan-DataFrame;   #cast Dan::Polars::DataFrame to raku native Dan::DataFrame
+say ~df.Dan-DataFrame;   #cast Dan::Polars::DataFrame to raku Dan::DataFrame
  ```
 
-- opaque only
--- no chunk controls
--- no chunk unpack (i32 ...)
--- no datetime (in v1)
---
+A blog post on transfer performance is forthcoming...
+
+6. chunked arrays
+
+The intent is for Polars / Arrow2 chunked arrays to remain on that side. But some chunking may be beneficial for data transfer.
+ 
+Snagging
+- splice & concat - s1
+- sort & filter - s3
+- cross join, aka cross product
+
 -- v2
 - expr arity > 1
 - clone (then retest h2o-par)
@@ -137,8 +143,5 @@ say ~df.Dan-DataFrame;   #cast Dan::Polars::DataFrame to raku native Dan::DataFr
 - better value return
 - serde
 - strip / fold Index
-Snagging
-- splice & concat - s1
-- sort & filter - s3
-- cross join
+
 

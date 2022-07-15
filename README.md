@@ -88,11 +88,11 @@ https://arrow.apache.org
 --
 1. lazy
 
-Polars implements both lazy and eager APIs, these are functionally similar. Dan::Polars offers only the most efficient lazy API for simplicity since it has better query optimisation with a very low additional overhead.
+Polars implements both lazy and eager APIs, these are functionally similar. For simplicity, Dan::Polars offers only the most efficient: lazy API. It has better query optimisation with low additional overhead.
 
-2. auto
+2. auto-lazy
 
-In Rust & Python Polars, lazy must be explicitly requested with .lazy .. .collect methods around expressions. In contrast, Dan::Polars auto-generates the .lazy .. .collect as the default for concise syntax.
+In Rust & Python Polars, lazy must be explicitly requested with ```.lazy .. .collect``` methods around expressions. In contrast, Dan::Polars auto-generates the ```.lazy .. .collect``` quietly for concise syntax.
 
 3. pure
 

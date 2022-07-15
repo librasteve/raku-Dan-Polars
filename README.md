@@ -7,9 +7,9 @@ This is a new module to bind raku [Dan](https://github.com/p6steve/raku-Dan) to 
 The following broad capabilities are envisaged:
 - Polars structures (Series, DataFrames) as opaque shadows
 - Polars expressions (via Polars::dsl)
-- Polars lazy APIs via raku lazy semantics
+- Polars lazy APIs (via raku lazy semantics)
 - handle map & apply (with raku callbacks)
-- raku Dan features (accessors, dtypes, base methods)
+- raku Dan features (accessors, dtypes, base methods, Dan::As::Query API extension)
 - broad datatype support & mapping
 - concurrency
 
@@ -68,21 +68,43 @@ https://arrow.apache.org
 ------
 
 ## TODOs
+### v1
 
 1. [ ] Dan API
    - [x] Dan::Series base methods
    - [x] Dan::DataFrame base methods
    - [ ] Dan Accessors
-   - [ ] Dan Slice / Concat
+   - [ ] Dan slice & concat (s1)
+   - [ ] Dan sort & grep (s3)
+   - [ ] cross join (aka cross product)
    
 2. [x] Polars Structs / Modules
    - [x] Polars::Series base methods
    - [x] Polars::DataFrame base methods
    - [x] .push/.pull (set-new/get-data)
    
-3. [ ] Polars Exprs (synopsis..2.raku)
+3. [ ] Polars Exprs (s2)
    - [x] unary exprs
+   - [ ] operators
+   - [ ] map & apply
+
+4. [ ] Test
  
+This will then provide a basis for Dan::As::Query v1 for Dan and Dan::Pandas
+
+### v2
+- [ ] expr arity > 1
+- [ ] clone (then retest h2o-par)
+- [ ] reset @data after load rc (also to Pandas)
+- [ ] datetime
+- [ ] better value return
+- [ ] serde
+- [ ] strip / fold Index
+ 
+###v3
+- [ ] ternary if-then-else (Dan::As::Ternary)
+- [ ] str operations (Dan::As::Str)
+- [ ] chunked transfer
  
 ## Design Principles
 --
@@ -123,25 +145,3 @@ say ~df.Dan-DataFrame;   #cast Dan::Polars::DataFrame to raku Dan::DataFrame
  ```
 
 A blog post on transfer performance is forthcoming...
-
-6. chunked arrays
-
-The intent is for Polars / Arrow2 chunked arrays to remain on that side. But some chunking may be beneficial for data transfer.
- 
-Snagging
-- splice & concat - s1
-- sort & filter - s3
-- cross join, aka cross product
-
--- v2
-- expr arity > 1
-- clone (then retest h2o-par)
-- reset @data after load rc (also to Pandas)
-- map & apply
-- operators
-- datetime
-- better value return
-- serde
-- strip / fold Index
-
-

@@ -90,11 +90,12 @@ https://arrow.apache.org
 
 4. [ ] Test
  
-This will then provide a basis for Dan::As::Query v1 for Dan and Dan::Pandas
+This will then provide a basis for Dan::As::Query v1 for Dan and Dan::Pandas, immutability, refactor...
 
 ### v2
 - [ ] expr arity > 1
 - [ ] clone (then retest h2o-par)
+- [ ] immutability
 - [ ] reset @data after load rc (also to Pandas)
 - [ ] datetime
 - [ ] better value return

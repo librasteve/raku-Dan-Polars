@@ -1,11 +1,10 @@
 Here is the set of Polars Exprs yet to be implement in Dan::Polars:
 
 todos from https://github.com/p6steve/polars/blob/master/nodejs-polars/src/lazy/dsl.rs
-- [ ] all __add__ operators
+- [ ] all ```__add__``` operators
 - [ ] to_string (what for)
 - [ ] binary - cmps
-- [ ] is_not, is_not, is_null, is_not_null - think
-- [ ] is_infinite, is_finite, is_nan, is_not_nan -think
+- [ ] is, is_not, is_null, is_not_null, is_infinite, is_finite, is_nan, is_not_nan -think
 - [ ] n-unique, arg_unique, unique_stable - think
 - [ ] list (need to add Array dtype)
 - [ ] quantile                     - arity

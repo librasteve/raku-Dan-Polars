@@ -18,12 +18,10 @@ The ultimate aim is to emulate the examples in the [Polars User Guide](https://p
 ## All is strictly pre-release and only if you know what you are doing!!!
  
 ## Installation
- 
-Utilize [p6steve/raku-Dockerfiles/raku-dan-polars/stage-2](https://github.com/p6steve/raku-Dockerfiles/blob/main/raku-dan-polars/stage-2/Dockerfile) directly, Docker Hub images are named something like [p6steve/raku-dan:polars-2022.02-arm64](hub.docker.com) - choose arm64 / amd64 for your machine. Or plunder the Dockerfiles for how to build your own environment.
- 
-deploy Dan::Polars like this ...
+
+Easiest way to deploy Dan::Polars is like this ...
 ```
-docker run -it p6steve/raku-dan:polars-2022.02-arm64 #(or -amd64)
+docker run -it p6steve/rakudo:rusty
 zef install Dan;
 git clone https://github.com/p6steve/raku-Dan-Polars.git
 cd raku-Dan-Polars
@@ -32,6 +30,8 @@ cargo build
 cd ../bin
 ./synopsis-dan-polars4.raku #(or 1,2,3)
 ```
+
+Or you are wclome plunder the [Dockerfiles](https://github.com/p6steve/raku-Dockerfiles) for how to build your own environment.
 
 ------
 

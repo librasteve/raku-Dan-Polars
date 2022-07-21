@@ -82,7 +82,7 @@ todos from https://github.com/p6steve/polars/blob/master/nodejs-polars/src/lazy/
 - [ ] as_struct                    - huh?
 
 
-## philisophy
-# match raku methods https://docs.raku.org/type/Array
-# no numpy ufuncs
-# desire to offer myfunc == rust dsl => rust so lib long term
+### philisophy
+- match raku methods https://docs.raku.org/type/Array
+- no numpy ufuncs
+- desire to offer myfunc == rust dsl => rust so lib long term

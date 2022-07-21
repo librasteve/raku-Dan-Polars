@@ -9,7 +9,7 @@ use Dan;
 use Dan::Polars;
 use Timer;
 
-my \N = 2e5;   #2e9  
+my \N = 2e3;   #1e6 ok #2e9 official target 
 my \K = 100; 
 
 sub randChar(\f, \numGrp, \N) {
@@ -35,15 +35,15 @@ my \DF = DataFrame.new([
 ]);
 
 my @times;
-@times.push: (timer { DF.prepare.groupby(['id1']).agg([col('v1').sum]).collect; }).[1];
-@times.push: (timer { DF.prepare.groupby(['id1']).agg([col('v1').sum]).collect; }).[1];
-@times.push: (timer { DF.prepare.groupby(['id1','id2']).agg([col('v1').sum]).collect; }).[1];
-@times.push: (timer { DF.prepare.groupby(['id1','id2']).agg([col('v1').sum]).collect; }).[1];
-@times.push: (timer { DF.prepare.groupby(['id3']).agg([col('v1').sum, col('v3').mean]).collect; }).[1];
-@times.push: (timer { DF.prepare.groupby(['id3']).agg([col('v1').sum, col('v3').mean]).collect; }).[1];
-@times.push: (timer { DF.prepare.groupby(['id4']).agg([col('v1').mean,col('v2').mean,col('v3').mean]).collect; }).[1];
-@times.push: (timer { DF.prepare.groupby(['id4']).agg([col('v1').mean,col('v2').mean,col('v3').mean]).collect; }).[1];
-@times.push: (timer { DF.prepare.groupby(['id6']).agg([col('v1').sum, col('v2').sum, col('v3').sum]).collect; }).[1];
-@times.push: (timer { DF.prepare.groupby(['id6']).agg([col('v1').sum, col('v2').sum, col('v3').sum]).collect; }).[1];
+@times.push: (timer { DF.groupby(['id1']).agg([col('v1').sum]); }).[1];
+@times.push: (timer { DF.groupby(['id1']).agg([col('v1').sum]); }).[1];
+@times.push: (timer { DF.groupby(['id1','id2']).agg([col('v1').sum]); }).[1];
+@times.push: (timer { DF.groupby(['id1','id2']).agg([col('v1').sum]); }).[1];
+@times.push: (timer { DF.groupby(['id3']).agg([col('v1').sum, col('v3').mean]); }).[1];
+@times.push: (timer { DF.groupby(['id3']).agg([col('v1').sum, col('v3').mean]); }).[1];
+@times.push: (timer { DF.groupby(['id4']).agg([col('v1').mean,col('v2').mean,col('v3').mean]); }).[1];
+@times.push: (timer { DF.groupby(['id4']).agg([col('v1').mean,col('v2').mean,col('v3').mean]); }).[1];
+@times.push: (timer { DF.groupby(['id6']).agg([col('v1').sum, col('v2').sum, col('v3').sum]); }).[1];
+@times.push: (timer { DF.groupby(['id6']).agg([col('v1').sum, col('v2').sum, col('v3').sum]); }).[1];
 say @times;
 say @times.sum ~ 's';

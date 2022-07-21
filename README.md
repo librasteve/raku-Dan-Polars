@@ -24,8 +24,7 @@ Easiest way to deploy Dan::Polars is like this ...
 docker run -it p6steve/rakudo:rusty
 zef install Dan;
 git clone https://github.com/p6steve/raku-Dan-Polars.git
-cd raku-Dan-Polars
-cd dan
+cd raku-Dan-Polars/dan
 cargo build
 cd ../bin
 ./synopsis-dan-polars4.raku #(or 1,2,3)

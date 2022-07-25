@@ -12,11 +12,11 @@ use polars::prelude::{Result as PolarResult};
 // these from nodejs lazy/dsl.rs...
 use polars::lazy::dsl;
 use polars::lazy::dsl::Expr;
-//use polars::lazy::dsl::Operator;
+use polars::lazy::dsl::Operator;
 //use polars_core::series::ops::NullBehavior;
 //use std::borrow::Cow;
 
-// maybe also these...
+// maybe also...
 //use polars_lazy::prelude::*;
 //use polars_core::prelude::*;
 
@@ -809,6 +809,30 @@ impl ExprC {
     fn exclude(&self, colvec: Vec::<String>) -> ExprC {
         self.clone().inner.clone().exclude(colvec).into()
     }
+
+    fn __add__(&self, rhs: &ExprC) -> ExprC {
+        dsl::binary_expr(self.inner.clone(), Operator::Plus, rhs.inner.clone()).into()
+    }
+
+    fn __sub__(&self, rhs: &ExprC) -> ExprC {
+        dsl::binary_expr(self.inner.clone(), Operator::Minus, rhs.inner.clone()).into()
+    }
+
+    fn __mul__(&self, rhs: &ExprC) -> ExprC {
+        dsl::binary_expr(self.inner.clone(), Operator::Multiply, rhs.inner.clone()).into()
+    }
+
+    fn __div__(&self, rhs: &ExprC) -> ExprC {
+        dsl::binary_expr(self.inner.clone(), Operator::TrueDivide, rhs.inner.clone()).into()
+    }
+
+    fn __mod__(&self, rhs: &ExprC) -> ExprC {
+        dsl::binary_expr(self.inner.clone(), Operator::Modulus, rhs.inner.clone()).into()
+    }
+
+    fn __floordiv__(&self, rhs: &ExprC) -> ExprC {
+        dsl::binary_expr(self.inner.clone(), Operator::Divide, rhs.inner.clone()).into()
+    }
 }
 
 //col() is the extern for new()
@@ -825,7 +849,6 @@ pub extern "C" fn ex_col(
     Box::into_raw(Box::new(ex_c))
 }
 
-//iamerejh
 #[no_mangle]
 pub extern "C" fn ex_alias(
     ptr: *mut ExprC,
@@ -958,5 +981,52 @@ pub extern "C" fn ex_exclude(
     Box::into_raw(Box::new(ex_c.exclude(colvec)))
 }
 
+#[no_mangle]
+pub extern "C" fn ex__add__(ptr: *mut ExprC, rhs: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    let ex_r = check_ptr(rhs);
+
+    Box::into_raw(Box::new(ex_c.__add__(ex_r)))
+}
+
+#[no_mangle]
+pub extern "C" fn ex__sub__(ptr: *mut ExprC, rhs: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    let ex_r = check_ptr(rhs);
+
+    Box::into_raw(Box::new(ex_c.__sub__(ex_r)))
+}
+
+#[no_mangle]
+pub extern "C" fn ex__mul__(ptr: *mut ExprC, rhs: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    let ex_r = check_ptr(rhs);
+
+    Box::into_raw(Box::new(ex_c.__mul__(ex_r)))
+}
+
+#[no_mangle]
+pub extern "C" fn ex__div__(ptr: *mut ExprC, rhs: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    let ex_r = check_ptr(rhs);
+
+    Box::into_raw(Box::new(ex_c.__div__(ex_r)))
+}
+
+#[no_mangle]
+pub extern "C" fn ex__mod__(ptr: *mut ExprC, rhs: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    let ex_r = check_ptr(rhs);
+
+    Box::into_raw(Box::new(ex_c.__mod__(ex_r)))
+}
+
+#[no_mangle]
+pub extern "C" fn ex__floordiv__(ptr: *mut ExprC, rhs: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    let ex_r = check_ptr(rhs);
+
+    Box::into_raw(Box::new(ex_c.__floordiv__(ex_r)))
+}
 
 

@@ -339,6 +339,12 @@ class ExprC is repr('CPointer') is export {
     sub ex_std(ExprC)            returns ExprC is native($n-path) { * }
     sub ex_var(ExprC)            returns ExprC is native($n-path) { * }
     sub ex_exclude(ExprC,CArray[Str], size_t) returns ExprC is native($n-path) { * }
+    sub ex__add__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
+    sub ex__sub__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
+    sub ex__mul__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
+    sub ex__div__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
+    sub ex__mod__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
+    sub ex__floordiv__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
 
     method new {
         ex_new
@@ -418,6 +424,30 @@ class ExprC is repr('CPointer') is export {
 
     method exclude( Array \colspec ) {
         ex_exclude(self, carray( Str, colspec ), colspec.elems)
+    }
+
+    method __add__( ExprC \rhs ) {
+        ex__add__(self, rhs)
+    }
+
+    method __sub__( ExprC \rhs ) {
+        ex__sub__(self, rhs)
+    }
+
+    method __mul__( ExprC \rhs ) {
+        ex__mul__(self, rhs)
+    }
+
+    method __div__( ExprC \rhs ) {
+        ex__div__(self, rhs)
+    }
+
+    method __mod__( ExprC \rhs ) {
+        ex__mod__(self, rhs)
+    }
+
+    method __floordiv__( ExprC \rhs ) {
+        ex__floordiv__(self, rhs)
     }
 }
 

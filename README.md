@@ -52,7 +52,7 @@ Or you are wclome plunder the [Dockerfiles](https://github.com/p6steve/raku-Dock
    
 3. [ ] Polars Exprs (s2)
    - [x] unary exprs
-   - [ ] operators
+   - [x] operators
    - [ ] map & apply
 
 4. [ ] Test

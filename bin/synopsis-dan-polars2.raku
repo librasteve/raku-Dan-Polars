@@ -14,7 +14,7 @@ my $se;
 $se = df.column("sepal.length");
 #say $se.get-data;
 
-my $se = df.column("variety");
+$se = df.column("variety");
 my @da = $se.get-data;
 #say @da[0];
 #say @da[57];
@@ -64,6 +64,21 @@ df.select([
     (col("petal.length") div (col("sepal.length"))).alias("floordiv"),
 ]).head;
 
+say df.shape;
+my $ls = lit( 3 );
+
+df.select([
+    col("sepal.length"),
+    col("petal.length"),
+    (col("petal.length").__add__($ls)).alias("add"),
+    #`[
+    (col("petal.length") - (col("sepal.length"))).alias("sub"),
+    (col("petal.length") * (col("sepal.length"))).alias("mul"),
+    (col("petal.length") / (col("sepal.length"))).alias("div"),
+    (col("petal.length") % (col("sepal.length"))).alias("mod"),
+    (col("petal.length") div (col("sepal.length"))).alias("floordiv"),
+    3]
+]).head;
 
 
 

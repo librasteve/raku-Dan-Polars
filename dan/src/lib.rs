@@ -850,6 +850,61 @@ pub extern "C" fn ex_col(
 }
 
 #[no_mangle]
+pub extern "C" fn ex_lit_bool( val: bool) -> *mut ExprC {
+    let ex_c = ExprC::new(lit(val));
+    Box::into_raw(Box::new(ex_c))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_lit_i32( val: i32) -> *mut ExprC {
+    let ex_c = ExprC::new(lit(val));
+    Box::into_raw(Box::new(ex_c))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_lit_i64( val: i64) -> *mut ExprC {
+    let ex_c = ExprC::new(lit(val));
+    Box::into_raw(Box::new(ex_c))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_lit_u32( val: u32) -> *mut ExprC {
+    let ex_c = ExprC::new(lit(val));
+    Box::into_raw(Box::new(ex_c))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_lit_u64( val: u64) -> *mut ExprC {
+    let ex_c = ExprC::new(lit(val));
+    Box::into_raw(Box::new(ex_c))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_lit_f32( val: f32) -> *mut ExprC {
+    let ex_c = ExprC::new(lit(val));
+    Box::into_raw(Box::new(ex_c))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_lit_f64( val: f64) -> *mut ExprC {
+    let ex_c = ExprC::new(lit(val));
+    Box::into_raw(Box::new(ex_c))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_lit_str( 
+    string: *const c_char,
+) -> *mut ExprC {
+
+    let strval = unsafe {
+        CStr::from_ptr(string).to_string_lossy().into_owned()
+    };
+
+    let ex_c = ExprC::new(lit(strval));
+    Box::into_raw(Box::new(ex_c))
+}
+
+#[no_mangle]
 pub extern "C" fn ex_alias(
     ptr: *mut ExprC,
     string: *const c_char,

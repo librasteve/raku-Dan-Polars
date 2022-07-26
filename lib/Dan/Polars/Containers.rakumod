@@ -323,6 +323,14 @@ class ExprC is repr('CPointer') is export {
     sub ex_new()                 returns ExprC is native($n-path) { * }
     sub ex_free(ExprC)                         is native($n-path) { * }
     sub ex_col(Str)              returns ExprC is native($n-path) { * }
+    sub ex_lit_bool(bool)        returns ExprC is native($n-path) { * }
+    sub ex_lit_i32(int32)        returns ExprC is native($n-path) { * }
+    sub ex_lit_i64(int64)        returns ExprC is native($n-path) { * }
+    sub ex_lit_u32(uint32)       returns ExprC is native($n-path) { * }
+    sub ex_lit_u64(uint64)       returns ExprC is native($n-path) { * }
+    sub ex_lit_f32(num32)        returns ExprC is native($n-path) { * }
+    sub ex_lit_f64(num64)        returns ExprC is native($n-path) { * }
+    sub ex_lit_str(Str)          returns ExprC is native($n-path) { * }
     sub ex_alias(ExprC,Str)      returns ExprC is native($n-path) { * }
     sub ex_sum(ExprC)            returns ExprC is native($n-path) { * }
     sub ex_mean(ExprC)           returns ExprC is native($n-path) { * }
@@ -356,6 +364,42 @@ class ExprC is repr('CPointer') is export {
 
     method col( Str \colname ) {
         ex_col(colname)
+    }
+
+    method lit( \value, :$dtype ) {
+        if $dtype {
+            given $dtype {
+                when    'i32' { ex_lit_i32(value) }
+                when    'i64' { ex_lit_i64(value) }
+                when    'u32' { ex_lit_u32(value) }
+                when    'u64' { ex_lit_u64(value) }
+                when    'f32' { ex_lit_f32(value) }
+                when    'f64' { ex_lit_f64(value) }
+                when  'int32' { ex_lit_i32(value) }
+                when  'int64' { ex_lit_i64(value) }
+                when 'uint32' { ex_lit_u32(value) }
+                when 'uint64' { ex_lit_u64(value) }
+                when  'num32' { ex_lit_f32(value) }
+                when  'num64' { ex_lit_f64(value) }
+                when    'str' { ex_lit_str(value) }
+                when    'Str' { ex_lit_str(value) }
+                when   'bool' { ex_lit_bool(value) }
+                when   'Bool' { ex_lit_bool(value) }
+                when    'Int' { ex_lit_u64(value) }
+                when    'Num' { ex_lit_f64(value) }
+                when    'Rat' { ex_lit_f64(value.Num) }
+                when   'Real' { ex_lit_f64(value.Num) }
+            }
+        } else {
+            given value {
+                when   Bool { ex_lit_bool(value) }
+                when    Int { ex_lit_u64(value) }
+                when    Num { ex_lit_f64(value) }
+                when    Rat { ex_lit_f64(value.Num) }
+                when   Real { ex_lit_f64(value.Num) }
+                when    Str { ex_lit_str(value) }
+            }
+        }
     }
 
     method alias( Str \colname ) {

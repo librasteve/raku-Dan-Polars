@@ -18,6 +18,13 @@ sub col( Str \colname ) is export {
     ExprC.col(colname)
 }
 
+##role Series { ... }
+
+# bare sub 'lit' creates Expr.new
+sub lit( Num() \value ) is export {
+    ExprC.lit(value)
+}
+
 role Series does Positional does Iterable is export {
 
     ## attrs for construct and push/pull only

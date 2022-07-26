@@ -49,6 +49,7 @@ Or you are wclome plunder the [Dockerfiles](https://github.com/p6steve/raku-Dock
    - [x] Polars::Series base methods
    - [x] Polars::DataFrame base methods
    - [x] .push/.pull (set-new/get-data)
+   - [x] better value return
    
 3. [ ] Polars Exprs (s2)
    - [x] unary exprs
@@ -61,11 +62,11 @@ This will then provide a basis for Dan::As::Query v1 for Dan and Dan::Pandas, im
 
 ### v2
 - [ ] expr arity > 1
+- [ ] 'over' expr
 - [ ] clone (then retest h2o-par)
 - [ ] immutability
 - [ ] reset @data after load rc (also to Pandas)
 - [ ] datetime
-- [ ] better value return
 - [ ] serde
 - [ ] strip / fold Index
  

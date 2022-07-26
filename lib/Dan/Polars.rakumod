@@ -18,10 +18,8 @@ sub col( Str \colname ) is export {
     ExprC.col(colname)
 }
 
-##role Series { ... }
-
 # bare sub 'lit' creates Expr.new
-sub lit( Num() \value ) is export {
+sub lit( \value ) is export {
     ExprC.lit(value)
 }
 
@@ -837,27 +835,63 @@ role DataFrame does Positional does Iterable is export {
 }
 
 ### Infix operators for ExprCs 
-multi infix:<+>( ExprC $left, ExprC $right ) is export {
+multi infix:<+>( ExprC:D $left, Real:D $right ) is export {
+    $left.__add__: lit($right) 
+}
+multi infix:<+>( Real:D $left, ExprC:D $right ) is export {
+    lit($left).__add__: $right 
+}
+multi infix:<+>( ExprC:D $left, ExprC:D $right ) is export {
     $left.__add__: $right 
 }
 
-multi infix:<->( ExprC $left, ExprC $right ) is export {
+multi infix:<->( ExprC:D $left, Real:D $right ) is export {
+    $left.__sub__: lit($right) 
+}
+multi infix:<->( Real:D $left, ExprC:D $right ) is export {
+    lit($left).__sub__: $right 
+}
+multi infix:<->( ExprC:D $left, ExprC:D $right ) is export {
     $left.__sub__: $right 
 }
 
-multi infix:<*>( ExprC $left, ExprC $right ) is export {
+multi infix:<*>( ExprC:D $left, Real:D $right ) is export {
+    $left.__mul__: lit($right) 
+}
+multi infix:<*>( Real:D $left, ExprC:D $right ) is export {
+    lit($left).__mul__: $right 
+}
+multi infix:<*>( ExprC:D $left, ExprC:D $right ) is export {
     $left.__mul__: $right 
 }
 
-multi infix:</>( ExprC $left, ExprC $right ) is export {
+multi infix:</>( ExprC:D $left, Real:D $right ) is export {
+    $left.__div__: lit($right) 
+}
+multi infix:</>( Real:D $left, ExprC:D $right ) is export {
+    lit($left).__div__: $right 
+}
+multi infix:</>( ExprC:D $left, ExprC:D $right ) is export {
     $left.__div__: $right 
 }
 
-multi infix:<%>( ExprC $left, ExprC $right ) is export {
+multi infix:<%>( ExprC:D $left, Real:D $right ) is export {
+    $left.__mod__: lit($right) 
+}
+multi infix:<%>( Real:D $left, ExprC:D $right ) is export {
+    lit($left).__mod__: $right 
+}
+multi infix:<%>( ExprC:D $left, ExprC:D $right ) is export {
     $left.__mod__: $right 
 }
 
-multi infix:<div>( ExprC $left, ExprC $right ) is export {
+multi infix:<div>( ExprC:D $left, Real:D $right ) is export {
+    $left.__floordiv__: lit($right) 
+}
+multi infix:<div>( Real:D $left, ExprC:D $right ) is export {
+    lit($left).__floordiv__: $right 
+}
+multi infix:<div>( ExprC:D $left, ExprC:D $right ) is export {
     $left.__floordiv__: $right 
 }
 

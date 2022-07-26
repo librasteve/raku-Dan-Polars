@@ -64,20 +64,15 @@ df.select([
     (col("petal.length") div (col("sepal.length"))).alias("floordiv"),
 ]).head;
 
-say df.shape;
-my $ls = lit( 3 );
-
 df.select([
     col("sepal.length"),
     col("petal.length"),
-    (col("petal.length").__add__($ls)).alias("add"),
-    #`[
-    (col("petal.length") - (col("sepal.length"))).alias("sub"),
-    (col("petal.length") * (col("sepal.length"))).alias("mul"),
-    (col("petal.length") / (col("sepal.length"))).alias("div"),
-    (col("petal.length") % (col("sepal.length"))).alias("mod"),
-    (col("petal.length") div (col("sepal.length"))).alias("floordiv"),
-    3]
+    (col("petal.length") + 7).alias("add7"),
+    (7 - col("petal.length")).alias("sub7"),
+    (col("petal.length") * 2.2).alias("mul"),
+    (2.2 / (col("sepal.length"))).alias("div"),
+    (col("sepal.length") % 2).alias("mod"),
+    (col("sepal.length") div 0.1).alias("floordiv"),
 ]).head;
 
 

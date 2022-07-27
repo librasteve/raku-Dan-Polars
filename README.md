@@ -70,7 +70,7 @@ This will then provide a basis for Dan::As::Query v1 for Dan and Dan::Pandas, im
 - [ ] serde
 - [ ] strip / fold Index
  
-###v3
+### v3
 - [ ] ternary if-then-else (Dan::As::Ternary)
 - [ ] str operations (Dan::As::Str)
 - [ ] chunked transfer

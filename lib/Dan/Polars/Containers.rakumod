@@ -353,6 +353,18 @@ class ExprC is repr('CPointer') is export {
     sub ex__div__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
     sub ex__mod__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
     sub ex__floordiv__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
+    sub ex_apply(ExprC, &callback (SeriesC --> SeriesC)) is native($n-path) { * }
+
+    #iamerejh
+    method apply {
+        my @out;
+        my &line_out = sub ( $line ) {
+            @out.push: $line;
+        }
+
+        ex_apply(self, &line_out);
+        @out
+    }
 
     method new {
         ex_new

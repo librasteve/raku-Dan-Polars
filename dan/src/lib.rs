@@ -589,6 +589,7 @@ impl LazyFrameC {
     fn agg(&mut self, exprvec: Vec::<Expr>) {
         self.lf = self.gb.clone().unwrap().agg(exprvec);
     }
+}
 
 //    fn apply {  #FIXME 
 //        let o = GetOutput::from_type(DataType::UInt32);
@@ -596,7 +597,7 @@ impl LazyFrameC {
 //        let lf = self.lf.clone().with_column(col("variety").apply(str_to_len, o));
 //        //println!("{:?}", lf.describe_plan());
 //    }
-}
+//}
 
 //fn str_to_len(str_val: Series) -> Result<Series> {
 //    let x = str_val
@@ -833,6 +834,43 @@ impl ExprC {
     fn __floordiv__(&self, rhs: &ExprC) -> ExprC {
         dsl::binary_expr(self.inner.clone(), Operator::Divide, rhs.inner.clone()).into()
     }
+
+    //fn apply(&self, appmap: AMWrap) -> ExprC {
+    fn apply(&self, appmap: impl Fn(Series) -> Result<Series> + std::marker::Send + std::marker::Sync + 'static ) -> ExprC {
+        let o = GetOutput::from_type(DataType::UInt32);
+        self.clone().inner.clone().apply(appmap, o).into()
+    }
+}
+
+type AppMap = fn(*mut SeriesC) -> SeriesC;
+type AMWrap = fn(Series) -> Result<Series>;
+
+#[no_mangle]
+pub extern "C" fn ex_apply(ptr: *mut ExprC, appmap: AppMap) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+
+
+    fn c2s(se_c: SeriesC) -> Result<Series> {
+        Ok(se_c.se.into_series())
+    }
+
+    fn s2c(series: Series) -> *mut SeriesC {
+        let mut se_c = SeriesC::new::<u32>("dummy".to_owned(), [].to_vec());
+        se_c.se = series;
+        Box::into_raw(Box::new(se_c))
+    }
+
+    fn compose<A, B, C, F, G>(f: F, g: G) -> impl Fn(A) -> C
+    where
+        F: Fn(B) -> C,
+        G: Fn(A) -> B,
+    {
+        move |x| f(g(x))
+    }
+    let am_wrap_a = compose(appmap, s2c);
+    let am_wrap_b = compose(c2s, am_wrap_a);
+
+    Box::into_raw(Box::new(ex_c.apply(am_wrap_b)))
 }
 
 //col() is the extern for new()

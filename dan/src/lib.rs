@@ -843,6 +843,7 @@ pub extern "C" fn ex_apply(ptr: *mut ExprC, appmap: AppMap) -> *mut ExprC {
         Box::into_raw(Box::new(se_c))
     }
 
+    //https://stackoverflow.com/questions/45786955/how-to-compose-functions-in-rust
     fn compose<A, B, C, F, G>(f: F, g: G) -> impl Fn(A) -> C
     where
         F: Fn(B) -> C,
@@ -855,6 +856,14 @@ pub extern "C" fn ex_apply(ptr: *mut ExprC, appmap: AppMap) -> *mut ExprC {
 
     Box::into_raw(Box::new(ex_c.apply(am_wrap_b)))
 }
+
+//fn apply {  #FIXME
+//        let o = GetOutput::from_type(DataType::UInt32);
+//        //self.lf = self.lf.clone().with_column(col("variety").apply(str_to_len, o));
+//        let lf = self.lf.clone().with_column(col("variety").apply(str_to_len, o));
+//        println!("{:?}", lf.describe_plan());
+//    }
+//}
 
 //fn str_to_len(str_val: Series) -> Result<Series> {
 //    let x = str_val

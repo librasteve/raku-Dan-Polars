@@ -133,7 +133,8 @@ role Series does Positional does Iterable is export {
     }
 
     method rename( $name ) {
-        $!rc.rename( $name ) 
+        $!rc.rename( $name ) ;
+        self
     }
 
     method len {

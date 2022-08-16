@@ -69,6 +69,7 @@ use polars::lazy::dsl::Operator;
 // Callback Types
 
 type RetLine = extern fn(line: *const u8);
+type AppMap = extern fn(appmap: *mut SeriesC) -> SeriesC;
 
 // Helpers for Safety Checks
 
@@ -291,7 +292,7 @@ pub extern "C" fn se_name(ptr: *mut SeriesC, retline: RetLine) {
 pub extern "C" fn se_rename(
     ptr: *mut SeriesC,
     name: *const c_char,
-) {
+) -> *mut SeriesC { 
     let se_c = check_ptr(ptr);
 
     let name = unsafe {
@@ -299,6 +300,7 @@ pub extern "C" fn se_rename(
     };
 
     se_c.rename(name);
+    se_c
 }
 
 #[no_mangle]
@@ -591,25 +593,6 @@ impl LazyFrameC {
     }
 }
 
-//    fn apply {  #FIXME 
-//        let o = GetOutput::from_type(DataType::UInt32);
-//        //self.lf = self.lf.clone().with_column(col("variety").apply(str_to_len, o));
-//        let lf = self.lf.clone().with_column(col("variety").apply(str_to_len, o));
-//        //println!("{:?}", lf.describe_plan());
-//    }
-//}
-
-//fn str_to_len(str_val: Series) -> Result<Series> {
-//    let x = str_val
-//        .utf8()
-//        .unwrap()
-//        .into_iter()
-//        // your actual custom function would be in this map
-//        .map(|opt_name: Option<&str>| opt_name.map(|name: &str| name.len() as u32))
-//        .collect::<UInt32Chunked>();
-//    Ok(x.into_series())
-//}
-
 // extern functions for LazyFrame Container
 #[no_mangle]
 pub extern "C" fn lf_new(ptr: *mut DataFrameC) -> *mut LazyFrameC {
@@ -873,6 +856,77 @@ pub extern "C" fn ex_apply(ptr: *mut ExprC, appmap: AppMap) -> *mut ExprC {
     Box::into_raw(Box::new(ex_c.apply(am_wrap_b)))
 }
 
+fn str_to_len(str_val: Series) -> Result<Series> {
+    let x = str_val
+        .utf8()
+        .unwrap()
+        .into_iter()
+        // your actual custom function would be in this map
+        .map(|opt_name: Option<&str>| opt_name.map(|name: &str| name.len() as u32))
+        .collect::<UInt32Chunked>();
+    Ok(x.into_series())
+}
+
+type AppMap2 = fn(*mut SeriesC) -> SeriesC;  //echo from #72
+//type AMWrap = fn(*mut SeriesC) -> SeriesC;
+//type AMWrapA = fn(Series) -> SeriesC;
+type AMWrapB = fn(Series) -> Result<Series>;
+
+#[no_mangle]
+pub extern "C" fn ex_apply(ptr: *mut ExprC, appmap: AppMap2) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+
+    
+    fn c2s(se_c: SeriesC) -> Result<Series> {
+        Ok(se_c.se.into_series())
+    }
+
+    fn s2c(series: Series) -> *mut SeriesC {
+        let mut se_c = SeriesC::new::<u32>("dummy".to_owned(), [].to_vec());
+        se_c.se = series;
+        Box::into_raw(Box::new(se_c))
+    }
+
+    fn compose<A, B, C, F, G>(f: F, g: G) -> impl Fn(A) -> C
+    where
+        F: Fn(B) -> C,
+        G: Fn(A) -> B,
+    {
+        move |x| f(g(x))
+    }
+    let am_wrap_a = compose(appmap, s2c);
+    let am_wrap_b = compose(c2s, am_wrap_a);
+
+    Box::into_raw(Box::new(ex_c.apply(am_wrap_b)))
+
+//    fn compose<A, B, C, F, G>(f: F, g: G) -> impl Fn(A) -> C
+//    where
+//        F: Fn(B) -> C,
+//        G: Fn(A) -> B,
+//    {
+//        move |x| f(g(x))
+//    }
+//    let am_wrap_a = compose(appmap, s2c);
+//    let am_wrap_b = compose(c2s, am_wrap_a);
+//
+//    Box::into_raw(Box::new(ex_c.apply(am_wrap_b)))
+
+//    fn appmap_wrap(series: Series) -> Result<Series> {
+//        let mut se_c = SeriesC::new("dummy".to_owned(), [].to_vec());
+//        se_c.se = series;
+//
+//        let ap_c = appmap(se_c);
+//
+//        Ok(ap_c.se)
+//    }
+//
+//    Box::into_raw(Box::new(ex_c.apply(appmap_wrap)))
+
+    ////Box::into_raw(Box::new(ex_c.apply()))
+}
+
+
+
 //col() is the extern for new()
 #[no_mangle]
 pub extern "C" fn ex_col(
@@ -1121,5 +1175,6 @@ pub extern "C" fn ex__floordiv__(ptr: *mut ExprC, rhs: *mut ExprC) -> *mut ExprC
 
     Box::into_raw(Box::new(ex_c.__floordiv__(ex_r)))
 }
+
 
 

@@ -35,8 +35,8 @@ class SeriesC is repr('CPointer') is export {
     sub se_head(SeriesC)   is native($n-path) { * }
     sub se_dtype(SeriesC,  &callback (Str --> Str)) is native($n-path) { * }
     sub se_name(SeriesC,   &callback (Str --> Str)) is native($n-path) { * }
-    sub se_rename(SeriesC, Str) is native($n-path) { * }
-    sub se_len(SeriesC) returns uint32 is native($n-path) { * }
+    sub se_rename(SeriesC, Str)                returns SeriesC is native($n-path) { * }
+    sub se_len(SeriesC)                        returns uint32 is native($n-path) { * }
     sub se_get_bool(SeriesC, CArray[bool], size_t) is native($n-path) { * }
     sub se_get_i32(SeriesC, CArray[int32], size_t) is native($n-path) { * }
     sub se_get_i64(SeriesC, CArray[int64], size_t) is native($n-path) { * }
@@ -45,7 +45,7 @@ class SeriesC is repr('CPointer') is export {
     sub se_get_f32(SeriesC, CArray[num32], size_t) is native($n-path) { * }
     sub se_get_f64(SeriesC, CArray[num64], size_t) is native($n-path) { * }
     sub se_get_u8(SeriesC, CArray[uint8], size_t) is native($n-path) { * }
-    sub se_str_lengths(SeriesC) returns uint32 is native($n-path) { * }
+    sub se_str_lengths(SeriesC)                returns uint32 is native($n-path) { * }
 
     method new( $name, @data, :$dtype ) {
 
@@ -306,16 +306,16 @@ class LazyFrameC is repr('CPointer') is export {
         lf_with_columns(self, carray( Pointer, exprvec ), exprvec.elems)
     }
 
-    method collect {
-        lf_collect(self)
-    }
-
     method groupby( Array \colspec ) {
         lf_groupby(self, carray( Str, colspec ), colspec.elems)
     }
 
     method agg( Array \exprvec ) {
         lf_agg(self, carray( Pointer, exprvec ), exprvec.elems)
+    }
+
+    method collect {
+        lf_collect(self)
     }
 }
 
@@ -353,9 +353,10 @@ class ExprC is repr('CPointer') is export {
     sub ex__div__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
     sub ex__mod__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
     sub ex__floordiv__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
-    sub ex_apply(ExprC, &callback (SeriesC --> SeriesC)) is native($n-path) { * }
+    sub ex_apply(ExprC, &callback (SeriesC --> SeriesC)) returns ExprC is native($n-path) { * }
 
     #iamerejh
+    #`[
     method apply {
         my @out;
         my &line_out = sub ( $line ) {
@@ -365,6 +366,7 @@ class ExprC is repr('CPointer') is export {
         ex_apply(self, &line_out);
         @out
     }
+    #]
 
     method new {
         ex_new
@@ -505,5 +507,25 @@ class ExprC is repr('CPointer') is export {
     method __floordiv__( ExprC \rhs ) {
         ex__floordiv__(self, rhs)
     }
+
+    method apply( ) {
+        my &appmap = sub ( SeriesC $se_c --> SeriesC ) {
+            say "yo";
+            $se_c
+        }
+        ex_apply(self, &appmap)
+    }
+
+    #`[
+    method dtype {
+        my $out;
+        my &line_out = sub ( $line ) {
+            $out := $line
+        }
+
+        se_dtype(self, &line_out);
+        $out
+    }
+    #]
 }
 

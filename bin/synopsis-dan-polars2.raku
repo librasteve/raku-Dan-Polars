@@ -75,5 +75,18 @@ df.select([
     (col("sepal.length") div 0.1).alias("floordiv"),
 ]).head;
 
+df.with_column($se.rename("newcol")).head;
+
+#df.with_columns(col("variety").apply).head;
+df.with_columns([col("variety").apply]).head;
+
+#`[notes
+df.with_column takes a Series and adds it to the df
+lf.with_column takes an Expr (eg. col("variety").xx)
+... so .lf.with_column is just a nicety
+lf.with_columns takes an exprvec (eg. [col("variety").xx, col("sepal.length").yy]
+use alias to control in place vs. new col
+#]
+
 
 

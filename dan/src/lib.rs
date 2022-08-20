@@ -818,17 +818,20 @@ impl ExprC {
     }
 
     //fn apply(&self, appmap: AMWrap) -> ExprC {
-    fn apply(&self, appmap: impl Fn(Series) -> Result<Series> + std::marker::Send + std::marker::Sync + 'static ) -> ExprC {
+    fn apply(&self, 
+            appmap: impl Fn(Series) -> Result<Series> 
+            + std::marker::Send + std::marker::Sync + 'static 
+        ) -> ExprC {
         let o = GetOutput::from_type(DataType::UInt32);
         self.clone().inner.clone().apply(appmap, o).into()
     }
 }
 
 type AppMap = fn(*mut SeriesC) -> SeriesC;
-//type AMWrap = fn(Series) -> Result<Series>;
 
 #[no_mangle]
-//iamerejh ... do the impl trick here too to address not FFI-safe warning??
+//iamerejh ... 
+// can't do the impl trick here too to address not FFI-safe warning??
 pub extern "C" fn ex_apply(ptr: *mut ExprC, appmap: AppMap) -> *mut ExprC {
     let ex_c = check_ptr(ptr);
 

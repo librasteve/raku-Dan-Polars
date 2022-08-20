@@ -817,47 +817,44 @@ impl ExprC {
         dsl::binary_expr(self.inner.clone(), Operator::Divide, rhs.inner.clone()).into()
     }
 
-    //fn apply(&self, appmap: AMWrap) -> ExprC {
-    fn apply(&self, 
-            appmap: impl Fn(Series) -> Result<Series> 
-            + std::marker::Send + std::marker::Sync + 'static 
-        ) -> ExprC {
-        let o = GetOutput::from_type(DataType::UInt32);
+    fn apply(&self, appmap: AppMap) -> ExprC {
+        let o = GetOutput::from_type(DataType::Int32);
         self.clone().inner.clone().apply(appmap, o).into()
     }
 }
 
-type AppMap = fn(*mut SeriesC) -> SeriesC;
+//type RetLine = extern fn(line: *const u8);
+//#[no_mangle]
+//pub extern "C" fn se_dtype(ptr: *mut SeriesC, retline: RetLine) {
+//    let se_c = check_ptr(ptr);
+//    se_c.dtype(retline);
+//}
+
+//iamerejh ...  gonna try with i32 first, col = "nrs"
+
+type RetCarray = extern fn() -> *const i32;
+type AppMap = fn(Series) -> Result<Series>;
 
 #[no_mangle]
-//iamerejh ... 
-// can't do the impl trick here too to address not FFI-safe warning??
-pub extern "C" fn ex_apply(ptr: *mut ExprC, appmap: AppMap) -> *mut ExprC {
+pub extern "C" fn ex_apply(ptr: *mut ExprC, carray: *const i32, retcarray: RetCarray) -> *mut ExprC {
     let ex_c = check_ptr(ptr);
+    //FIXME check_ptr for functions? (also RetLine)
 
 
-    fn c2s(se_c: SeriesC) -> Result<Series> {
-        Ok(se_c.se.into_series())
-    }
+    //short circuit for now
+    Box::into_raw(Box::new(ex_c.alias("joe".to_string())))
+    //Box::into_raw(Box::new(ex_c.apply(am_wrap_b)))
+}
 
-    fn s2c(series: Series) -> *mut SeriesC {
-        let mut se_c = SeriesC::new::<u32>("dummy".to_owned(), [].to_vec());
-        se_c.se = series;
-        Box::into_raw(Box::new(se_c))
-    }
-
-    //https://stackoverflow.com/questions/45786955/how-to-compose-functions-in-rust
-    fn compose<A, B, C, F, G>(f: F, g: G) -> impl Fn(A) -> C
-    where
-        F: Fn(B) -> C,
-        G: Fn(A) -> B,
-    {
-        move |x| f(g(x))
-    }
-    let am_wrap_a = compose(appmap, s2c);
-    let am_wrap_b = compose(c2s, am_wrap_a);
-
-    Box::into_raw(Box::new(ex_c.apply(am_wrap_b)))
+fn add_one(num_val: Series) -> Result<Series> {
+    let x = num_val
+        .i32()
+        .unwrap()
+        .into_iter()
+        // your actual custom function would be in this map
+        .map(|opt_name: Option<i32>| opt_name.map(|value: i32| (value + 1) as i32))
+        .collect::<Int32Chunked>();
+    Ok(x.into_series())
 }
 
 //fn apply {  #FIXME

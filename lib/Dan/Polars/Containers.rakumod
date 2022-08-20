@@ -353,7 +353,9 @@ class ExprC is repr('CPointer') is export {
     sub ex__div__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
     sub ex__mod__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
     sub ex__floordiv__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
-    sub ex_apply(ExprC, &callback (SeriesC --> SeriesC)) returns ExprC is native($n-path) { * }
+    ##sub ex_apply(ExprC, CArray[int32], size_t, &callback (CArray[int32], size_t --> CArray[int32], size_t)) 
+                                 returns ExprC is native($n-path) { * }
+    #sub se_get_i32(SeriesC, CArray[int32], size_t) is native($n-path) { * }
 
     #iamerejh
     #`[

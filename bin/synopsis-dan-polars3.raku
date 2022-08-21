@@ -19,11 +19,13 @@ df.head;
 df.select([col("names").unique.count.alias("smith&jones")]).head;
 
 my $expr;
-$expr  = col("random");
+$expr  = col("nrs");
 $expr .= sum;
+$expr .= apply;
 $expr .= alias("x");
 df.groupby(["groups"]).agg([$expr]).head;
 
+die;
 df.select(
     [
         col("random").sum.alias("sum"),

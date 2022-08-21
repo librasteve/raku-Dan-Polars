@@ -816,11 +816,6 @@ impl ExprC {
     fn __floordiv__(&self, rhs: &ExprC) -> ExprC {
         dsl::binary_expr(self.inner.clone(), Operator::Divide, rhs.inner.clone()).into()
     }
-
-    fn apply(&self, appmap: AppMap) -> ExprC {
-        let o = GetOutput::from_type(DataType::Int32);
-        self.clone().inner.clone().apply(appmap, o).into()
-    }
 }
 
 //type RetLine = extern fn(line: *const u8);
@@ -830,21 +825,42 @@ impl ExprC {
 //    se_c.dtype(retline);
 //}
 
-//iamerejh ...  gonna try with i32 first, col = "nrs"
+//#[no_mangle]
+//pub extern "C" fn se_new_i32( name: *const c_char, ptr: *const i32, len: size_t, )
+//    -> *mut SeriesC { se_new_vec(name, ptr, len) }
 
-type RetCarray = extern fn() -> *const i32;
+type RetCarray = extern fn(*const i32) -> *const i32;
 type AppMap = fn(Series) -> Result<Series>;
 
 #[no_mangle]
-pub extern "C" fn ex_apply(ptr: *mut ExprC, carray: *const i32, retcarray: RetCarray) -> *mut ExprC {
+pub extern "C" fn ex_apply(ptr: *mut ExprC, carray: *const i32, ret_carray: RetCarray) -> *mut ExprC {
     let ex_c = check_ptr(ptr);
-    //FIXME check_ptr for functions? (also RetLine)
+
+    let yo = "yo";
+    let test = || {
+        println!("{:?}", yo);
+    };
+    test();
+
+    let mut do_apply = || {
+        let o = GetOutput::from_type(DataType::Int32);
+        //ex_c.inner = ex_c.inner.clone().apply(add_one, o).into();
+    };
+    do_apply();
+
+//iamerejh ...  gonna try with i32 first, col = "nrs"
 
 
     //short circuit for now
     Box::into_raw(Box::new(ex_c.alias("joe".to_string())))
-    //Box::into_raw(Box::new(ex_c.apply(am_wrap_b)))
+    //Box::into_raw(Box::new(ex_c))
 }
+
+    //fn sum(&self) -> ExprC {
+    //    self.clone().inner.clone().sum().into()
+    //}
+    //Box::into_raw(Box::new(ex_c.sum()))
+
 
 fn add_one(num_val: Series) -> Result<Series> {
     let x = num_val
@@ -971,11 +987,7 @@ pub extern "C" fn ex_free(ptr: *mut ExprC) {
 
 #[no_mangle]
 pub extern "C" fn ex_sum(ptr: *mut ExprC) -> *mut ExprC {
-    let ex_c = unsafe {
-        assert!(!ptr.is_null());
-        &mut *ptr
-    };
-
+    let ex_c = check_ptr(ptr);
     Box::into_raw(Box::new(ex_c.sum()))
 }
 

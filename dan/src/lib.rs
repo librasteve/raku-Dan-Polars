@@ -844,15 +844,17 @@ pub extern "C" fn ex_apply(ptr: *mut ExprC, carray: *const i32, ret_carray: RetC
 
     let mut do_apply = || {
         let o = GetOutput::from_type(DataType::Int32);
+        ex_c.inner.clone().apply(add_one, o).into()
         //ex_c.inner = ex_c.inner.clone().apply(add_one, o).into();
     };
-    do_apply();
+    let new_inner: Expr = do_apply();
 
 //iamerejh ...  gonna try with i32 first, col = "nrs"
 
+    let ex_n = ExprC::new(new_inner.clone());
 
     //short circuit for now
-    Box::into_raw(Box::new(ex_c.alias("joe".to_string())))
+    Box::into_raw(Box::new(ex_n.alias("joe".to_string())))
     //Box::into_raw(Box::new(ex_c))
 }
 
@@ -868,8 +870,9 @@ fn add_one(num_val: Series) -> Result<Series> {
         .unwrap()
         .into_iter()
         // your actual custom function would be in this map
-        .map(|opt_name: Option<i32>| opt_name.map(|value: i32| (value + 1) as i32))
+        .map(|opt_name: Option<i32>| opt_name.map(|name: i32| (name + 1) as i32))
         .collect::<Int32Chunked>();
+        println!("got here");
     Ok(x.into_series())
 }
 

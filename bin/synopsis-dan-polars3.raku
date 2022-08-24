@@ -24,7 +24,7 @@ my $expr;
 $expr  = col("nrs");
 #$expr .= sum;
 $expr .= apply;
-$expr .= alias("x");
+#$expr .= alias("x");
 df.groupby(["groups"]).agg([$expr]).head;
 die;
 

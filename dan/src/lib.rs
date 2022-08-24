@@ -828,12 +828,36 @@ impl ExprC {
 //#[no_mangle]
 //pub extern "C" fn se_new_i32( name: *const c_char, ptr: *const i32, len: size_t, )
 //    -> *mut SeriesC { se_new_vec(name, ptr, len) }
+//fn se_new_vec<T>(
+//    name: *const c_char,
+//    ptr: *const T,
+//    len: size_t, 
+//) -> *mut SeriesC 
+//        where Series: NamedFrom<Vec<T>, [T]>, T: Clone
+//    {
+//
+//    let se_name;
+//    let mut se_data = Vec::new();
+//    unsafe {
+//        assert!(!ptr.is_null());
+//        se_name = CStr::from_ptr(name).to_string_lossy().into_owned();
+//        se_data.extend_from_slice(slice::from_raw_parts(ptr, len as usize));
+//    };
+//
+//    Box::into_raw(Box::new(SeriesC::new(se_name, se_data)))
+//}
 
+//iamerejh ...  gonna try with i32 first, col = "nrs"
 type RetCarray = extern fn(*const i32) -> *const i32;
 type AppMap = fn(Series) -> Result<Series>;
 
 #[no_mangle]
-pub extern "C" fn ex_apply(ptr: *mut ExprC, carray: *const i32, ret_carray: RetCarray) -> *mut ExprC {
+pub extern "C" fn ex_apply(
+        ptr: *mut ExprC, 
+        new_carray: *const i32, len: size_t,
+        ret_carray: RetCarray
+    ) -> *mut ExprC {
+    
     let ex_c = check_ptr(ptr);
 
     let yo = "yo";
@@ -842,39 +866,27 @@ pub extern "C" fn ex_apply(ptr: *mut ExprC, carray: *const i32, ret_carray: RetC
     };
     test();
 
+    fn add_one(num_val: Series) -> Result<Series> {
+        let x = num_val
+            .i32()
+            .unwrap()
+            .into_iter()
+            // your actual custom function would be in this map
+            .map(|opt_name: Option<i32>| opt_name.map(|name: i32| (name + 1) as i32))
+            .collect::<Int32Chunked>();
+        Ok(x.into_series())
+    }
+
     let mut do_apply = || {
         let o = GetOutput::from_type(DataType::Int32);
         ex_c.inner.clone().apply(add_one, o).into()
-        //ex_c.inner = ex_c.inner.clone().apply(add_one, o).into();
     };
     let new_inner: Expr = do_apply();
 
-//iamerejh ...  gonna try with i32 first, col = "nrs"
-
     let ex_n = ExprC::new(new_inner.clone());
-
-    //short circuit for now
-    Box::into_raw(Box::new(ex_n.alias("joe".to_string())))
-    //Box::into_raw(Box::new(ex_c))
+    Box::into_raw(Box::new(ex_n))
 }
 
-    //fn sum(&self) -> ExprC {
-    //    self.clone().inner.clone().sum().into()
-    //}
-    //Box::into_raw(Box::new(ex_c.sum()))
-
-
-fn add_one(num_val: Series) -> Result<Series> {
-    let x = num_val
-        .i32()
-        .unwrap()
-        .into_iter()
-        // your actual custom function would be in this map
-        .map(|opt_name: Option<i32>| opt_name.map(|name: i32| (name + 1) as i32))
-        .collect::<Int32Chunked>();
-        println!("got here");
-    Ok(x.into_series())
-}
 
 //fn apply {  #FIXME
 //        let o = GetOutput::from_type(DataType::UInt32);
@@ -888,8 +900,7 @@ fn add_one(num_val: Series) -> Result<Series> {
 //    let x = str_val
 //        .utf8()
 //        .unwrap()
-//        .into_iter()
-//        // your actual custom function would be in this map
+//        .into_iter() //        // your actual custom function would be in this map
 //        .map(|opt_name: Option<&str>| opt_name.map(|name: &str| name.len() as u32))
 //        .collect::<UInt32Chunked>();
 //    Ok(x.into_series())

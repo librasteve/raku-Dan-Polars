@@ -406,17 +406,6 @@ class ExprC is repr('CPointer') is export {
         ##$out_carray.list;
     }
     #iamerejh
-    #`[
-    method apply {
-        my @out;
-        my &line_out = sub ( $line ) {
-            @out.push: $line;
-        }
-
-        ex_apply(self, &line_out);
-        @out
-    }
-    #]
 
     method new {
         ex_new

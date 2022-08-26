@@ -349,7 +349,7 @@ pub extern "C" fn se_get_u8(ptr: *mut SeriesC, res: *mut u8, len: size_t ) {
     let se_c = check_ptr(ptr);
     se_c.get_u8(res, len)
 }
-//iamerejh - del next
+
 #[no_mangle]
 pub extern "C" fn se_get_str(ptr: *mut SeriesC, retline: RetLine) {
     let se_c = check_ptr(ptr);
@@ -818,100 +818,32 @@ impl ExprC {
     }
 }
 
-//type RetLine = extern fn(line: *const u8);
-//#[no_mangle]
-//pub extern "C" fn se_dtype(ptr: *mut SeriesC, retline: RetLine) {
-//    let se_c = check_ptr(ptr);
-//    se_c.dtype(retline);
-//}
-
-//#[no_mangle]
-//pub extern "C" fn se_new_i32( name: *const c_char, ptr: *const i32, len: size_t, )
-//    -> *mut SeriesC { se_new_vec(name, ptr, len) }
-//fn se_new_vec<T>(
-//    name: *const c_char,
-//    ptr: *const T,
-//    len: size_t, 
-//) -> *mut SeriesC 
-//        where Series: NamedFrom<Vec<T>, [T]>, T: Clone
-//    {
-//
-//    let se_name;
-//    let mut se_data = Vec::new();
-//    unsafe {
-//        assert!(!ptr.is_null());
-//        se_name = CStr::from_ptr(name).to_string_lossy().into_owned();
-//        se_data.extend_from_slice(slice::from_raw_parts(ptr, len as usize));
-//    };
-//
-//    Box::into_raw(Box::new(SeriesC::new(se_name, se_data)))
-//}
-
-//iamerejh ...  gonna try with i32 first, col = "nrs"
-type RetCarray = extern fn(*const i32) -> *const i32;
-type AppMap = fn(Series) -> Result<Series>;
+//iamerejh ... this is vestigal working apply for Plan B development 
+fn add_one(num_val: Series) -> Result<Series> {
+    let x = num_val
+        .i32()
+        .unwrap()
+        .into_iter()
+        // your actual custom function would be in this map
+        .map(|opt_name: Option<i32>| opt_name.map(|name: i32| (name + 1) as i32))
+        .collect::<Int32Chunked>();
+    Ok(x.into_series())
+}
 
 #[no_mangle]
-pub extern "C" fn ex_apply(
-        ptr: *mut ExprC, 
-        new_carray: *const i32, len: size_t,
-        ret_carray: RetCarray
-    ) -> *mut ExprC {
-    
+pub extern "C" fn ex_apply(ptr: *mut ExprC) -> *mut ExprC {
     let ex_c = check_ptr(ptr);
 
-    let yo = "yo";
-    let test = || {
-        println!("{:?}", yo);
-    };
-    test();
-
-    fn add_one(num_val: Series) -> Result<Series> {
-        let x = num_val
-            .i32()
-            .unwrap()
-            .into_iter()
-            // your actual custom function would be in this map
-            .map(|opt_name: Option<i32>| opt_name.map(|name: i32| (name + 1) as i32))
-            .collect::<Int32Chunked>();
-        Ok(x.into_series())
-    }
-
-    let mut do_apply = || {
-        let o = GetOutput::from_type(DataType::Int32);
-        ex_c.inner.clone().apply(add_one, o).into()
-    };
-    let new_inner: Expr = do_apply();
+    let o = GetOutput::from_type(DataType::Int32);
+    let new_inner: Expr = ex_c.inner.clone().apply(add_one, o).into();
 
     let ex_n = ExprC::new(new_inner.clone());
     Box::into_raw(Box::new(ex_n))
 }
 
-
-//fn apply {  #FIXME
-//        let o = GetOutput::from_type(DataType::UInt32);
-//        //self.lf = self.lf.clone().with_column(col("variety").apply(str_to_len, o));
-//        let lf = self.lf.clone().with_column(col("variety").apply(str_to_len, o));
-//        println!("{:?}", lf.describe_plan());
-//    }
-//}
-
-//fn str_to_len(str_val: Series) -> Result<Series> {
-//    let x = str_val
-//        .utf8()
-//        .unwrap()
-//        .into_iter() //        // your actual custom function would be in this map
-//        .map(|opt_name: Option<&str>| opt_name.map(|name: &str| name.len() as u32))
-//        .collect::<UInt32Chunked>();
-//    Ok(x.into_series())
-//}
-
 //col() is the extern for new()
 #[no_mangle]
-pub extern "C" fn ex_col(
-    string: *const c_char,
-) -> *mut ExprC {
-
+pub extern "C" fn ex_col(string: *const c_char) -> *mut ExprC {
     let colname = unsafe {
         CStr::from_ptr(string).to_string_lossy().into_owned()
     };
@@ -921,43 +853,43 @@ pub extern "C" fn ex_col(
 }
 
 #[no_mangle]
-pub extern "C" fn ex_lit_bool( val: bool) -> *mut ExprC {
+pub extern "C" fn ex_lit_bool(val: bool) -> *mut ExprC {
     let ex_c = ExprC::new(lit(val));
     Box::into_raw(Box::new(ex_c))
 }
 
 #[no_mangle]
-pub extern "C" fn ex_lit_i32( val: i32) -> *mut ExprC {
+pub extern "C" fn ex_lit_i32(val: i32) -> *mut ExprC {
     let ex_c = ExprC::new(lit(val));
     Box::into_raw(Box::new(ex_c))
 }
 
 #[no_mangle]
-pub extern "C" fn ex_lit_i64( val: i64) -> *mut ExprC {
+pub extern "C" fn ex_lit_i64(val: i64) -> *mut ExprC {
     let ex_c = ExprC::new(lit(val));
     Box::into_raw(Box::new(ex_c))
 }
 
 #[no_mangle]
-pub extern "C" fn ex_lit_u32( val: u32) -> *mut ExprC {
+pub extern "C" fn ex_lit_u32(val: u32) -> *mut ExprC {
     let ex_c = ExprC::new(lit(val));
     Box::into_raw(Box::new(ex_c))
 }
 
 #[no_mangle]
-pub extern "C" fn ex_lit_u64( val: u64) -> *mut ExprC {
+pub extern "C" fn ex_lit_u64(val: u64) -> *mut ExprC {
     let ex_c = ExprC::new(lit(val));
     Box::into_raw(Box::new(ex_c))
 }
 
 #[no_mangle]
-pub extern "C" fn ex_lit_f32( val: f32) -> *mut ExprC {
+pub extern "C" fn ex_lit_f32(val: f32) -> *mut ExprC {
     let ex_c = ExprC::new(lit(val));
     Box::into_raw(Box::new(ex_c))
 }
 
 #[no_mangle]
-pub extern "C" fn ex_lit_f64( val: f64) -> *mut ExprC {
+pub extern "C" fn ex_lit_f64(val: f64) -> *mut ExprC {
     let ex_c = ExprC::new(lit(val));
     Box::into_raw(Box::new(ex_c))
 }

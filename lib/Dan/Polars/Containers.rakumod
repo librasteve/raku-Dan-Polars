@@ -353,59 +353,7 @@ class ExprC is repr('CPointer') is export {
     sub ex__div__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
     sub ex__mod__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
     sub ex__floordiv__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
-    sub ex_apply(ExprC)            returns ExprC is native($n-path) { * }
-    ##sub ex_apply(ExprC, CArray[int32], size_t, &callback (CArray[int32], size_t --> CArray[int32])) returns ExprC is native($n-path) { * }
-
-#`[
-    sub se_new_i32(Str, CArray[int32], size_t) returns SeriesC is native($n-path) { * }
-            when    'i32' { se_new_i32($name, carray( int32, @data), @data.elems) }
-
-    sub se_get_i32(SeriesC, CArray[int32], size_t) is native($n-path) { * }
-            when 'i32' {
-                my $array := CArray[int32].allocate($elems);
-                se_get_i32(self, $array, $elems);
-                $array.list
-            }
-#]
-
-#`[[
-    method apply( ) {
-        my &appmap = sub ( SeriesC $se_c --> SeriesC ) {
-            say "yo";
-            $se_c
-        }
-        ex_apply(self, &appmap)
-    }
-
-    #`[
-    method dtype {
-        my $out;
-        my &line_out = sub ( $line ) {
-            $out := $line
-        }
-
-        se_dtype(self, &line_out);
-        $out
-    }
-    #]
-#]]
-
-    method apply {
-        #make an empty raku array of right size
-        my $size = 5;  #FIXME
-        my @data = 0 xx 5;
-
-        #make a callback function, that takes result carray from rust and returns as carray to raku
-        my $out_carray;
-        my &array_out = sub ( $ret_carray, $size ) {
-            $out_carray := $ret_carray;
-        }
-
-        ##ex_apply(self, carray( int32, @data), &array_out);
-        ex_apply(self);
-        ##$out_carray.list;
-    }
-    #iamerejh
+    sub ex_apply(ExprC)          returns ExprC is native($n-path) { * }
 
     method new {
         ex_new
@@ -547,5 +495,9 @@ class ExprC is repr('CPointer') is export {
         ex__floordiv__(self, rhs)
     }
 
+    #iamerejh ... this is vestigal working apply for Plan B "DSL as SO" development
+    method apply {
+        ex_apply(self)
+    }
 }
 

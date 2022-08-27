@@ -18,15 +18,14 @@ df.head;
 
 df.select([col("names").unique.count.alias("smith")]).head;
 
-df.select([col("nrs").apply.alias("jones")]).head;
+#apply moved to v3
+#df.select([col("nrs").apply.alias("jones")]).head;
 
 my $expr;
 $expr  = col("nrs");
-#$expr .= sum;
-$expr .= apply;
-#$expr .= alias("x");
+$expr .= sum;
+$expr .= alias("x");
 df.groupby(["groups"]).agg([$expr]).head;
-die;
 
 df.select(
     [

@@ -7,8 +7,7 @@ This is a new module to bind raku [Dan](https://github.com/p6steve/raku-Dan) to 
 The following broad capabilities are envisaged:
 - Polars structures (Series, DataFrames) as opaque shadows
 - Polars expressions (via Polars::dsl)
-- Polars lazy APIs (via raku lazy semantics)
-- handle map & apply (with raku callbacks)
+- Polars lazy queries (via raku lazy semantics)
 - raku Dan features (accessors, dtypes, base methods, Dan::As::Query API extension)
 - broad datatype support & mapping
 - concurrency

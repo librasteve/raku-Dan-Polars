@@ -30,7 +30,7 @@ cd ../bin
 ./synopsis-dan-polars4.raku #(or 1,2,3)
 ```
 
-Or you are wclome plunder the [Dockerfiles](https://github.com/p6steve/raku-Dockerfiles) for how to build your own environment.
+Or you are welcome plunder the [Dockerfiles](https://github.com/p6steve/raku-Dockerfiles) for how to build your own environment.
 
 ------
 

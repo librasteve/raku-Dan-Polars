@@ -54,7 +54,6 @@ Or you are wclome plunder the [Dockerfiles](https://github.com/p6steve/raku-Dock
 3. [ ] Polars Exprs (s2)
    - [x] unary exprs
    - [x] operators
-   - [ ] map & apply
 
 4. [ ] Test
  
@@ -71,6 +70,7 @@ This will then provide a basis for Dan::As::Query v1 for Dan and Dan::Pandas, im
 - [ ] strip / fold Index
  
 ### v3
+- [ ] map & apply (DSL style)
 - [ ] apply over [multiple cols](https://stackoverflow.com/questions/72372821/how-to-apply-a-function-to-multiple-columns-of-a-polars-dataframe-in-rust)
 - [ ] ternary if-then-else (Dan::As::Ternary)
 - [ ] str operations (Dan::As::Str)

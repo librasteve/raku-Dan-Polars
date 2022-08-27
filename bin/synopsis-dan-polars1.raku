@@ -43,13 +43,14 @@ say s.index;
 say s.ix;
 #say ~s.reindex(['d','e','f','g','h','i']);
 say s.map(*+2);
-say [+] s; 
+#say [+] s;   #Cannot resolve caller Numeric. Iterator not used?!
 say s >>+>> 2; 
 say s >>+<< s; 
 say s[2];
-#say s<c>;
+say s<2>;
 
 s.splice(1,2,(j=>3)); 
+s.head;
 my \t = Series.new( [f=>1, e=>0, d=>2] );
 s.concat: t;
 s.head;
@@ -68,12 +69,6 @@ say ~u;
 my \v = Series.new( u );
 say v.^name;
 v.show;
-
-#`[ expression (part of df query vvvvv) 
-my \costs = quants;
-costs.pd: '.mul', prices;
-#]
-
 #]]
 
 say "=============================================";
@@ -82,7 +77,7 @@ say "=============================================";
 
 #my \dates = (Date.new("2022-01-01"), *+1 ... *)[^6];
 #my \df = DataFrame.new( [[rand xx 4] xx 6], index => dates, columns => <A B C D> );
-#my \df = DataFrame.new( [[rand xx 4] xx 6], columns => <A B C D> );
+my \df = DataFrame.new( [[rand xx 4] xx 6], columns => <A B C D> );
 #my \df = DataFrame.new( [[rand xx 4] xx 6] );
 
 #`[
@@ -90,21 +85,21 @@ my \df = DataFrame.new;
 df.read_csv("../dan/src/iris.csv");
 my $column = df.column("sepal.length");
 $column.head;
-my $select = df.select(["sepal.length", "variety"]);
+my $select = df.select([col("sepal.length"), col("variety")]);
 $select.head;
 #]
 
-#`[
-#my \df = DataFrame.new();
-#df.with_column(s);  ##moved to lf
-##say ~df;
+#[
 df.show;
 df.head;
 say df.elems;
 say df.dtypes;
 say df.get_column_names;
 say df.cx;
-df.pull; 
+my \se = Series.new([1, 3, 5, 6, 8, 10]);
+df.with_column(se);  ##moved to lf
+df.head;
+df.pull;    #iamerejh ... looks like pull / reset is broke 
 say df.data;
 #]
 
@@ -113,8 +108,9 @@ say df.data;
 say "---------------------------------------------";
 
 # Data Accessors [row;col]
-#say df[0;0];
+say df[0;0];
 ##df[0;0] = 3;                # set value (not sure why this works, must manual push
+die;
 
 #`[
 # Smart Accessors (mix Positional and Associative)

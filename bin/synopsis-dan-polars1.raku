@@ -170,9 +170,7 @@ df.sort( { df.ix[$++] } ).show;    # sort by index (no-op)
 df.grep( { .[1] < 0.5 } ).show;   # by 2nd column 
 ##say ~df.grep( { df.ix[$++] eq <2022-01-02 2022-01-06>.any } ); # by index (multiple) 
 #]
-die;
 
-#`[
 say "---------------------------------------------";
 #FIXME align dtype arg to Str (Dan & Dan::Pandas)
 my \df2 = DataFrame.new([
@@ -185,6 +183,7 @@ my \df2 = DataFrame.new([
 ]);
 ##say ~df2;
 df2.show;
+#`[
 say df2.data;
 say df2.dtypes;
 say df2.index;    #Hash (name => row number)   -or- df.ix; #Array
@@ -194,17 +193,19 @@ say df2.columns;  #Hash (label => col number)  -or- df.cx; #Array
 #`[
 say "---------------------------------------------";
 # row-wise splice:    #FIXME cant get a DataSlice
+df2.flood;
 my $ds = df2[0];                        # get a DataSlice 
-$ds.splice($ds.index<A>,1,7);           # tweak it a bit
+$ds.splice($ds.index<A>,1, [0 => 7]);   # tweak it a bit
 df2.splice( 1, 2, [j => $ds] );         # default
+df2.show;
 # column-wise splice:
-##my $se = df2[*]<D>;              	      # get a Series 
-my $se = df2.series: <D>;               # get a Series 
+my $se = df2[*]<D>;              	      # get a Series 
 $se.splice(2, 1, [2 => 8]);             # tweak it a bit
 $se.show;
 df2.splice( :ax, 1, 2, [K => $se] );    # axis => 1
 df2.show;
 #]
+die;
 
 #`[[[ iamerejh
 #[

@@ -215,7 +215,7 @@ role Series does Positional does Iterable is export {
             }
         }.Hash;
 
-        $.push;
+        self.flush;
 
         @res
     }

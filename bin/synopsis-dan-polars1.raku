@@ -107,34 +107,40 @@ df.head;
 #FIXME (have left in state Role Support on, postcircumfix etc off 
 say "---------------------------------------------";
 
+#`[
 # Data Accessors [row;col]
+df.show;
+df.flood;                   # must manual flood
 say df[0;0];
-df[0;0] = 3;                # set value (not sure why this works, must manual flush
+df[0;0] = 3;                # must manual flush
 df.flush;
 df.show;
-die;
-
-#`[
-# Smart Accessors (mix Positional and Associative)
-say df[0];
-say df[0][0];
-say df ~~ DataFrame:D;
-say df[0]<A>; #... hmm broken!;
-#say df{"2022-01-03"}[1];
-# Object Accessors & Slices (see note 1)
-say ~df[0];                 # 1d Row 0 (DataSlice)
-say ~df[*]<A>;              # 1d Col A (Series)
-say ~df[0..*-2][1..*-1];    # 2d DataFrame
-#say ~df{dates[0..1]}^;      # the ^ postfix converts an Array of DataSlices into a new DataFrame
-# Head & Tail
-say ~df[0..^3]^;            # head
-say ~df[(*-3..*-1)]^;       # tail
 #]
 
 #`[
+# Smart Accessors (mix Positional and Associative)
+df.show;
+say df[0];
+say df[0][0];
+say df ~~ DataFrame:D;
+say df[0].^name;
+say df[0]<A>;
+#say df{"2022-01-03"}[1];
+# Object Accessors & Slices (see note 1)
+say ~df[0];                 # 1d Row 0 (DataSlice)
+df[*]<A>.show;              # 1d Col A (Series)  ## FIXME say ~ vs .show
+df[0..*-2][1..*-1].show;    # 2d DataFrame
+#say ~df{dates[0..1]}^;      # the ^ postfix converts an Array of DataSlices into a new DataFrame
+# Head & Tail
+df[0..^3]^.show;            # head
+df[(*-3..*-1)]^.show;       # tail
+#]
+
+#[
 say "---------------------------------------------";
 ### DataFrame Operations ###
 # 2d Map/Reduce
+df.show;
 say df.map(*.map(*+2).eager);
 say [+] df[*;1];
 say [+] df[1;*];
@@ -144,6 +150,7 @@ say df >>+>> 2;
 say df >>+<< df;
 # Transpose   #FIXME - rust not working
 say ~df.T;                 
+die;
 # Describe
 say df.height;
 say df.width;

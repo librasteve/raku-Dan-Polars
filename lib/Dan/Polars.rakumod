@@ -605,19 +605,21 @@ role DataFrame does Positional does Iterable is export {
     #### Sync Methods #####
     #### Flood & Flush  #####
 
-    #| set raku attrs to rc_data, reset index
+    #| set raku attrs to rc_cols, rc_data, reset index
     method flood {
-        $.cx: $.cx;
+        self.cx: self.cx;       #gettor queries rc, settor is raku side
 
         my @series;
         for |$.cx -> $colname {
             @series.push: $.column( $colname )    
         }
 
+        @!data = [];
         loop ( my $i=0; $i < @series; $i++ ) {
-            @series[$i].pull;
-            @!data[$i].push: @series[$i].data
+            @series[$i].flood;
+            @!data.push: @series[$i].data
         }
+        @!data = [Z] @!data;
 
         %!index = gather {
             for 0..^@!data {
@@ -628,6 +630,7 @@ role DataFrame does Positional does Iterable is export {
 
     #| flush DataFrame 
     method flush {
+        #say 'flushing...', @!data;
         self.load-from-data
     }
 
@@ -885,7 +888,6 @@ multi infix:<div>( ExprC:D $left, ExprC:D $right ) is export {
     $left.__floordiv__: $right 
 }
 
-#`[[[
 ### Postfix '^' as explicit subscript chain terminator
 
 multi postfix:<^>( Dan::DataSlice @ds ) is export {
@@ -977,97 +979,5 @@ multi postcircumfix:<{ }>( Dan::DataSlice @aods , @ks ) is export {
     my @s = @aods.first.index{@ks};
     DataFrame.new( sliced-slices(@aods, @s) )
 }
-#]]]
-#`[[[
-### Postfix '^' as explicit subscript chain terminator
 
-multi postfix:<^>( Dan::DataSlice @ds ) is export {
-    DataFrame.new(@ds) 
-}
-multi postfix:<^>( Dan::DataSlice $ds ) is export {
-    DataFrame.new(($ds,)) 
-}
-
-##proto postcircumfix:<[ ]>( DataFrame:D $df, |) { * }
-### Override first subscript [i] to make Dan::DataSlices (rows)
-
-#| provides single Dan::DataSlice which can be [j] subscripted directly to value 
-multi postcircumfix:<[ ]>( DataFrame:D $df, Int $p ) is export {
-    Dan::DataSlice.new( data => $df.data[$p;*], index => $df.columns, name => $df.index.&sbv[$p] )
-}
-
-# helper
-sub make-aods( $df, @s ) {
-    my Dan::DataSlice @ = @s.map({
-        Dan::DataSlice.new( data => $df.data[$_;*], index => $df.columns, name => $df.index.&sbv[$_] )
-    })
-}
-
-#| slices make Array of Dan::DataSlice objects
-multi postcircumfix:<[ ]>( DataFrame:D $df, @s where Range|List ) is export {
-    make-aods( $df, @s )
-}
-multi postcircumfix:<[ ]>( DataFrame:D $df, WhateverCode $p ) is export {
-    my @s = $p( |($df.elems xx $p.arity) );
-    make-aods( $df, @s )
-}
-multi postcircumfix:<[ ]>( DataFrame:D $df, Whatever ) is export {
-    my @s = 0..^$df.elems; 
-    make-aods( $df, @s )
-}
-
-
-### Override second subscript [j] to make DataFrame
-
-# helper
-sub sliced-slices( @aods, @s ) {
-    gather {
-        @aods.map({ take Dan::DataSlice.new( data => $_[@s], index => $_.index.&sbv[@s], name => $_.name )}) 
-    }   
-}
-sub make-series( @sls ) {
-    my @data  = @sls.map({ $_.data[0] }); 
-    my @index = @sls.map({ $_.name[0] });
-    my $name  = @sls.first.index.&sbv[0];
-
-    Series.new( :@data, :@index, :$name )
-}
-
-#| provides single Series which can be [j] subscripted directly to value 
-multi postcircumfix:<[ ]>( Dan::DataSlice @aods , Int $p ) is export {
-    make-series( sliced-slices(@aods, ($p,)) )
-}
-
-#| make DataFrame from sliced Dan::DataSlices 
-multi postcircumfix:<[ ]>( Dan::DataSlice @aods, @s where Range|List ) is export {
-    DataFrame.new( sliced-slices(@aods, @s) )
-}
-multi postcircumfix:<[ ]>( Dan::DataSlice @aods, WhateverCode $p ) is export {
-    my @s = $p( |(@aods.first.elems xx $p.arity) );
-    DataFrame.new( sliced-slices(@aods, @s) )
-}
-multi postcircumfix:<[ ]>( Dan::DataSlice @aods, Whatever ) is export {
-    my @s = 0..^@aods.first.elems;
-    DataFrame.new( sliced-slices(@aods, @s) )
-}
-
-### Override first assoc subscript {i}
-
-multi postcircumfix:<{ }>( DataFrame:D $df, $k ) is export {
-    $df[$df.index{$k}]
-}
-multi postcircumfix:<{ }>( DataFrame:D $df, @ks ) is export {
-    $df[$df.index{@ks}]
-}
-
-### Override second assoc subscript {j} to make DataFrame
-
-multi postcircumfix:<{ }>( Dan::DataSlice @aods , $k ) is export {
-    my $p = @aods.first.index{$k};
-    make-series( sliced-slices(@aods, ($p,)) )
-}
-multi postcircumfix:<{ }>( Dan::DataSlice @aods , @ks ) is export {
-    my @s = @aods.first.index{@ks};
-    DataFrame.new( sliced-slices(@aods, @s) )
-}
-#]]]
+#EOF

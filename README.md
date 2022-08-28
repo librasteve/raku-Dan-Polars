@@ -39,10 +39,10 @@ Or you are welcome to plunder the [Dockerfiles](https://github.com/p6steve/raku-
 1. [ ] Dan API
    - [x] Dan::Series base methods
    - [x] Dan::DataFrame base methods
-   - [ ] Dan Accessors
-   - [ ] Dan slice & concat (s1)
-   - [ ] Dan sort & grep (s3)
-   - [ ] cross join (aka cross product)
+   - [x] Dan Accessors
+   - [x] Dan slice & concat (s1)
+   - [x] Dan sort & grep (s3)
+   - [ ] + cross join (aka cross product)
    
 2. [x] Polars Structs / Modules
    - [x] Polars::Series base methods

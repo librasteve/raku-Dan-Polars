@@ -620,6 +620,7 @@ role DataFrame does Positional does Iterable is export {
             @!data.push: @series[$i].data
         }
         @!data = [Z] @!data;
+        @!data.map: {$_.=Array};        #my @a = [[0,1],[2,3],[4,5]]; my Array() @b = [Z] @a; say @b;
 
         %!index = gather {
             for 0..^@!data {

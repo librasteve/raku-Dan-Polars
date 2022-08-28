@@ -136,7 +136,7 @@ df[0..^3]^.show;            # head
 df[(*-3..*-1)]^.show;       # tail
 #]
 
-#[
+#`[
 say "---------------------------------------------";
 ### DataFrame Operations ###
 # 2d Map/Reduce
@@ -150,7 +150,6 @@ say df >>+>> 2;
 say df >>+<< df;
 # Transpose   #FIXME - rust not working
 say ~df.T;                 
-die;
 # Describe
 say df.height;
 say df.width;
@@ -162,7 +161,7 @@ say "---------------------------------------------";
 #say ~df.sort: { .[1] };         # sort by 2nd col (ascending)
 df.sort( { .[1] } ).show;         # sort by 2nd col (ascending)
 #say ~df.sort: { -.[1] };        # sort by 2nd col (descending)
-df.sort( { -.[1] } ).show;         # sort by 2nd col (ascending)
+df.sort( { -.[1] } ).show;         # sort by 2nd col (descending)
 ##say ~df.sort: { df[$++]<C> };   # sort by col C  [FIXME cascade dead]
 ##say ~df.sort: { df.ix[$++] };   # sort by index 
 df.sort( { df.ix[$++] } ).show;    # sort by index (no-op)
@@ -171,6 +170,7 @@ df.sort( { df.ix[$++] } ).show;    # sort by index (no-op)
 df.grep( { .[1] < 0.5 } ).show;   # by 2nd column 
 ##say ~df.grep( { df.ix[$++] eq <2022-01-02 2022-01-06>.any } ); # by index (multiple) 
 #]
+die;
 
 #`[
 say "---------------------------------------------";

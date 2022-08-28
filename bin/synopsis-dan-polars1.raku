@@ -29,15 +29,16 @@ s = Series.new( [b=>1, a=>0, c=>2] );               #from Array of Pairs
 
 #say ~s;
 s.show;
+
 #`[[
 s.head;
 say s.dtype;
 say s.name;
 say s.elems;
-s.values;
+s.flood;
+say s.data;
 my \sd = s.Dan-Series;
 dd sd;
-s.pull;
 say s.data;
 say s.index;
 say s.ix;
@@ -89,18 +90,17 @@ my $select = df.select([col("sepal.length"), col("variety")]);
 $select.head;
 #]
 
-#[
+#`[
 df.show;
-df.head;
 say df.elems;
 say df.dtypes;
 say df.get_column_names;
 say df.cx;
-my \se = Series.new([1, 3, 5, 6, 8, 10]);
-df.with_column(se);  ##moved to lf
-df.head;
-df.pull;    #iamerejh ... looks like pull / reset is broke 
+df.flood;
 say df.data;
+my \se = Series.new([1, 3, 5, 6, 8, 10], name => 'E' );
+df.with_column(se);
+df.head;
 #]
 
 #FIXME (cascading accessors - see PCF redesign text edit - move type to given / when!?)
@@ -109,7 +109,9 @@ say "---------------------------------------------";
 
 # Data Accessors [row;col]
 say df[0;0];
-##df[0;0] = 3;                # set value (not sure why this works, must manual push
+df[0;0] = 3;                # set value (not sure why this works, must manual flush
+df.flush;
+df.show;
 die;
 
 #`[

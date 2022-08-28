@@ -111,6 +111,7 @@ role Series does Positional does Iterable is export {
             }.Hash;
         #}
 
+        #say 'tweaking...', $!name, @!data, $!dtype;
         $!rc = SeriesC.new( $!name, @!data, :$!dtype )
     }
 
@@ -142,7 +143,7 @@ role Series does Positional does Iterable is export {
     }
 
     method index {              # get index as Hash
-        $.pull; 
+        self.flood; 
         %!index
     }
 
@@ -164,10 +165,10 @@ role Series does Positional does Iterable is export {
     }
 
     #### Sync Methods #####
-    #### Pull & Push  #####
+    #### Flood & Flush  #####
 
     #| set raku attrs to rc_data, reset index
-    method pull {
+    method flood {
 	    @!data = $.get-data.flat;
 
         %!index = gather {
@@ -178,7 +179,7 @@ role Series does Positional does Iterable is export {
     }
 
     #| flush SeriesC (with same dtype)
-    method push {
+    method flush {
         $!rc = SeriesC.new( $!name, @!data, :$.dtype )
     }
 
@@ -187,7 +188,7 @@ role Series does Positional does Iterable is export {
 
     #| get self as Array of Pairs
     multi method aop {
-	    $.pull;
+	    self.flood;
         self.ix.map({ $_ => @!data[$++] })
     }
 
@@ -224,7 +225,7 @@ role Series does Positional does Iterable is export {
 
     method concat( Dan::Polars::Series:D $dsr ) {
 
-	    $.pull;
+	    self.flood;
 
         my $start = %!index.elems;
         my $elems = $dsr.index.elems;
@@ -246,30 +247,25 @@ role Series does Positional does Iterable is export {
         $.len
     }
     method AT-POS( $p ) {
-        $.pull;
         @!data[$p]
     }
     method EXISTS-POS( $p ) {
-        0 <= $p < self.elems ?? True !! False
+        0 <= $p < self.len ?? True !! False
     }
 
     # Iterable role support 
     # viz. https://docs.raku.org/type/Iterable
 
     method iterator {
-        $.pull;
         @!data.iterator
     }
     method flat {
-        $.pull;
         @!data.flat
     }
     method lazy {
-        $.pull;
         @!data.lazy
     }
     method hyper {
-        $.pull;
         @!data.hyper
     }
 
@@ -282,11 +278,9 @@ role Series does Positional does Iterable is export {
         Str(Any) 
     }
     method AT-KEY( $k ) {
-        $.pull;
         @!data[%.index{$k}]
     }
     method EXISTS-KEY( $k ) {
-        $.pull;
         %!index{$k}:exists
     }
 
@@ -341,7 +335,7 @@ role DataFrame does Positional does Iterable is export {
 
     method load-from-series( *@series ) {
         for @series -> \column {
-            $.with_column( column )
+            self.with_column( column )
         }
     }
 
@@ -350,11 +344,12 @@ role DataFrame does Positional does Iterable is export {
 
         my @series = gather {
             loop ( my $i = 0; $i < @!data.first.elems; $i++ ) {
+                #say 'loading...', @!data[*;$i];
                 take Series.new( data => @!data[*;$i], name => @cx[$i] ) 
             }
         }
 
-        $.load-from-series: |@series
+        self.load-from-series: |@series
     }
 
     method load-from-slices( @slices ) {
@@ -366,7 +361,7 @@ role DataFrame does Positional does Iterable is export {
             @!data[$i] := @slices[$i].data
         }
 
-        $.load-from-data
+        self.load-from-data
     }
 
     method TWEAK {
@@ -402,7 +397,7 @@ role DataFrame does Positional does Iterable is export {
                     }
                 }.Array;
 
-                $.load-from-series: |@series
+                self.load-from-series: |@series
             } 
 
 #`[
@@ -431,7 +426,7 @@ role DataFrame does Positional does Iterable is export {
 
                 # clear and load data (and index)
                 @!data = [];
-                $.load-from-slices: @slices;
+                self.load-from-slices: @slices;
             }
 
             # data arg is 2d Array (already) 
@@ -445,7 +440,7 @@ role DataFrame does Positional does Iterable is export {
                     @alphi[0..^@!data.first.elems].map( {%!columns{$_} = $++} ).eager;
                 }
 
-                $.load-from-data
+                self.load-from-data
             } 
         }
 
@@ -495,7 +490,7 @@ role DataFrame does Positional does Iterable is export {
     }
 
     method Dan-DataFrame {
-        $.pull;
+        self.flood;
         Dan::DataFrame.new( :@!data )
     }
 
@@ -608,10 +603,10 @@ role DataFrame does Positional does Iterable is export {
     }
 
     #### Sync Methods #####
-    #### Pull & Push  #####
+    #### Flood & Flush  #####
 
     #| set raku attrs to rc_data, reset index
-    method pull {
+    method flood {
         $.cx: $.cx;
 
         my @series;
@@ -620,7 +615,8 @@ role DataFrame does Positional does Iterable is export {
         }
 
         loop ( my $i=0; $i < @series; $i++ ) {
-            @!data[$i].push: @series[$i].values
+            @series[$i].pull;
+            @!data[$i].push: @series[$i].data
         }
 
         %!index = gather {
@@ -630,9 +626,9 @@ role DataFrame does Positional does Iterable is export {
         }.Hash;
     }
 
-    #| flush DataFrameC 
-    method push {
-        $!rc = DataFrameC.new( :@!data, :%!index, :%!columns )
+    #| flush DataFrame 
+    method flush {
+        self.load-from-data
     }
 
     ### Mezzanine methods ###  
@@ -656,7 +652,7 @@ role DataFrame does Positional does Iterable is export {
     }
 
     method sort( &cruton ) {  #&custom-routine-to-use
-        $.pull;
+        self.flood;
 
         my $i;
         loop ( $i=0; $i < @!data; $i++ ) {
@@ -674,7 +670,7 @@ role DataFrame does Positional does Iterable is export {
     }
 
     method grep( &cruton ) {  #&custom-routine-to-use
-	$.pull;
+        self.flood;
 
         my $i;
         loop ( $i=0; $i < @!data; $i++ ) {
@@ -702,15 +698,12 @@ role DataFrame does Positional does Iterable is export {
         Any
     }
     method elems {
-	    $.pull;
         @!data.elems
     }
     method AT-POS( $p, $q? ) {
-	    $.pull;
         @!data[$p;$q // *]
     }
     method EXISTS-POS( $p ) {
-	    $.pull;
         0 <= $p < @!data.elems ?? True !! False
     }
 
@@ -718,19 +711,15 @@ role DataFrame does Positional does Iterable is export {
     # viz. https://docs.raku.org/type/Iterable
 
     method iterator {
-	    $.pull;
         @!data.iterator
     }
     method flat {
-	    $.pull;
         @!data.flat
     }
     method lazy {
-	    $.pull;
         @!data.lazy
     }
     method hyper {
-	    $.pull;
         @!data.hyper
     }
     ### Splicing ###
@@ -784,12 +773,12 @@ role DataFrame does Positional does Iterable is export {
             }
             when 1, 0 {                         # col - array
                 self.load-from-series: |@set;
-                self.pull
+                self.flood
             }
             when 1, 1 {                         # col - aops
                 @set.map({ $_.value.rename( $_.key ) });
                 self.load-from-series: |@set.map(*.value);
-                self.pull
+                self.flood
             }
         }
     }

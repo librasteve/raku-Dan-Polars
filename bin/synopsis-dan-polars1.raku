@@ -172,6 +172,7 @@ df.grep( { .[1] < 0.5 } ).show;   # by 2nd column
 #]
 
 say "---------------------------------------------";
+#`[
 #FIXME align dtype arg to Str (Dan & Dan::Pandas)
 my \df2 = DataFrame.new([
         A => 1.0,
@@ -183,7 +184,6 @@ my \df2 = DataFrame.new([
 ]);
 ##say ~df2;
 df2.show;
-#`[
 say df2.data;
 say df2.dtypes;
 say df2.index;    #Hash (name => row number)   -or- df.ix; #Array
@@ -205,10 +205,8 @@ $se.show;
 df2.splice( :ax, 1, 2, [K => $se] );    # axis => 1
 df2.show;
 #]
-die;
 
-#`[[[ iamerejh
-#[
+#`[
 my \dfa = DataFrame.new(
         [['a', 1], ['b', 2]],
         columns => <letter number>,
@@ -226,4 +224,3 @@ dfa.concat(dfc);
 ##say ~dfa;
 dfa.show;
 #]
-#]]]

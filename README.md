@@ -1,5 +1,6 @@
  *WORK IN PROGRESS*
-
+ 
+[![License: Artistic-2.0](https://img.shields.io/badge/License-Artistic%202.0-0298c3.svg)](https://opensource.org/licenses/Artistic-2.0)
 # raku Dan::Polars
 
 This new module binds raku [Dan](https://github.com/p6steve/raku-Dan) to Polars via Raku NativeCall / Rust FFI.
@@ -16,9 +17,7 @@ The aim is to emulate the examples in the [Polars User Guide](https://pola-rs.gi
 
 ## All is strictly pre-release and only if you know what you are doing!!!
  
-## Installation
-
-Easiest way to deploy Dan::Polars is like this ...
+# INSTALLATION
 ```
 docker run -it p6steve/rakudo:rusty
 zef install Dan;
@@ -34,9 +33,18 @@ Or you are welcome to plunder the [Dockerfiles](https://github.com/p6steve/raku-
 ------
 
 # SYNOPSIS
-more examples in [bin/synopsis.raku](https://github.com/p6steve/raku-Dan/blob/main/bin/synopsis-dan.raku)
+
+Dan::Polars is a specialization of raku Dan. Checkout the [Dan synopsis](https://github.com/p6steve/raku-Dan/blob/main/README.md#synopsis) for base Series and DataFrame operations. This synopsis covers the additional features that are specific to Dan::Polars.
+
+Notes:
+
+[1] To say Dan::Polars::DataFrame uses ```df.show;``` instead of ```say ~.df;``` since it is printed from Polars Rust
+
+[2] Accessors work on _raku side_ attributes - use ```df.flood``` and ```df.flush``` to load/store to/from the Rust shadow
+
 ```raku
-use Dan :ALL;
+use Dan;
+use Dan::Polars;
 
 ### Series ###
 

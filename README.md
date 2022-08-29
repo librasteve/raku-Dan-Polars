@@ -2,17 +2,17 @@
 
 # raku Dan::Polars
 
-This is a new module to bind raku [Dan](https://github.com/p6steve/raku-Dan) to Polars via Raku NativeCall / Rust FFI.
+This new module binds raku [Dan](https://github.com/p6steve/raku-Dan) to Polars via Raku NativeCall / Rust FFI.
 
-The following broad capabilities are envisaged:
+The following broad capabilities are included:
 - Polars structures (Series, DataFrames) as opaque shadows
 - Polars expressions (via Polars::dsl)
-- Polars lazy queries (via raku lazy semantics)
+- Polars lazy queries (via raku lazy semantics [wip])
 - raku Dan features (accessors, dtypes, base methods, Dan::As::Query API extension)
 - broad datatype support & mapping
 - concurrency
 
-The ultimate aim is to emulate the examples in the [Polars User Guide](https://pola-rs.github.io/polars-book/user-guide/dsl/expressions.html)
+The aim is to emulate the examples in the [Polars User Guide](https://pola-rs.github.io/polars-book/user-guide/dsl/expressions.html)
 
 ## All is strictly pre-release and only if you know what you are doing!!!
  
@@ -32,6 +32,17 @@ cd ../bin
 Or you are welcome to plunder the [Dockerfiles](https://github.com/p6steve/raku-Dockerfiles) for how to build your own environment.
 
 ------
+
+# SYNOPSIS
+more examples in [bin/synopsis.raku](https://github.com/p6steve/raku-Dan/blob/main/bin/synopsis-dan.raku)
+```raku
+use Dan :ALL;
+
+### Series ###
+
+my \s = Series.new( [b=>1, a=>0, c=>2] );               #from Array of Pairs
+#  -or- Series.new( 
+```
 
 ## TODOs
 ### v1

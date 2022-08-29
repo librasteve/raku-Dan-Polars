@@ -36,13 +36,12 @@ Or you are welcome to plunder the [Dockerfiles](https://github.com/p6steve/raku-
 ## TODOs
 ### v1
 
-1. [ ] Dan API
+1. [x] Dan API
    - [x] Dan::Series base methods
    - [x] Dan::DataFrame base methods
-   - [ ] Dan Accessors
-   - [ ] Dan slice & concat (s1)
-   - [ ] Dan sort & grep (s3)
-   - [ ] cross join (aka cross product)
+   - [x] Dan Accessors
+   - [x] Dan slice & concat (s1)
+   - [x] Dan sort & grep (s3)
    
 2. [x] Polars Structs / Modules
    - [x] Polars::Series base methods
@@ -50,7 +49,7 @@ Or you are welcome to plunder the [Dockerfiles](https://github.com/p6steve/raku-
    - [x] .push/.pull (set-new/get-data)
    - [x] better value return
    
-3. [ ] Polars Exprs (s2)
+3. [x] Polars Exprs (s2)
    - [x] unary exprs
    - [x] operators
 
@@ -67,6 +66,7 @@ This will then provide a basis for Dan::As::Query v1 for Dan and Dan::Pandas, im
 - [ ] datetime
 - [ ] serde
 - [ ] strip / fold Index
+- [ ] cross join (aka cross product)
  
 ### v3
 - [ ] map & apply (DSL style)

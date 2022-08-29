@@ -891,6 +891,9 @@ multi infix:<div>( ExprC:D $left, ExprC:D $right ) is export {
 
 ### Postfix '^' as explicit subscript chain terminator
 
+multi postfix:<^>( @ds ) is export {     #FIXME add this to Dan
+    DataFrame.new(@ds) 
+}
 multi postfix:<^>( Dan::DataSlice @ds ) is export {
     DataFrame.new(@ds) 
 }

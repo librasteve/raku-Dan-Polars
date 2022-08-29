@@ -491,7 +491,7 @@ role DataFrame does Positional does Iterable is export {
 
     method Dan-DataFrame {
         self.flood;
-        Dan::DataFrame.new( :@!data )
+        Dan::DataFrame.new( :@!data, :%!columns )
     }
 
     method to-dataset {

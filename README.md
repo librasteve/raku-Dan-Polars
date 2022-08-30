@@ -44,7 +44,7 @@ sub starwars {
 my $obj = starwars;
 $obj .= select( [ <species mass height>>>.&col ] ) ;
 $obj .= groupby([ <species> ]) ;
-$obj .= sort( { $obj[$++]<species>, $obj[$++]<mass>} )[*].reverse^;
+$obj .= sort( {$obj[$++]<species>, $obj[$++]<mass>} )[*].reverse^;
 
 $obj.show;
 

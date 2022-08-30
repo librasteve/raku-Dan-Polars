@@ -336,3 +336,5 @@ This will then provide a basis for Dan::As::Query v1 for Dan and Dan::Pandas, im
 - [ ] ternary if-then-else (Dan::As::Ternary)
 - [ ] str operations (Dan::As::Str)
 - [ ] chunked transfer
+
+(c) Henley Cloud Consulting Ltd.

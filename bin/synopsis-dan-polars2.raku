@@ -8,10 +8,9 @@ use Dan::Polars;
 my \df = DataFrame.new;
 df.read_csv("../dan/src/iris.csv");
 
-df.column("sepal.length").head;
+#df.column("sepal.length").head;
 
-my $se;
-$se = df.column("sepal.length");
+my $se = df.column("sepal.length");
 #say $se.get-data;
 
 $se = df.column("variety");
@@ -19,12 +18,10 @@ my @da = $se.get-data;
 #say @da[0];
 #say @da[57];
 
-#$se.pull;
+#$se.flood;
 #say $se.data;
 
-#this version of select no longer works
-#df.select(["sepal.length", "variety"]).head;
-
+#df.select([col("sepal.length"), col("variety")]).head;
 #df.groupby(["variety"]).agg([col("petal.length").sum]).head;
 
 my $expr;
@@ -45,9 +42,9 @@ my @exprs;
 #@exprs.push: col("sepal.length").count;
 #@exprs.push: col("sepal.length").forward_fill;
 #@exprs.push: col("sepal.length").backward_fill;
-#@exprs.push: col("sepal.length").reverse;
-#@exprs.push: col("sepal.length").std;
-@exprs.push: col("sepal.length").var;
+@exprs.push: col("sepal.length").reverse;
+@exprs.push: col("sepal.length").std.alias("std");
+#@exprs.push: col("sepal.length").var;
 #df.groupby(["variety"]).agg(@exprs).head;
 
 #df.select([col("*").exclude(["sepal.width"])]).head;
@@ -77,8 +74,8 @@ df.select([
 
 df.with_column($se.rename("newcol")).head;
 
-#df.with_columns(col("variety").apply).head;
-df.with_columns([col("variety").apply]).head;
+df.with_columns([col("variety").alias("newnew")]).head;
+die;
 
 #`[notes
 df.with_column takes a Series and adds it to the df

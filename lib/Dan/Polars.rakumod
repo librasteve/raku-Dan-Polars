@@ -639,7 +639,7 @@ role DataFrame does Positional does Iterable is export {
 
     method T {                      #FIXME - rust not working
         my \df = $.Dan-DataFrame;
-        df.T
+        DataFrame.new: df.T
     }
 
     method shape {

@@ -13,10 +13,10 @@ use polars::prelude::{Result as PolarResult};
 use polars::lazy::dsl;
 use polars::lazy::dsl::Expr;
 use polars::lazy::dsl::Operator;
-//use polars_core::series::ops::NullBehavior;
-//use std::borrow::Cow;
 
 // maybe also...
+//use polars_core::series::ops::NullBehavior;
+//use std::borrow::Cow;
 //use polars_lazy::prelude::*;
 //use polars_core::prelude::*;
 
@@ -422,6 +422,10 @@ impl DataFrameC {
         }
     }
 
+    fn rename(&mut self, old_name: String, new_name: String) -> DataFrame {
+        self.df.rename(&old_name, &new_name).unwrap().clone()
+    }
+
     fn column(&self, string: String) -> Series {
         self.df.column(&string).unwrap().clone()
     }
@@ -498,6 +502,25 @@ pub extern "C" fn df_dtypes(ptr: *mut DataFrameC, retline: RetLine) {
 pub extern "C" fn df_get_column_names(ptr: *mut DataFrameC, retline: RetLine) {
     let df_c = check_ptr(ptr);
     df_c.get_column_names(retline);
+}
+
+#[no_mangle]
+pub extern "C" fn df_rename(
+    ptr: *mut DataFrameC,
+    old_name: *const c_char,
+    new_name: *const c_char,
+) -> *mut DataFrameC { 
+    let df_c = check_ptr(ptr);
+
+    let old_name = unsafe {
+        CStr::from_ptr(old_name).to_string_lossy().into_owned()
+    };
+    let new_name = unsafe {
+        CStr::from_ptr(new_name).to_string_lossy().into_owned()
+    };
+
+    df_c.rename(old_name, new_name);
+    df_c
 }
 
 #[no_mangle]

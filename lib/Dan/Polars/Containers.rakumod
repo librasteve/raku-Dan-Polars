@@ -211,6 +211,7 @@ class DataFrameC is repr('CPointer') is export {
     sub df_width(DataFrameC) returns uint32 is native($n-path) { * }
     sub df_dtypes(DataFrameC, &callback (Str)) is native($n-path) { * }
     sub df_get_column_names(DataFrameC, &callback (Str)) is native($n-path) { * }
+    sub df_rename(DataFrameC, Str, Str)     returns DataFrameC is native($n-path) { * }
     sub df_column(DataFrameC, Str) returns SeriesC is native($n-path) { * }
     sub df_select(DataFrameC, CArray[Str], size_t) returns DataFrameC is native($n-path) { * }
     sub df_with_column(DataFrameC, SeriesC) returns DataFrameC is native($n-path) { * }
@@ -262,6 +263,10 @@ class DataFrameC is repr('CPointer') is export {
 
         df_get_column_names(self, &line_out);
         @out
+    }
+
+    method rename( Str \old_name, Str \new_name --> DataFrameC) {
+        df_rename(self, old_name, new_name)
     }
 
     method column( Str \colname --> SeriesC ) {

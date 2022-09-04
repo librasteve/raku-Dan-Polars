@@ -577,18 +577,19 @@ role DataFrame does Positional does Iterable is export {
 
     #| set (re)index from Array
     multi method ix( @new-index ) {
-        %!index = %();
-        @new-index.map: { %!index{$_} = $++  };
+        warn "settor method .ix is not implemented by Dan::Polars (Polars does not implement row index";
+    }
 
-        #$.push FIXME changed to require manual push (gonna excise index anyway)
+    method rename( $old_name, $new_name ) {
+        $!rc.rename( $old_name, $new_name )
     }
 
     #| set columns (relabel) from Array
-    multi method cx( @new-labels ) {
-        %!columns = %();
-        @new-labels.map: { %!columns{$_} = $++  };
-
-        #$.push FIXME changed to require manual push (otherwise cant use in .pull)
+    multi method cx( @new-names ) {
+        my @old-names = |self.cx;
+        for ^@new-names {
+            self.rename( @old-names[$++], @new-names[$++] ) 
+        }
     }
 
     method rc( $rc ) {

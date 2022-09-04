@@ -6,7 +6,7 @@ use Test;
 plan 18;
 
 use Dan;
-use Dan::Pandas;
+use Dan::Polars;
 
 ## Series - Updates
 
@@ -14,18 +14,17 @@ my \s = $;
 my \t = $;
 
 s = Series.new([b=>1, a=>0, c=>2]);
-s.ix: <b c d>;
-is ~s, "b    1\nc    0\nd    2\nName: anon, dtype: int64",			's.ix';
 
-s.splice: *-1;
-ok s.elems ==2,                                                                 's.pop';
+#FIXME - reinstate
+#s.splice: *-1;
+#ok s.elems == 2,                                                                's.pop';
 
-s.splice( 1,2,(j => NaN) );
-ok s.ix[1] eq 'j',                                                          	's.splice';
+s.splice( 1,2,(j => 7) );
+ok s[1] == 7,                                                                 	's.splice';
 
 s = Series.new([b=>1, a=>0, c=>2]);
 t = Series.new([f=>1, e=>0, d=>2]);
-ok (s.concat: t).ix[3] eq 'f',                                              	's.concat';
+ok (s.concat: t)[3] == 1,                                                     	's.concat';
 
 ## DataFrames - Updates 
 
@@ -39,16 +38,28 @@ my $df2 = DataFrame.new([
 ]);
 
 $df2.ix: <a b c d>;
-is $df2.index, "a\t0\nb\t1\nc\t2\nd\t3",                                        'df.ix';
+is $df2.index, "0\t0\n1\t1\n2\t2\n3\t3",                                        'df.ix';
+
+$df2.rename('A','a');
+$df2.flood;
+ok $df2[0]<a> == 1.0,                                                           'df.rename';
 
 $df2.cx: <a b c d e f>;
-is $df2.series('a').dtype, "<class 'numpy.int64'>",			  	'df.cx';
+ok $df2[0]<f> ~~ 'foo',                                                         'df.cx (settor)';
+
+is $df2.series('a').dtype, 'f64',                               			  	'df.series.dtype';
 
 $df2.splice: *-1; 
+$df2.flush;
 ok $df2.ix.elems == 3,                                                          'df.pop [row]';
 
 $df2.splice: :ax(1), *-1;
+#iamerejh
+dd $df2;
+$df2.flush;
+
 ok $df2.cx.elems == 5,                                                          'df.pop [col]';
+die;
 
 my $df3 = DataFrame.new([
         A => 1.0,

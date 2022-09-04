@@ -312,6 +312,7 @@ Usually no data needs to be transferred from Raku to Rust (or vice versa). For e
 3. [x] Polars Exprs (s2)
    - [x] unary exprs
    - [x] operators
+   - [ ] drop
    
 4. [ ] Documentation
    - [x] synopsis
@@ -322,6 +323,7 @@ Usually no data needs to be transferred from Raku to Rust (or vice versa). For e
 This will then provide a basis for Dan::As::Query v1 for Dan and Dan::Pandas, immutability, refactor...
 
 ### v2
+- [ ] unique_stable
 - [ ] expr arity > 1
 - [ ] 'over' expr
 - [ ] clone (then retest h2o-par)

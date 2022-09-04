@@ -49,8 +49,12 @@ ok $df2[0]<f> ~~ 'foo',                                                         
 
 is $df2.series('a').dtype, 'f64',                               			  	'df.series.dtype';
 
+$df2.show;
+#need drop and new
 $df2.splice: *-1; 
-$df2.flush;
+#$df2.flush;
+$df2.show;
+die;
 ok $df2.ix.elems == 3,                                                          'df.pop [row]';
 
 $df2.splice: :ax(1), *-1;
@@ -59,7 +63,6 @@ dd $df2;
 $df2.flush;
 
 ok $df2.cx.elems == 5,                                                          'df.pop [col]';
-die;
 
 my $df3 = DataFrame.new([
         A => 1.0,

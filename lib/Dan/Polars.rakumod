@@ -632,7 +632,7 @@ role DataFrame does Positional does Iterable is export {
 
     #| flush DataFrame 
     method flush {
-        #say 'flushing...', @!data;
+        say 'flushing...', @!data;
         self.load-from-data
     }
 
@@ -795,6 +795,26 @@ role DataFrame does Positional does Iterable is export {
         }
     }
 
+    #| get self as a Dan::DataFrame, perform splice operation and push back
+    method splice( DataFrame:D: $start = 0, $elems?, :ax(:$axis), *@replace ) {
+        my $danse = self.Dan-DataFrame;
+
+        my @res = $danse.splice( $start, $elems, :$axis, |@replace );
+
+        %!index   = $danse.index;
+        %!columns = $danse.columns;
+        @!data    = $danse.data;
+
+        #iamerejh - this will never work, need to make new rc for this self!!
+        my $df-n = DataFrame.new( :@!data, :%!columns );
+
+        #my $args = self.prep-py-args;
+        #$!po.rd_push($args);
+
+        @res
+    }
+
+#`[
     #| splice as Array or Array of Pairs - [index|columns =>] DataSlice|Series
     #| viz. https://docs.raku.org/routine/splice
     method splice( DataFrame:D: $start = 0, $elems?, :ax(:$axis) is copy, *@replace ) {
@@ -807,6 +827,7 @@ role DataFrame does Positional does Iterable is export {
 
         @res
     }
+#]
 
 #`[[[iamerejh
     ### Concat ###

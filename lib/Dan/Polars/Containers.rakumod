@@ -215,18 +215,17 @@ class DataFrameC is repr('CPointer') is export {
     sub df_column(DataFrameC, Str) returns SeriesC is native($n-path) { * }
     sub df_select(DataFrameC, CArray[Str], size_t) returns DataFrameC is native($n-path) { * }
     sub df_with_column(DataFrameC, SeriesC) returns DataFrameC is native($n-path) { * }
-    sub df_query(DataFrameC) returns DataFrameC is native($n-path) { * }
 
     method new {
         df_new
     }
 
     submethod DESTROY {              #Free data when the object is garbage collected.
-        df_free(self);
+        df_free(self)
     }
 
     method read_csv( Str \path ) {
-        df_read_csv(self, path);
+        df_read_csv(self, path)
     }
 
     method show {
@@ -279,10 +278,6 @@ class DataFrameC is repr('CPointer') is export {
 
     method with_column( SeriesC \column ) {
         df_with_column(self, column)
-    }
-
-    method query {
-        df_query(self)
     }
 }
 

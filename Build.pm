@@ -13,6 +13,11 @@ class Build {
         #]
         
         my $proc = Proc::Async.new: run <cargo build>;
+        $proc.bind-stdout($*ERR);
+        $proc.start;
+        
+        #`[[
+        my $proc = Proc::Async.new: run <cargo build>;
 
         react {
             whenever $proc.stdout.lines { # split input on \r\n, \n, and \r 
@@ -44,7 +49,7 @@ class Build {
         }
 
         say ‘Program finished’;
-        #]
+        #]]
         # do build stuff to your module
         # which is located at $dist-path
     }

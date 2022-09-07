@@ -8,8 +8,8 @@ class Build {
         chdir 'dan';
         #my $proc = run 'echo', 'Raku is Great!', :out, :err;
         my $proc = run <cargo build>, :out, :err;
-        warn $proc.out.slurp(:close); # OUTPUT: «Raku is Great!␤» 
-        warn $proc.err.slurp(:close); # OUTPUT: «␤»
+        warn $proc.out.slurp; # OUTPUT: «Raku is Great!␤» 
+        warn $proc.err.slurp; # OUTPUT: «␤»
         #]
         # do build stuff to your module
         # which is located at $dist-path

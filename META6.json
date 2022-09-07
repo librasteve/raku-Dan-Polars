@@ -9,7 +9,7 @@
   "auth": "zef:p6steve",
   "depends": [
     "Dan",
-    "Timers"
+    "Timer"
   ],
   "build-depends": [],
   "test-depends": [],

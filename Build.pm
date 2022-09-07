@@ -1,7 +1,7 @@
 class Build {
     method build($dist-path) {
         warn 'yo';
-        warn 'no', $dist-path;
+        say 'no', $dist-path;
         say indir( 'dan', {run <cargo build>} );
         #`[
         my $proc = run 'echo', 'Raku is Great!', :out, :err;

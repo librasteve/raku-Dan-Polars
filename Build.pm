@@ -1,6 +1,6 @@
 class Build {
     method build($dist-path) {
-        warn 'yo';
+        say 'yo';
         say 'no', $dist-path;
         say indir( 'dan', {run <cargo build>} );
         #`[

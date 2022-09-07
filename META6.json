@@ -14,7 +14,8 @@
   "build-depends": [],
   "test-depends": [],
   "provides": {
-    "Dan::Polars": "lib/Dan/Polars.rakumod"
+    "Dan::Polars": "lib/Dan/Polars.rakumod",
+    "Dan::Polars::Containers": "lib/Dan/Polars/Containers.rakumod"
   },
   "resources": [],
   "license": "Artistic-2.0",

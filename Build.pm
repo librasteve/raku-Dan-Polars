@@ -6,7 +6,7 @@ class Build {
         #run 'echo', 'Raku is Great!';
         #[
         my $proc = run 'echo', 'Raku is Great!', :out, :err;
-        say $proc.out.slurp(:close).say; # OUTPUT: «Raku is Great!␤» 
+        warn $proc.out.slurp(:close).say; # OUTPUT: «Raku is Great!␤» 
         say $proc.err.slurp(:close).say; # OUTPUT: «␤»
         #]
         # do build stuff to your module

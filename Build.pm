@@ -1,8 +1,9 @@
 class Build {
     method build($dist-path) {
-        say 'yo';
+        warn 'yo';
         say 'no', $dist-path;
-        say indir( 'dan', {run <cargo build>} );
+        #say indir( 'dan', {run <cargo build>} );
+        run 'echo', 'Raku is Great!';
         #`[
         my $proc = run 'echo', 'Raku is Great!', :out, :err;
         $proc.out.slurp(:close).say; # OUTPUT: «Raku is Great!␤» 

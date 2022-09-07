@@ -6,8 +6,8 @@ class Build {
         #run 'echo', 'Raku is Great!';
         #[
         my $proc = run 'echo', 'Raku is Great!', :out, :err;
-        $proc.out.slurp(:close).warn; # OUTPUT: «Raku is Great!␤» 
-        $proc.err.slurp(:close).warn; # OUTPUT: «␤»
+        warn $proc.out.slurp(:close); # OUTPUT: «Raku is Great!␤» 
+        warn $proc.err.slurp(:close); # OUTPUT: «␤»
         #]
         # do build stuff to your module
         # which is located at $dist-path

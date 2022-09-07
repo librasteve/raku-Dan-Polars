@@ -1,7 +1,8 @@
 *PRE-RELEASE*
  
 [![License: Artistic-2.0](https://img.shields.io/badge/License-Artistic%202.0-0298c3.svg)](https://opensource.org/licenses/Artistic-2.0)
-# raku Dan::Polars
+
+# raku Dan::Polars - WIP
 
 This new module binds Raku [Dan](https://github.com/p6steve/raku-Dan) to Polars via Raku NativeCall / Rust FFI.
 

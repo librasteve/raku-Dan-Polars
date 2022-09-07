@@ -1,6 +1,6 @@
 class Build {
     method build($dist-path) {
-        warn ' Running cargo build against Dan::Polars Cargo.toml (may take a few mins).';
+        warn ' Running rust cargo build against Cargo.toml (may take a few mins).';
         chdir 'dan';
           
         my $proc = Proc::Async.new: run <cargo build>;

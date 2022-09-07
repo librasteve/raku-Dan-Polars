@@ -5,7 +5,7 @@ class Build {
         #say indir( 'dan', {run <cargo build>} );
         #run 'echo', 'Raku is Great!';
         #[
-        chdir: 'dan';
+        chdir 'dan';
         #my $proc = run 'echo', 'Raku is Great!', :out, :err;
         my $proc = run <cargo build>, :out, :err;
         warn $proc.out.slurp(:close); # OUTPUT: «Raku is Great!␤» 

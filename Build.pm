@@ -7,6 +7,8 @@ class Build {
         $proc.bind-stdout($*ERR);
         $proc.start;
         
-        0
+        warn 'Build successful';
+        
+        exit 0
     }
 }

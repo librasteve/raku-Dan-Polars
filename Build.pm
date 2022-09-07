@@ -6,5 +6,7 @@ class Build {
         my $proc = Proc::Async.new: run <cargo build>;
         $proc.bind-stdout($*ERR);
         $proc.start;
+        
+        0
     }
 }

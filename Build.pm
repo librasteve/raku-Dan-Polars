@@ -1,6 +1,6 @@
 class Build {
     method build($dist-path) {
-        warn ' Running rust cargo build against Cargo.toml (may take a few mins).';
+        warn ' Building Rust Polars library (may take a few minutes).';
         chdir 'dan';
           
         my $proc = Proc::Async.new: run <cargo build>;

@@ -17,7 +17,9 @@
     "Dan::Polars": "lib/Dan/Polars.rakumod",
     "Dan::Polars::Containers": "lib/Dan/Polars/Containers.rakumod"
   },
-  "resources": [],
+  "resources": [
+        "libraries/dan"
+  ],
   "license": "Artistic-2.0",
   "tags": [
     "Data Analytics",

@@ -9,8 +9,8 @@ class Build {
         
         chdir '..';
         mkdir 'resources';
-        mkdir 'resources/library';
-        move 'dan/target/debug/libdan.so', 'resources/library/libdan.so';
+        mkdir 'resources/libraries';
+        move 'dan/target/debug/libdan.so', 'resources/libraries/libdan.so';
         
         warn 'Build successful';
         

@@ -7,6 +7,8 @@ class Build {
         $proc.bind-stdout($*ERR);
         $proc.start;
         
+        move 'target/debug/libdan.so', '../resources/library';
+        
         warn 'Build successful';
         
         exit 0

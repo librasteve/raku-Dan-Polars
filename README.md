@@ -16,22 +16,17 @@ The following broad capabilities are included:
 
 The aim is to emulate the examples in the [Polars User Guide](https://pola-rs.github.io/polars-book/user-guide/dsl/expressions.html)
  
-# INSTALLATION
-```
-docker run -it p6steve/rakudo:rusty
-zef install Dan;
-git clone https://github.com/p6steve/raku-Dan-Polars.git
-cd raku-Dan-Polars/dan
-cargo build
-cd ../bin
-./synopsis-dan-polars4.raku #(or 1,2,3)
-```
+### Installation
+Based on the Dockerfile chain [(1)](https://github.com/p6steve/raku-Dan-Polars/blob/main/Dockerfile) <= [(2)](https://github.com/p6steve/raku-Dockerfiles)
+- ```docker run -it p6steve/raku-dan:polars```
+- ```cd /rakudo/share/perl6/site/bin```
+- ```./synopsis-dan-polars1.raku``` (or 2/3/4)
 
-Or you are welcome to plunder the [Dockerfiles](https://github.com/p6steve/raku-Dockerfiles) for how to build your own environment.
+_You are welcome to plunder the Dockerfiles for how to set up your own environment._
 
 ------
 
-# NUTSHELL
+### Nutshell
 
 ```raku
 use Dan;
@@ -267,7 +262,7 @@ Notes:
 
 ----
  
-# DESIGN PRINCIPLES
+### Design Notes
 
 1. lazy
 

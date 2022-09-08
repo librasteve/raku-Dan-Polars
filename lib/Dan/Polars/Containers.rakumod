@@ -20,7 +20,8 @@ sub carray( $dtype, @items ) {
 ### Container Classes (CStruct) that interface to Rust lib.rs ###
 
 #constant $n-path    = 'dan/target/debug/dan';
-constant $n-path    = 'resources/libraries/dan';
+#constant $n-path    = 'resources/libraries/dan';
+constant $n-path = %?RESOURCES<libraries/dan>;
 
 class SeriesC is repr('CPointer') is export {
     sub se_new_bool(Str, CArray[bool], size_t) returns SeriesC is native($n-path) { * }

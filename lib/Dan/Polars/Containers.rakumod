@@ -19,6 +19,20 @@ sub carray( $dtype, @items ) {
 
 ### Container Classes (CStruct) that interface to Rust lib.rs ###
 
+#`[
+dd %?RESOURCES;
+dd %?RESOURCES<libraries/dan>;
+#dd %?RESOURCES<libraries/dan>.absolute;
+warn %?RESOURCES<libraries/dan>.so;
+warn %?RESOURCES<libraries/dan> ~~ ();
+warn %?RESOURCES<libraries/dan>.elems;
+#]
+
+warn 'xx-unless' unless %?RESOURCES<libraries/dan> ~~ Str;
+warn 'xx-if' if %?RESOURCES<libraries/dan> ~~ Str;
+
+#constant $n-path    = 'dan/target/debug/dan';
+
 constant $n-path = %?RESOURCES<libraries/dan>;
 
 class SeriesC is repr('CPointer') is export {

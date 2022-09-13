@@ -24,12 +24,11 @@ ok df.cx == 0..3,                                                           '.cx
 
 # Positional
 df.flood;
-say df.data;
-#`[
 ok df[0;1] == 1,                                                            '[0;1]';
 ok df[*;1] == (1,1,1,1,1,1),                                                '[*;1]';
 ok df[0;*] == (1,2,3,4),                                                    '[0;*]';
 
+#`[
 is df[2].^name, 'Dan::DataSlice',                                           '[2]';
 my $s1 = df[2];
 my @s2 = [$s1 xx 2];

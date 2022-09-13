@@ -1,6 +1,6 @@
 unit module Dan::Polars::Containers:ver<0.0.1>:auth<Steve Roe (p6steve@furnival.net)>;
 
-no precompilation;
+#no precompilation;
 
 use NativeCall;
 

@@ -608,11 +608,10 @@ role DataFrame does Positional does Iterable is export {
 
     #| set raku attrs to rc_cols, rc_data, reset index
     method flood {
-
-        self.cx: self.cx;       #gettor queries rc, settor is raku side
+        %!columns = self.cx.map({ $_ => $++ });
 
         my @series;
-        for |$.cx -> $colname {
+        for |self.cx -> $colname {
             @series.push: $.column( $colname )    
         }
 

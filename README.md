@@ -297,8 +297,8 @@ Usually no data needs to be transferred from Raku to Rust (or vice versa). For e
    - [x] Dan::Series base methods
    - [x] Dan::DataFrame base methods
    - [x] Dan Accessors
-   - [x] Dan slice & concat (s1)
    - [x] Dan sort & grep (s3)
+   - [ ] Dan slice & concat (s1)
    
 2. [x] Polars Structs / Modules
    - [x] Polars::Series base methods

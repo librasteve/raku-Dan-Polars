@@ -3,7 +3,7 @@
 #TESTALL$ prove6 ./t      [from root]
 use lib '../lib';
 use Test;
-plan 18;
+#plan 18;
 
 use Dan;
 use Dan::Polars;
@@ -146,4 +146,4 @@ my \dfd = DataFrame.new([['bird', 'polly'], ['monkey', 'george']],
 dfa4.concat: dfd, axis => 1;
 is dfa4[1;2], "monkey",                                                               'df.concat [col]';
 
-#done-testing;
+done-testing;

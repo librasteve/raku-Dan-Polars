@@ -25,24 +25,21 @@ ok df.cx == 0..3,                                                           '.cx
 # Positional
 df.flood;
 ok df[0;1] == 1,                                                            '[0;1]';
-ok (df[*;1] >>==<< (1 xx 6)).all.so,                                        '[*;1]';
-ok (df[0;*] >>==<< (0..3)).all.so,                                          '[0;*]';
+ok df[*;1] ~~ 1 xx 6,                                                       '[*;1]';
+ok df[0;*] ~~ [0..3],                                                       '[0;*]';
 
-is df[2].^name, 'Dan::DataSlice',                                           '[2]';
-my $s1 = df[2];
-my @s2 = [$s1 xx 2];
-ok df[0,3] == @s2,                                                          '[0,3]';
-ok df[0..1] == @s2,                                                         '[0..1]';
+ok df[2] ~~ Dan::DataSlice,                                                 '[2]';
 
-my @s6 = [$s1 xx 6];
-ok df[*] == @s6,                                                            '[*]';
+is df[0,3].first.name, "0",                                                 '[0,3]';
+is df[0..1].first.name, "0",                                                '[0..1]';
+is df[*].first.name, "0",                                                   '[*]';
 
 ok df[0][1] == 1,                                                           '[0][0]';
 ok df[*][1] ~~ Dan::Polars::Series,                                         '[*][1]';
-ok (df[0][*] >>==<< (0..3)).all.so,                                         '[0][*]';
+ok df[0][*] ~~ [0..3],                                                      '[0][*]';
 
-ok (df[0..1] >>==<< @s2).all.so,                                            '[0..1]';
-ok (df[0..*-5] >>==<< @s2).all.so,                                          '[0..*-5]';
+is df[0..1].first.name, "0",                                                '[0..1]';
+is df[0..*-5].first.name, "0",                                              '[0..*-5]';
 ok (df[0..*-5][1].ix >>==<< (0,1)).all.so,                                  '[0..*-5][1]';
 ok (df[0..*-5][0..*-2].cx == <A B C>).all.so,                               '[0..*-5][0..*-2]';
 

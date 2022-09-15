@@ -6,7 +6,7 @@ on:
       - Dockerfile
       - .github/workflows/polars-weekly.yaml
   schedule:
-      - cron: "59 3 * * 4"
+      - cron: "06 4 * * 4"
 
 jobs:
   build-latest:

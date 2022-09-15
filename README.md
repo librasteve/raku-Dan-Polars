@@ -291,14 +291,13 @@ Usually no data needs to be transferred from Raku to Rust (or vice versa). For e
 ----
 ## TODOs
 
-### v1
+### v0.1
 
 1. [x] Dan API
    - [x] Dan::Series base methods
    - [x] Dan::DataFrame base methods
    - [x] Dan Accessors
    - [x] Dan sort & grep (s3)
-   - [ ] Dan slice & concat (s1)
    
 2. [x] Polars Structs / Modules
    - [x] Polars::Series base methods
@@ -309,7 +308,6 @@ Usually no data needs to be transferred from Raku to Rust (or vice versa). For e
 3. [x] Polars Exprs (s2)
    - [x] unary exprs
    - [x] operators
-   - [ ] drop
    
 4. [ ] Documentation
    - [x] synopsis
@@ -317,25 +315,32 @@ Usually no data needs to be transferred from Raku to Rust (or vice versa). For e
 
 5. [ ] Test
  
-This will then provide a basis for Dan::As::Query v1 for Dan and Dan::Pandas, immutability, refactor...
+This will then provide a basis for .
 
-### v2
+### v0.2
+- [ ] Dan slice & concat (s1)
+- [ ] drop col
+
+This will then provide a basis for design Dan::As::Query v0.1 for Dan and Dan::Pandas and review Dan API slice & concat, immutability, refactor...
+
+### v0.3
+- [ ] datetime
 - [ ] unique_stable
 - [ ] expr arity > 1
 - [ ] 'over' expr
 - [ ] clone (then retest h2o-par)
 - [ ] immutability
 - [ ] reset @data after load rc (also to Pandas)
-- [ ] datetime
-- [ ] serde
+ 
+### v0.4
 - [ ] strip / fold Index
 - [ ] cross join (aka cross product)
- 
-### v3
-- [ ] map & apply (DSL style)
+- [ ] pivot / cross-tabluate
+- [ ] map & apply (jit DSL style)
 - [ ] apply over [multiple cols](https://stackoverflow.com/questions/72372821/how-to-apply-a-function-to-multiple-columns-of-a-polars-dataframe-in-rust)
 - [ ] ternary if-then-else (Dan::As::Ternary)
 - [ ] str operations (Dan::As::Str)
 - [ ] chunked transfer
+- [ ] serde
 
 (c) Henley Cloud Consulting Ltd.

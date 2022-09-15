@@ -199,42 +199,6 @@ role Series does Positional does Iterable is export {
         $.push
     }
 
-    ### Splice ###
-    #| get self as a Dan::Series, perform splice operation and push back
-
-    method splice( Series:D: $start = 0, $elems?, :ax(:$axis), *@replace ) {
-
-	    my $serse = self.Dan-Series;
-
-	    my @res = $serse.splice( $start, $elems, :$axis, |@replace );
-
-        @!data  = $serse.data;
-        %!index = gather {
-            for 0..^@!data {
-                take ( $_ => $_ )
-            }
-        }.Hash;
-
-        self.flush;
-
-        @res
-    }
-
-    ### Concat ###
-    #| concat done by way of aop splice
-
-    method concat( Dan::Polars::Series:D $dsr ) {
-
-	    self.flood;
-
-        my $start = %!index.elems;
-        my $elems = $dsr.index.elems;
-        my @replace = $dsr.aop;
-
-        self.splice: $start, $elems, @replace;    
-        self
-    }
-
     ### Role Support ###
 
     # Positional role support 
@@ -794,60 +758,6 @@ role DataFrame does Positional does Iterable is export {
             when   .so || /col/ { 1 }
         }
     }
-
-    #| get self as a Dan::DataFrame, perform splice operation and push back
-    method splice( DataFrame:D: $start = 0, $elems?, :ax(:$axis), *@replace ) {
-        my $danse = self.Dan-DataFrame;
-
-        my @res = $danse.splice( $start, $elems, :$axis, |@replace );
-
-        %!index   = $danse.index;
-        %!columns = $danse.columns;
-        @!data    = $danse.data;
-
-        #iamerejh - this will never work, need to make new rc for this self!!
-        my $df-n = DataFrame.new( :@!data, :%!columns );
-
-        #my $args = self.prep-py-args;
-        #$!po.rd_push($args);
-
-        @res
-    }
-
-#`[
-    #| splice as Array or Array of Pairs - [index|columns =>] DataSlice|Series
-    #| viz. https://docs.raku.org/routine/splice
-    method splice( DataFrame:D: $start = 0, $elems?, :ax(:$axis) is copy, *@replace ) {
-           $axis = clean-axis(:$axis);
-        my $pair = @replace.first ~~ Pair ?? 1 !! 0;
-
-        my @wip = self.get-ap: :$axis, :$pair;
-        my @res = @wip.splice: $start, $elems//*, @replace;   # just an Array splice
-                  self.set-ap: :$axis, :$pair, @wip;
-
-        @res
-    }
-#]
-
-#`[[[iamerejh
-    ### Concat ###
-    #| get self & other as Dan::DataFrames, perform concat operation and push back
-
-    method concat( DataFrame:D $dfr, :ax(:$axis), :jn(:$join) = 'outer', :ii(:$ignore-index) ) {
-
-        my $danse = self.Dan-DataFrame;
-        my $danot = $dfr.Dan-DataFrame;
-
-        my @res = $danse.concat( $danot, :$axis, :$join, :$ignore-index );
-
-        %!index   = $danse.index;
-        %!columns = $danse.columns;
-        @!data    = $danse.data;
-
-        $.push;
-        @res
-    }
-#]]]
 }
 
 ### Infix operators for ExprCs 

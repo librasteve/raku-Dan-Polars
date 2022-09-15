@@ -320,6 +320,7 @@ This will then provide a basis for .
 ### v0.2
 - [ ] Dan splice & concat (s1) as hstack, vstack, join
 - [ ] drop col
+- [ ] non-null, etc.
 
 This will then provide a basis for design Dan::As::Query v0.1 for Dan and Dan::Pandas and review Dan API slice & concat, immutability, refactor...
 

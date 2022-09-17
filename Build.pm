@@ -3,7 +3,7 @@ class Build {
         
         chdir 'dan';        
         warn ' Building Rust Polars library (may take a few minutes).';
-        my $proc = Proc::Async.new: run <cargo build>;
+        my $proc = Proc::Async.new: <cargo build>;
         $proc.bind-stdout($*ERR);
         my $promise = $proc.start;
         await $promise;

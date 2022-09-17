@@ -6,7 +6,7 @@ class Build {
         my $proc = Proc::Async.new: run <cargo build>;
         $proc.bind-stdout($*ERR);
         my $promise = $proc.start;
-        $promise.await;
+        await $promise;
         
         chdir '..';
         mkdir 'resources';

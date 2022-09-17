@@ -5,7 +5,8 @@ class Build {
         warn ' Building Rust Polars library (may take a few minutes).';
         my $proc = Proc::Async.new: run <cargo build>;
         $proc.bind-stdout($*ERR);
-        $proc.start;
+        my $promise = $proc.start;
+        $promise.await;
         
         chdir '..';
         mkdir 'resources';

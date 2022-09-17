@@ -73,9 +73,9 @@ shape: (87, 3)
 └────────────────┴──────┴────────┘
 ```
 
-# SYNOPSIS
+### Synopsis
 
-Dan::Polars is a specialization of raku Dan. Checkout the [Dan synopsis](https://github.com/p6steve/raku-Dan/blob/main/README.md#synopsis) for base Series and DataFrame operations. This synopsis covers the additional features that are specific to Dan::Polars.
+Dan::Polars is a specialization of raku Dan. Checkout the [Dan synopsis](https://github.com/p6steve/raku-Dan/blob/main/README.md#synopsis) for base Series and DataFrame operations. The following covers the additional features that are specific to Dan::Polars.
 
 * Each Dan::Polars object (Series or DataFrame) contains a pointer to its Rust Polars "shadow". 
 * Polars does not implement indexes, so any attempt to set a row index will be ignored.

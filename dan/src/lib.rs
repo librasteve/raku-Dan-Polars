@@ -68,7 +68,7 @@ use polars::lazy::dsl::Operator;
 
 // Callback Types
 
-type RetLine = extern fn(line: *const u8);
+type RetLine = extern fn(line: *const i8);
 
 // Helpers for Safety Checks
 

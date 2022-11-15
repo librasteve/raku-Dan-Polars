@@ -1,6 +1,6 @@
 *WORK IN PROGRESS*
 
-This module is currently in experimental phase and the interfaces are subject to change without notice.
+*THIS MODULE IS PURELY EXPERIMENTAL AND NOT SUITABLE FOR USAGE*
  
 [![License: Artistic-2.0](https://img.shields.io/badge/License-Artistic%202.0-0298c3.svg)](https://opensource.org/licenses/Artistic-2.0)
 [![raku-dan:polars -> DH](https://github.com/p6steve/raku-Dan-Polars/actions/workflows/polars-weekly.yaml/badge.svg)](https://github.com/p6steve/raku-Dan-Polars/actions/workflows/polars-weekly.yaml)

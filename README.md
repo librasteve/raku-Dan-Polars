@@ -21,7 +21,7 @@ The aim is to emulate the examples in the [Polars User Guide](https://pola-rs.gi
 ### Installation
 Based on the Dockerfile chain [(1)](https://github.com/p6steve/raku-Dan-Polars/blob/main/Dockerfile) <= [(2)](https://github.com/p6steve/raku-Dockerfiles)
 - ```docker run -it p6steve/raku-dan:polars```
-- ```cd /rakudo/share/perl6/site/bin```
+- ```cd ~/rakudo/share/perl6/site/bin```
 - ```./synopsis-dan-polars1.raku``` (or 2/3/4)
 
 _You are welcome to plunder the Dockerfiles for how to set up your own environment._

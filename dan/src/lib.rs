@@ -68,7 +68,7 @@ use polars::lazy::dsl::Operator;
 
 // Callback Types
 
-type RetLine = extern fn(line: *const u8);
+type RetLine = extern fn(line: CString);
 
 // Helpers for Safety Checks
 
@@ -81,6 +81,7 @@ fn check_ptr<'a, T>(ptr: *mut T) -> &'a mut T {
 
 // Series Container
 
+#[repr(C)]
 pub struct SeriesC {
     se: Series,
 }
@@ -104,12 +105,12 @@ impl SeriesC {
 
     fn dtype(&self, retline: RetLine) {
         let dtype = CString::new(self.se.dtype().to_string()).unwrap();
-        retline(dtype.as_ptr());
+        retline(dtype);
     }
 
     fn name(&self, retline: RetLine) {
         let name = CString::new(self.se.name()).unwrap();
-        retline(name.as_ptr());
+        retline(name);
     }
 
     fn rename(&mut self, name: String) {
@@ -163,13 +164,6 @@ impl SeriesC {
         let asu8:  Vec<u8> = asstr.into_bytes();
 
         self.get_data(buffer, len, asu8);
-    }
-
-    fn get_str(&self, retline: RetLine) {
-        // flatten (i) to de-Chunk Array, flatten (ii) to unwrap Option
-        let asvec: Vec<_> = self.se.utf8().into_iter().flatten().flatten().collect(); 
-        let asstr: String = asvec.join("\",\"");
-        retline(asstr.as_ptr());
     }
 
     fn str_lengths(&self) -> u32 {
@@ -351,12 +345,6 @@ pub extern "C" fn se_get_u8(ptr: *mut SeriesC, res: *mut u8, len: size_t ) {
 }
 
 #[no_mangle]
-pub extern "C" fn se_get_str(ptr: *mut SeriesC, retline: RetLine) {
-    let se_c = check_ptr(ptr);
-    se_c.get_str(retline);
-}
-
-#[no_mangle]
 pub extern "C" fn se_str_lengths(ptr: *mut SeriesC) -> u32 {
     let se_c = check_ptr(ptr);
     se_c.str_lengths()
@@ -373,6 +361,7 @@ pub fn df_load_csv(spath: &str) -> PolarResult<DataFrame> {
     .finish()
 }
 
+#[repr(C)]
 pub struct DataFrameC {
     df: DataFrame,
 }
@@ -409,7 +398,7 @@ impl DataFrameC {
 
         for dtype in dtypes.iter() {
             let dtype = CString::new(dtype.to_string()).unwrap();
-            retline(dtype.as_ptr());
+            retline(dtype);
         }
     }
 
@@ -418,7 +407,7 @@ impl DataFrameC {
 
         for name in names.iter() {
             let name = CString::new(*name).unwrap();
-            retline(name.as_ptr());
+            retline(name);
         }
     }
 
@@ -577,6 +566,7 @@ pub extern "C" fn df_with_column(
 
 // LazyFrame Container
 
+#[repr(C)]
 pub struct LazyFrameC {
     lf: LazyFrame,
     gb: Option<LazyGroupBy>,
@@ -716,6 +706,7 @@ pub extern "C" fn lf_agg(
 // Expressions
 // these from nodejs lazy/dsl.rs...
 
+#[repr(C)]
 pub struct ExprC {
     pub inner: dsl::Expr,
 }

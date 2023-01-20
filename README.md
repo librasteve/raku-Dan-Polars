@@ -261,7 +261,7 @@ df.with_columns([col("variety").alias("newnew")]).head;
 
 Notes:
 
-* Most methods such as queries on the Raku object are applied to the shadow and the data remains on the Rust side for performance reasons. Exceptions are accessors and map operations which require the data to be synched manually to the Raku side using the ```.flood``` method and, when done, to be sent back Rustwards with ```.flush```. Sort & grep methods (in their current incarnations) also implicitly use sync.
+* Most methods such as queries on the Raku object are applied to the shadow and the data remains on the Rust side for performance reasons. Exceptions are accessors and map operations which require the data to be synched manually to the Raku side using the ```.flood``` method and, when done, to be sent back Rustwards with ```.flush```. Sort & grep methods (in their current incarnations) also implicitly use .flood/.flush to sync.
 * On reflection, the vanilla Dan splice & concat methods are not a good fit for Polars which has the simpler Series.append, DataFrame.vstack|.hstack and DataFrame.join methods. The new plan is to implement these Polars methods here (v0.2) and then to replace Dan and Dan::Pandas splice & concat with the Polars  equivalent in the forthcoming As::Query role.
 * To avoid synching for ```say ~df``` operations, the ```.show``` method applies Rust println! to STDOUT.
 * For import and export, the ```se.Dan-Series``` and ```df.Dan-DataFrame``` methods will coerce to the raku-only Dan equivalent. You can go ```Series.new(Dan::Series:D --> Dan::Polars::Series)``` and ```DataFrame.new(Dan::DataFrame:D --> Dan::Polars::DataFrame)```.

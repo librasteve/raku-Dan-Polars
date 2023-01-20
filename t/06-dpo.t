@@ -8,13 +8,13 @@ plan 8;
 use Dan;
 use Dan::Polars;
 
-constant $t-path = ?%*ENV<PSIXSTEVE> ?? '../dan' !! %?RESOURCES<libraries/dan>;
+constant $t-path = ?%*ENV<PSIXSTEVE> ?? '../bin/test_data' !! %?RESOURCES<bin/test_data>;
 
 ## Polars DataFrames
 
 # read csv
 my \df0 = DataFrame.new;
-df0.read_csv("$t-path/src/iris.csv");
+df0.read_csv("$t-path/iris.csv");
 my $column = df0.column("sepal.length");
 my $select = df0.select([col("sepal.length"), col("variety")]);
 $select.flood;

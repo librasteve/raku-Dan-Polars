@@ -15,7 +15,7 @@ class Build {
         
         mkdir 'resources/test_data';
         my @test_files = 'bin/test_data/'.IO.dir;
-        move "bin/test_data/$_", 'resources/test_data' for @test_files;
+        move "bin/test_data/$_", "resources/test_data/$_" for @test_files;
         
         warn 'Build successful';
         

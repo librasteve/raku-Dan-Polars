@@ -450,7 +450,8 @@ role DataFrame does Positional does Iterable is export {
     }
 
     method with_column( Series \column ) {
-        $!rc.with_column( column.rc )
+        $!rc.with_column( column.rc );
+        self
     }
 
     method Dan-DataFrame {

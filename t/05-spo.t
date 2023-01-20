@@ -1,0 +1,46 @@
+#!/usr/bin/env raku
+#t/05.spo.t
+#TESTALL$ prove6 ./t      [from root]
+use lib '../lib';
+use Test;
+plan 10;
+
+use Dan;
+use Dan::Polars;
+
+#Polars does not support index, so all Dan index tests are inverted (to nok) or commented out
+#Polars-specific Series tests
+
+## Series
+my \s = $;    
+
+# Constructors
+
+s = Series.new(data => [1, 3, 5, 6, 8], name => 'john' );
+ok s.dtype eq 'i32',                                                        'i32';
+s = Series.new(data => [1, 3, 5, 6, 4_294_967_294], name => 'john' );
+ok s.dtype eq 'u32',                                                        'u32';
+s = Series.new(data => [-1, 3, 5, 6, 4_294_967_298], name => 'john' );
+ok s.dtype eq 'i64',                                                        'i64';
+s = Series.new(data => [1, 3, 5, 6, 18_446_744_073_709_551_614], name => 'john' );
+ok s.dtype eq 'u64',                                                        'u64';
+s = Series.new(data => [1, 3, 5, 6, 8], name => 'john', dtype => 'num32' );
+ok s.dtype eq 'f32',                                                        'f32';
+s = Series.new(data => [1, 3, 5, NaN, 6, 8], name => 'john' );
+ok s.dtype eq 'f64',                                                        'f64';
+s = Series.new(data => <a b c d e f>, name => 'anna' );
+ok s.dtype eq 'str',                                                        'str';
+s = Series.new(data => [True, False, True, False], name => 'john' );
+ok s.dtype eq 'bool',                                                       'bool';
+
+
+my \quants = Series.new([100, 15, 50, 15, 25]);
+my \prices = Series.new([1.1, 4.3, 2.2, 7.41, 2.89]);
+my \costs  = Series.new( quants >>*<< prices );
+ok costs[3] == 111.15,                                                      '>>*<<';
+
+my \u = s.Dan-Series;
+my \v = Series.new( u );
+ok v.dtype eq 'i32',                                                        'Dan rt';
+
+#done-testing;

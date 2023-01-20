@@ -1,39 +1,38 @@
 #!/usr/bin/env raku
-
+#t/07-qpo.t
+#TESTALL$ prove6 ./t      [from root]
 use lib '../lib';
+use Test;
+plan 7;
 
 use Dan;
 use Dan::Polars;
 
+my $res;
+
+## Polars DataFrames
+
+# read csv
 my \df = DataFrame.new;
 df.read_csv("../dan/src/iris.csv");
 
-#df.column("sepal.length").head;
-
-my $se = df.column("sepal.length");
-#say $se.get-data;
-
-$se = df.column("variety");
+my $se = df.column("variety");
 my @da = $se.get-data;
-#say @da[0];
-#say @da[57];
-
-#$se.flood;
-#say $se.data;
-
-#df.select([col("sepal.length"), col("variety")]).head;
-#df.groupby(["variety"]).agg([col("petal.length").sum]).head;
+ok @da[0] ~~ 'Setosa',                                          '.column';
 
 my $expr;
 $expr  = col("petal.length");
 $expr .= sum;
-#df.groupby(["variety"]).agg([$expr]).head;
+$res = df.groupby(["variety"]).agg([$expr]);
+$res.flood;
+ok $res[1][0] ~~ <Setosa Versicolor>.any,                       '.groupby';
 
-#df.groupby(["variety"]).agg([col("petal.length").sum,col("sepal.length").sum]).head;
+#df.select([col("sepal.length"), col("variety")]).head;
+#df.groupby(["variety"]).agg([col("petal.length").sum]).head;
 
 my @exprs;
 @exprs.push: col("petal.length").sum;
-#@exprs.push: col("sepal.length").mean;
+@exprs.push: col("sepal.length").mean;
 #@exprs.push: col("sepal.length").min;
 #@exprs.push: col("sepal.length").max;
 #@exprs.push: col("sepal.length").first;
@@ -42,15 +41,17 @@ my @exprs;
 #@exprs.push: col("sepal.length").count;
 #@exprs.push: col("sepal.length").forward_fill;
 #@exprs.push: col("sepal.length").backward_fill;
-@exprs.push: col("sepal.length").reverse;
-@exprs.push: col("sepal.length").std.alias("std");
+#@exprs.push: col("sepal.length").reverse;
+#@exprs.push: col("sepal.length").std.alias("std");
 #@exprs.push: col("sepal.length").var;
-#df.groupby(["variety"]).agg(@exprs).head;
+$res = df.groupby(["variety"]).agg(@exprs);
+$res.flood;
+ok $res[1][0] ~~ <Setosa Versicolor>.any,                       'exprs';
 
 #df.select([col("*").exclude(["sepal.width"])]).head;
 #df.select([col("*").sum]).head;
 
-df.select([
+$res = df.select([
     col("sepal.length"),
     col("petal.length"),
     (col("petal.length") + (col("sepal.length"))).alias("add"),
@@ -59,9 +60,11 @@ df.select([
     (col("petal.length") / (col("sepal.length"))).alias("div"),
     (col("petal.length") % (col("sepal.length"))).alias("mod"),
     (col("petal.length") div (col("sepal.length"))).alias("floordiv"),
-]).head;
+]);
+$res.flood;
+ok $res[0][0] == 5.1,                                           'math';
 
-df.select([
+$res = df.select([
     col("sepal.length"),
     col("petal.length"),
     (col("petal.length") + 7).alias("add7"),
@@ -70,12 +73,17 @@ df.select([
     (2.2 / (col("sepal.length"))).alias("div"),
     (col("sepal.length") % 2).alias("mod"),
     (col("sepal.length") div 0.1).alias("floordiv"),
-]).head;
+]);
+$res.flood;
+ok $res[0][0] == 5.1,                                           'literals';
 
-df.with_column($se.rename("newcol")).head;
+$res = df.with_column($se.rename("newcol"));
+$res.flood;
+ok $res[0]<newcol> ~~ 'Setosa',                                 '.with_column';
 
-df.with_columns([col("variety").alias("newnew")]).head;
-die;
+$res = df.with_columns([col("variety").alias("newnew")]);
+$res.flood;
+ok $res[0]<newnew> ~~ 'Setosa',                                 '.with_column';
 
 #`[notes
 df.with_column takes a Series and adds it to the df
@@ -86,4 +94,7 @@ use alias to control in place vs. new col
 #]
 
 
+
+
+#done-testing;
 

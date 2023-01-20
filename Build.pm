@@ -11,8 +11,8 @@ class Build {
         chdir '..';
         mkdir 'resources';
         mkdir 'resources/libraries';
-        mkdir 'resources/test_data';
-        move 'bin/test_data/*', 'resources/test_data';
+        #mkdir 'resources/test_data';
+        move 'bin/test_data/', 'resources/';
         move 'dan/target/debug/libdan.so', 'resources/libraries/libdan.so';
         
         warn 'Build successful';

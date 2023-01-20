@@ -318,9 +318,9 @@ Usually no data needs to be transferred from Raku to Rust (or vice versa). For e
    
 4. [ ] Documentation
    - [x] synopsis
-   - [ ] refactor /bin
+   - [x] refactor /bin
 
-5. [ ] Test
+5. [x] Test
  
 This will then provide a basis for ...
 

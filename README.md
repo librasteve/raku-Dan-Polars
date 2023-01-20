@@ -321,7 +321,7 @@ Usually no data needs to be transferred from Raku to Rust (or vice versa). For e
 
 5. [ ] Test
  
-This will then provide a basis for .
+This will then provide a basis for ...
 
 ### v0.2
 - [ ] Dan splice & concat (s1) as hstack, vstack, join

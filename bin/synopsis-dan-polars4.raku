@@ -8,7 +8,7 @@ use Dan::Polars;
 say DateTime.now, "...loading from csv";
 
 my \df = DataFrame.new;
-df.read_csv("../dan/src.iris.csv");
+df.read_csv("../dan/src/iris.csv");
 df.head;
 
 say DateTime.now, "...converting to dataset";

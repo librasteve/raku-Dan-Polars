@@ -1,9 +1,9 @@
 #!/usr/bin/env raku
-#t/07-qpo.t
+#t/08-poo.t
 #TESTALL$ prove6 ./t      [from root]
 use lib '../lib';
 use Test;
-plan 7;
+plan 6;
 
 use Dan;
 use Dan::Polars;
@@ -56,47 +56,26 @@ $res = df.select(
     ]   
 );
 $res.flood;
-ok $res.elems ~~ 5,                                          '.sort,.first';
+ok $res.elems ~~ 5,                                           '.sort,.first';
 
-die; #iamerejh
-
-df.with_columns(
+$res = df.with_columns(
     [
         col("nrs").sum.alias("nrs_sum"),
         col("random").count.alias("count"),
     ]
-).head;
+);
+$res.flood;
+ok $res[0]<count> ~~ 5,                                       '.with_columns';
 
 df.groupby(["groups"]).agg(
     [
         col("nrs").sum,  # sum nrs by groups
         col("random").count().alias("count"),  # count group members
-        #col("random").filter(col("names").is_not_null).sum.alias("random_sum"),
+        #col("random").filter(col("names").is_not_null).sum.alias("random_sum"), FIXME add is_not_null
         col("names").reverse.alias("reversed names"),
     ]
-).head;
-
-#`[
-do basic (non regex) sort & filter
-either sort on a col (up/down), or Dan sort
-filter/grep needs a think 
-out = df.select(
-    [
-        pl.col("names").filter(pl.col("names").str.contains(r"am$")).count(),
-    ]
-)
-print(df)
-#]
-
-#notes
-#- FIXME refactor for (Num), (Str) == None... (1,2,3,(Int)).are (Int) dd (1e0, NaN, (Num)).are (Num) 
-#- FIXME accept List for <a b c>
-#https://pola-rs.github.io/polars-book/user-guide/dsl/expressions.html#filter-and-conditionals
-#- imo embedded regex/str ops are unfriendly --- aim for this in raku map/apply -- build on Dan sort/grep
-#https://pola-rs.github.io/polars-book/user-guide/dsl/expressions.html#binary-functions-and-modification
-#- imo embedded ternaries are quite unfriendly --- I would rather aim for this in raku map / apply
-                                             
-
-
+);
+$res.flood;
+ok $res[0]<names> ~~ 'foo',                                   '.with_columns';
 
 #done-testing

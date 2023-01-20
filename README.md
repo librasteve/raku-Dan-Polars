@@ -46,8 +46,6 @@ $obj .= groupby([ <species> ]) ;
 $obj .= sort( {$obj[$++]<species>, $obj[$++]<mass>} )[*].reverse^;
 
 $obj.show;
-#say ~$obj.Dan-DataFrame;       # coerce to a vanilla Dan::DataFrame to see all rows
-#say ~$obj.to-dataset;          # or to a dataset
 
 shape: (87, 3)
 ┌────────────────┬──────┬────────┐
@@ -73,6 +71,9 @@ shape: (87, 3)
 ├╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
 │ Aleena         ┆ 15   ┆ 79     │
 └────────────────┴──────┴────────┘
+
+#say ~$obj.Dan-DataFrame;       # coerce to a vanilla Dan::DataFrame (e.g. to say all rows)
+#say ~$obj.to-dataset;          # or export to a dataset for ad hoc data munging
 ```
 _datasets are used by raku [Data::...](https://raku.land/?q=Data%3A%3A) modules_
 

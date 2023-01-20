@@ -46,7 +46,7 @@ $obj .= groupby([ <species> ]) ;
 $obj .= sort( {$obj[$++]<species>, $obj[$++]<mass>} )[*].reverse^;
 
 $obj.show;
-#say ~$obj.Dan-DataFrame;       # convert to vanilla Dan::DataFrame to see all rows
+#say ~$obj.Dan-DataFrame;       # coerce to a vanilla Dan::DataFrame to see all rows
 #say ~$obj.to-dataset;          # or to a dataset
 
 shape: (87, 3)

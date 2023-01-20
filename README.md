@@ -47,7 +47,7 @@ $obj .= sort( {$obj[$++]<species>, $obj[$++]<mass>} )[*].reverse^;
 
 $obj.show;
 #say ~$obj.Dan-DataFrame;       # convert to vanilla Dan::DataFrame to see all rows
-#say ~$obj.to-dataset;          # or to a dataset for use by raku [Data::...](https://raku.land/?q=Data%3A%3A) modules
+#say ~$obj.to-dataset;          # or to a dataset
 
 shape: (87, 3)
 ┌────────────────┬──────┬────────┐
@@ -74,6 +74,7 @@ shape: (87, 3)
 │ Aleena         ┆ 15   ┆ 79     │
 └────────────────┴──────┴────────┘
 ```
+_datasets are used by raku [Data::...](https://raku.land/?q=Data%3A%3A) modules_
 
 ### Synopsis
 

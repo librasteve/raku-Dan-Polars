@@ -3,7 +3,7 @@
 #TESTALL$ prove6 ./t      [from root]
 use lib '../lib';
 use Test;
-plan 8;
+plan 7;
 
 use Dan;
 use Dan::Polars;
@@ -16,8 +16,9 @@ my $res;
 my \df = DataFrame.new;
 df.read_csv("../dan/src/iris.csv");
 
-my \ds = df.to-dataset;
-ok ds[3;3].value ~~ 0.2,                                        '.to-dataset';
+#FIXME too verbose for zef install
+#my \ds = df.to-dataset;
+#ok ds[3;3].value ~~ 0.2,                                        '.to-dataset';
 
 my $se = df.column("variety");
 my @da = $se.get-data;

@@ -8,7 +8,8 @@ plan 8;
 use Dan;
 use Dan::Polars;
 
-constant $t-path = ?%*ENV<PSIXSTEVE> ?? '../bin/test_data' !! %?RESOURCES<bin/test_data>;
+constant $t-path = '../bin/test_data';
+#constant $t-path = ?%*ENV<PSIXSTEVE> ?? '../bin/test_data' !! %?RESOURCES<bin/test_data>;
 warn "t-path is $t-path";
 
 ## Polars DataFrames

@@ -11,10 +11,9 @@ use Dan::Polars;
 #my $t-path = '../bin/test_data';
 #my $t-path = ?%*ENV<PSIXSTEVE> ?? '../bin/test_data' !! %?RESOURCES<bin/test_data>;
 #my $t-path = ?%*ENV<PSIXSTEVE> ?? '../resources/test_data' !! %?RESOURCES<bin/test_data>;
-
-my $t-path = %?RESOURCES<test_data/iris.csv>.absolute;
-warn "t-path is $t-path";
-warn dd %?RESOURCES;
+#my $t-path = %?RESOURCES<test_data/iris.csv>.absolute;
+#warn "t-path is $t-path";
+#warn dd %?RESOURCES;
 
 $t-path = '../resources/test_data';
 
@@ -22,8 +21,7 @@ $t-path = '../resources/test_data';
 
 # read csv
 my \df0 = DataFrame.new;
-#df0.read_csv("$t-path/iris.csv");
-df0.read_csv("$t-path");
+df0.read_csv("$t-path/iris.csv");
 my $column = df0.column("sepal.length");
 my $select = df0.select([col("sepal.length"), col("variety")]);
 $select.flood;

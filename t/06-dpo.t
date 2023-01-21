@@ -12,7 +12,7 @@ use Dan::Polars;
 #my $t-path = ?%*ENV<PSIXSTEVE> ?? '../bin/test_data' !! %?RESOURCES<bin/test_data>;
 #my $t-path = ?%*ENV<PSIXSTEVE> ?? '../resources/test_data' !! %?RESOURCES<bin/test_data>;
 
-my $t-path = %?RESOURCES<test_data>;
+my $t-path = %?RESOURCES<test_data>.absolute;
 warn "t-path is $t-path";
 
 ## Polars DataFrames

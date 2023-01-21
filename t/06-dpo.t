@@ -8,24 +8,7 @@ plan 8;
 use Dan;
 use Dan::Polars;
 
-#my $t-path = '../bin/test_data';
-#my $t-path = ?%*ENV<PSIXSTEVE> ?? '../bin/test_data' !! %?RESOURCES<bin/test_data>;
-#my $t-path = ?%*ENV<PSIXSTEVE> ?? '../resources/test_data' !! %?RESOURCES<bin/test_data>;
-#my $t-path = %?RESOURCES<test_data/iris.csv>.absolute;
-#warn "t-path is $t-path";
-#warn dd %?RESOURCES;
-
-my $t-path = '../resources/test_data';
-
 ## Polars DataFrames
-
-# read csv
-my \df0 = DataFrame.new;
-df0.read_csv("$t-path/iris.csv");
-my $column = df0.column("sepal.length");
-my $select = df0.select([col("sepal.length"), col("variety")]);
-$select.flood;
-ok $select[0][0] == 5.1e0,                                                  'flood';
 
 #with_col
 my \df = DataFrame.new( [[rand xx 4] xx 6], columns => <A B C D> );

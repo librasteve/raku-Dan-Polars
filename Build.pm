@@ -13,12 +13,6 @@ class Build {
         mkdir 'resources/libraries';
         move 'dan/target/debug/libdan.so', 'resources/libraries/libdan.so';
         
-        #`[
-        mkdir 'resources/bin/test_data';
-        my @test_files = 'bin/test_data/'.IO.dir;
-        move "$_", "resources/$_" for @test_files;
-        #]
-        
         warn 'Build successful';
         
         exit 0

@@ -30,7 +30,8 @@ dd $n-path;
 
 sub starwars {
     my \sw = DataFrame.new;
-    sw.read_csv("test_data/dfStarwars.csv");
+    sw.read_csv("$n-path/dfStarwars.csv");
+    #sw.read_csv("test_data/dfStarwars.csv");
     sw
 }
 

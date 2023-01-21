@@ -16,6 +16,8 @@ my $t-path = %?RESOURCES<test_data/iris.csv>.absolute;
 warn "t-path is $t-path";
 warn dd %?RESOURCES;
 
+$t-path = '../resources/test_data';
+
 ## Polars DataFrames
 
 # read csv

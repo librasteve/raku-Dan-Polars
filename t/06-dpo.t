@@ -15,7 +15,7 @@ use Dan::Polars;
 #warn "t-path is $t-path";
 #warn dd %?RESOURCES;
 
-$t-path = '../resources/test_data';
+my $t-path = '../resources/test_data';
 
 ## Polars DataFrames
 

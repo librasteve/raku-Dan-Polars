@@ -10,16 +10,17 @@ use Dan::Polars;
 
 #my $t-path = '../bin/test_data';
 #my $t-path = ?%*ENV<PSIXSTEVE> ?? '../bin/test_data' !! %?RESOURCES<bin/test_data>;
+#my $t-path = ?%*ENV<PSIXSTEVE> ?? '../resources/test_data' !! %?RESOURCES<bin/test_data>;
 
-my $t-file = %?RESOURCES<test_data/iris.csv>;
-warn "t-file is $t-file";
+my $t-path = %?RESOURCES<test_data>;
+warn "t-path is $t-path";
 
 ## Polars DataFrames
 
 # read csv
 my \df0 = DataFrame.new;
 #df0.read_csv("$t-path/iris.csv");
-df0.read_csv("$t-file");
+df0.read_csv("$t-path/iris.csv");
 my $column = df0.column("sepal.length");
 my $select = df0.select([col("sepal.length"), col("variety")]);
 $select.flood;

@@ -8,15 +8,18 @@ plan 8;
 use Dan;
 use Dan::Polars;
 
-constant $t-path = '../bin/test_data';
-#constant $t-path = ?%*ENV<PSIXSTEVE> ?? '../bin/test_data' !! %?RESOURCES<bin/test_data>;
-warn "t-path is $t-path";
+#my $t-path = '../bin/test_data';
+#my $t-path = ?%*ENV<PSIXSTEVE> ?? '../bin/test_data' !! %?RESOURCES<bin/test_data>;
+
+my $t-file = %?RESOURCES<test_data/iris.csv>;
+warn "t-file is $t-file";
 
 ## Polars DataFrames
 
 # read csv
 my \df0 = DataFrame.new;
-df0.read_csv("$t-path/iris.csv");
+#df0.read_csv("$t-path/iris.csv");
+df0.read_csv("$t-file");
 my $column = df0.column("sepal.length");
 my $select = df0.select([col("sepal.length"), col("variety")]);
 $select.flood;

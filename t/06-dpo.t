@@ -14,6 +14,7 @@ use Dan::Polars;
 
 my $t-path = %?RESOURCES<test_data/iris.csv>.absolute;
 warn "t-path is $t-path";
+warn dd %?RESOURCES;
 
 ## Polars DataFrames
 

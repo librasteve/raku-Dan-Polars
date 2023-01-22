@@ -4,5 +4,5 @@ ENV PATH="${PATH}:/root/.cargo/bin"
 
 RUN zef install https://github.com/p6steve/raku-Dan-Polars.git --verbose
 
-RUN cd ~
+RUN cd /root
 RUN git clone https://github.com/p6steve/raku-Dan-Polars.git

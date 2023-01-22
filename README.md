@@ -19,7 +19,7 @@ The following broad capabilities are included:
 The aim is to emulate the examples in the [Polars User Guide](https://pola-rs.github.io/polars-book/user-guide/dsl/expressions.html)
  
 ### Installation
-Based on the Dockerfile chain [(1)](https://github.com/p6steve/raku-Dan-Polars/blob/main/Dockerfile) <= [(2)](https://github.com/p6steve/raku-Dockerfiles)
+Based on the Dockerfile chain [(1)](https://github.com/p6steve/raku-Dan-Polars/blob/main/Dockerfile) FROM [(2)](https://github.com/p6steve/raku-Dockerfiles/blob/main/rusty-ma/Dockerfile)
 - ```docker run -it p6steve/raku-dan:polars```
 - ```cd ~/raku-Dan-Polars/bin``` (this repo was cloned to load test_data)
 - ```./synopsis-dan-polars.raku``` or ```./nutshell.raku```

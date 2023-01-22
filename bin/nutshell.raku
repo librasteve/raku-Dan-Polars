@@ -1,5 +1,4 @@
 #!/usr/bin/env raku
-use lib '../lib';
 
 #`[ 
 ### Example Raku code generation from DSL ...
@@ -20,7 +19,7 @@ $obj = group-by( $obj, "species") ;
 $obj = $obj>>.sort({ ($_{"species"}, $_{"mass"}) })>>.reverse
 #]
 
-### Equivalent of Raku example with Dan::Polars ...
+### Equivalent with Dan::Polars ...
 
 use Dan;
 use Dan::Polars;

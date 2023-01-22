@@ -24,13 +24,8 @@ $obj = $obj>>.sort({ ($_{"species"}, $_{"mass"}) })>>.reverse
 use Dan;
 use Dan::Polars;
 
-#constant $n-path = ?%*ENV<PSIXSTEVE> ?? 'test_data' !! %?RESOURCES<test_data>;
-#dd $n-path;
-dd %?RESOURCES;
-
 sub starwars {
     my \sw = DataFrame.new;
-    #sw.read_csv("$n-path/dfStarwars.csv");
     sw.read_csv("test_data/dfStarwars.csv");
     sw
 }

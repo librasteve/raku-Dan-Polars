@@ -1,5 +1,4 @@
 #!/usr/bin/env raku
-use lib '../lib';
 
 # Benchmarks from H2O AI
 # https://h2oai.github.io/db-benchmark

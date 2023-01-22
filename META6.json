@@ -18,13 +18,7 @@
     "Dan::Polars::Containers": "lib/Dan/Polars/Containers.rakumod"
   },
   "resources": [
-        "libraries/dan",
-        "test_data/Titanic.csv",
-        "test_data/dfStarwars.csv",
-        "test_data/dfStarwarsFilms.csv",
-        "test_data/dfStarwarsStarships.csv",
-        "test_data/dfStarwarsVehicles.csv",
-        "test_data/iris.csv"
+        "libraries/dan"
   ],
   "license": "Artistic-2.0",
   "tags": [

@@ -1,7 +1,5 @@
 #!/usr/bin/env raku
 
-use lib '../lib';
-
 use Dan;
 use Dan::Polars;
 

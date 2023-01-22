@@ -24,6 +24,8 @@ Based on the Dockerfile chain [(1)](https://github.com/p6steve/raku-Dan-Polars/b
 - ```cd ~/raku-Dan-Polars/bin``` (this repo was cloned to load test_data)
 - ```./synopsis-dan-polars.raku``` or ```./nutshell.raku```
 
+(see bin/setup.raku for manual / development install steps)
+
 _You are welcome to plunder the Dockerfiles for how to set up your own environment._
 
 ------

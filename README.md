@@ -1,5 +1,15 @@
 *WORK IN PROGRESS*
 
+_So far, I have managed to bring about half of the Polars library into the Raku world with this module. Some track has been laid that may make the rest go faster and easier, but surely there is a lot of refactoring and tidying up to do to._
+
+_You can see the TODO files here for Query and Expression features and I will be working my way down this list steadily._
+
+_If you would like to alter the priority, please create an issue (or find an existing one) and hopefully others will upvoat it._
+
+_Even better would be to work with me to do a PR (I will probbaly need to do a bit of guidance initiallly)._
+
+_p6steve@furnival.net_
+
 *THIS MODULE IS EXPERIMENTAL AND SUBJECT TO CHANGE WITHOUT NOTICE*
  
 [![License: Artistic-2.0](https://img.shields.io/badge/License-Artistic%202.0-0298c3.svg)](https://opensource.org/licenses/Artistic-2.0)

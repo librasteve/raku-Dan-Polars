@@ -30,5 +30,5 @@
     "Polars"
   ],
   "api": "1",
-  "source-url": "git://github.com/p6steve/raku-dan-pandas.git"
+  "source-url": "git://github.com/p6steve/raku-dan-polars.git"
 }

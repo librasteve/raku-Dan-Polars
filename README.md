@@ -328,7 +328,7 @@ Usually no data needs to be transferred from Raku to Rust (or vice versa). For e
    - [x] unary exprs
    - [x] operators
    
-4. [ ] Documentation
+4. [x] Documentation
    - [x] synopsis
    - [x] refactor /bin
 

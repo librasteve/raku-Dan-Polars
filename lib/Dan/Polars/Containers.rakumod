@@ -217,6 +217,7 @@ class DataFrameC is repr('CPointer') is export {
     sub df_select(DataFrameC, CArray[Str], size_t) returns DataFrameC is native($n-path) { * }
     sub df_with_column(DataFrameC, SeriesC) returns DataFrameC is native($n-path) { * }
     sub df_drop(DataFrameC, Str) returns DataFrameC is native($n-path) { * }
+    sub df_vstack(DataFrameC, DataFrameC) returns DataFrameC is native($n-path) { * }
 
     method new {
         df_new
@@ -284,6 +285,13 @@ class DataFrameC is repr('CPointer') is export {
 
     method drop( Str \colname --> DataFrameC ) {
         df_drop(self, colname)
+    }
+
+    method vstack( DataFrameC \right --> DataFrameC ) {
+        dd self;
+        dd right;
+        die;
+        df_vstack(self, right)
     }
 }
 

@@ -430,6 +430,13 @@ impl DataFrameC {
     fn drop(&self, string: String) -> DataFrame {
         self.df.drop(&string).unwrap().clone()
     }
+
+    fn vstack(&self, df_c: &DataFrameC) -> DataFrame {
+        df_c.head();
+        self.head();
+        //self.df.vstack(&df_c.df).unwrap().clone()
+        self.df.clone()
+    }
 }
 
 // extern functions for DataFrame Container
@@ -581,6 +588,22 @@ pub extern "C" fn df_drop(
 
     let mut df_n = DataFrameC::new();
     df_n.df = df_c.drop(colname);
+    Box::into_raw(Box::new(df_n))
+}
+
+#[no_mangle]
+pub extern "C" fn df_vstack(
+    l_ptr: *mut DataFrameC,
+    r_ptr: *mut DataFrameC,
+) -> *mut DataFrameC {
+    let df_l = check_ptr(l_ptr);
+    let df_r = check_ptr(r_ptr);
+    
+    df_l.head();
+    df_r.head();
+
+    let mut df_n = DataFrameC::new();
+    //df_n.df = df_l.vstack(df_r);
     Box::into_raw(Box::new(df_n))
 }
 

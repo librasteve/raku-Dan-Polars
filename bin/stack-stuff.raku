@@ -3,16 +3,30 @@
 use Dan;
 use Dan::Polars;
 
-my \df1 = DataFrame.new(["α", "β", "X", "γ"], columns => 'Ray Type');
-df1.head;
+my \df1 = DataFrame.new(['Ray Type' => ["α", "β", "X", "γ"]]);
+#df1.head;
 my \df2 = df1.drop('Ray Type');
-df2.head;
-say df2.is_empty;
+#df2.head;
+#say df2.is_empty;
 
-#`[
-my \df1 = DataFrame.new("Ray type" => ["α", "β", "X", "γ"]);
-df1.head;
-#]
+my \df3 = DataFrame.new(["Element" => ["Copper", "Silver", "Gold"]]);
+my \se1 = Series.new(name => "Proton", [29, 47, 79]);
+my \se2 = Series.new(name => "Electron", [29, 47, 79]);
+
+my \df4 = df3.hstack([se1,se2]);
+df4.head;
+
+my \df5 = DataFrame.new([
+    "Element" => ["Copper", "Silver", "Gold"],
+    "Melting Point (K)" => [1357.77, 1234.93, 1337.33],
+]);
+my \df6 = DataFrame.new([
+    "Element" => ["Platinum", "Palladium"],
+    "Melting Point (K)" => [2041.4, 1828.05],
+]);
+df6.head;
+my \df7 = df5.vstack(df6);
+df7.head;
 
 #`[[[
 my \df = DataFrame.new;

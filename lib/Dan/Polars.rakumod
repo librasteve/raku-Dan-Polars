@@ -463,6 +463,24 @@ role DataFrame does Positional does Iterable is export {
         self.shape ~~ (0,0)
     }
 
+    method hstack( @series ) {
+        my $res = self;
+        $res.with_column($_) for @series;
+        $res
+    }
+
+    method vstack( DataFrame \right ) {
+    #iamerejh
+        my $res = self;
+        say 1;
+        dd $res;
+        dd $res.rc;
+        say 2;
+        dd right.rc;
+        $res.rc.vstack(right.rc);
+        $res
+    }
+
     method Dan-DataFrame {
         self.flood;
         Dan::DataFrame.new( :@!data, :%!columns )

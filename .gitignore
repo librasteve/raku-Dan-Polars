@@ -9,4 +9,5 @@
 .Dockerfile.swp
 .json.swp
 .yaml.swp
+.raku.swp
 .pem

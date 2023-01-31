@@ -454,6 +454,15 @@ role DataFrame does Positional does Iterable is export {
         self
     }
 
+    method drop( Str \colname ) {
+        $!rc .= drop( colname );
+        self
+    }
+
+    method is_empty {
+        self.shape ~~ (0,0)
+    }
+
     method Dan-DataFrame {
         self.flood;
         Dan::DataFrame.new( :@!data, :%!columns )

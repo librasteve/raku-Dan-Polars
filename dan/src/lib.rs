@@ -426,6 +426,10 @@ impl DataFrameC {
     fn with_column(&mut self, series: Series) -> DataFrame {
         self.df.with_column(series).unwrap().clone()
     }
+
+    fn drop(&self, string: String) -> DataFrame {
+        self.df.drop(&string).unwrap().clone()
+    }
 }
 
 // extern functions for DataFrame Container
@@ -561,6 +565,22 @@ pub extern "C" fn df_with_column(
 
     let mut df_n = DataFrameC::new();
     df_n.df = df_c.with_column(se_c.se.clone());
+    Box::into_raw(Box::new(df_n))
+}
+
+#[no_mangle]
+pub extern "C" fn df_drop(
+    d_ptr: *mut DataFrameC,
+    string: *const c_char,
+) -> *mut DataFrameC {
+    let df_c = check_ptr(d_ptr);
+
+    let colname = unsafe {
+        CStr::from_ptr(string).to_string_lossy().into_owned()
+    };
+
+    let mut df_n = DataFrameC::new();
+    df_n.df = df_c.drop(colname);
     Box::into_raw(Box::new(df_n))
 }
 

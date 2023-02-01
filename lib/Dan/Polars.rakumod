@@ -470,15 +470,7 @@ role DataFrame does Positional does Iterable is export {
     }
 
     method vstack( DataFrame \right ) {
-    #iamerejh
-        my $res = self;
-        say 1;
-        dd $res;
-        dd $res.rc;
-        say 2;
-        dd right.rc;
-        $res.rc.vstack(right.rc);
-        $res
+        self.rc.vstack( right.rc )
     }
 
     method Dan-DataFrame {
@@ -582,10 +574,6 @@ role DataFrame does Positional does Iterable is export {
         for ^@new-names {
             self.rename( @old-names[$++], @new-names[$++] ) 
         }
-    }
-
-    method rc( $rc ) {
-        $!rc = $rc
     }
 
     #### File Methods #####

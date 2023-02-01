@@ -14,17 +14,18 @@ my \se1 = Series.new(name => "Proton", [29, 47, 79]);
 my \se2 = Series.new(name => "Electron", [29, 47, 79]);
 
 my \df4 = df3.hstack([se1,se2]);
-df4.head;
+#df4.head;
 
 my \df5 = DataFrame.new([
     "Element" => ["Copper", "Silver", "Gold"],
     "Melting Point (K)" => [1357.77, 1234.93, 1337.33],
 ]);
+#df5.head;
 my \df6 = DataFrame.new([
     "Element" => ["Platinum", "Palladium"],
     "Melting Point (K)" => [2041.4, 1828.05],
 ]);
-df6.head;
+#df6.head;
 my \df7 = df5.vstack(df6);
 df7.head;
 

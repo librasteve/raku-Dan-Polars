@@ -288,9 +288,6 @@ class DataFrameC is repr('CPointer') is export {
     }
 
     method vstack( DataFrameC \right --> DataFrameC ) {
-        dd self;
-        dd right;
-        die;
         df_vstack(self, right)
     }
 }

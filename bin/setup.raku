@@ -4,6 +4,7 @@
 #run by hand from ~
 
 my @lines = q:to/END/;
+cd ~
 zef install Dan
 git clone https://github.com/p6steve/raku-Dan-Polars.git
 export PSIXSTEVE=1

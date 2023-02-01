@@ -14,7 +14,7 @@ my \se1 = Series.new(name => "Proton", [29, 47, 79]);
 my \se2 = Series.new(name => "Electron", [29, 47, 79]);
 
 my \df4 = df3.hstack([se1,se2]);
-#df4.head;
+df4.head;
 
 my \df5 = DataFrame.new([
     "Element" => ["Copper", "Silver", "Gold"],

@@ -253,6 +253,9 @@ role Series does Positional does Iterable is export {
 role Categorical does Series is export {
 }
 
+# declare Join Strategy enum
+enum Strategy <inner left outer cross asof semi anti>;
+
 role DataFrame does Positional does Iterable is export {
     has Any        @.data;             #redo 2d shaped Array when [; ] implemented
     has Int        %!index;            #row index
@@ -464,13 +467,12 @@ role DataFrame does Positional does Iterable is export {
     }
 
     method hstack( @series ) {
-        my $res = self;
-        $res.with_column($_) for @series;
-        $res
+        self.with_column($_) for @series;
+        self
     }
 
     method vstack( DataFrame \right ) {
-        self.rc.vstack( right.rc )
+        $!rc.vstack( right.rc )
     }
 
     method Dan-DataFrame {
@@ -555,6 +557,13 @@ role DataFrame does Positional does Iterable is export {
         $!lc.agg( exprs );
         $.collect
     }
+
+#iamerejh (may want concat to align to Dan)
+#`[
+    method join( ) {
+        $!lc = LazyFrameC.new( $!rc ); #autolazy self 
+    }
+#]
 
     #### MAC Methods #####
     #Moves, Adds, Changes#

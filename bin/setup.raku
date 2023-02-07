@@ -1,7 +1,6 @@
 #!/usr/bin/env raku
 
 #setup process when doing manual install on p6steve/rakudo:rusty for module dev
-#run by hand from ~
 
 my @lines = q:to/END/;
 cd ~

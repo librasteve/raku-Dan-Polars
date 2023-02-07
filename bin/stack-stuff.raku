@@ -3,6 +3,7 @@
 use Dan;
 use Dan::Polars;
 
+#`[
 my \df1 = DataFrame.new(['Ray Type' => ["α", "β", "X", "γ"]]);
 #df1.head;
 my \df2 = df1.drop('Ray Type');
@@ -28,6 +29,28 @@ my \df6 = DataFrame.new([
 #df6.head;
 my \df7 = df5.vstack(df6);
 df7.head;
+#]
+
+my \dfa = DataFrame.new(
+#my \dfa = Dan::DataFrame.new(
+        [['a', 1], ['b', 2]],
+        columns => <letter number>,
+);
+
+my \dfc = DataFrame.new(
+#my \dfc = Dan::DataFrame.new(
+        [['c', 3, 'cat'], ['d', 4, 'dog']],
+        columns => <animal letter number>,
+);
+
+my $x=dfa.join: dfc;
+$x.head;
+#say ~dfa.join: dfc; 
+#say ~dfa.concat: dfc; 
+
+
+
+
 
 #`[[[
 my \df = DataFrame.new;

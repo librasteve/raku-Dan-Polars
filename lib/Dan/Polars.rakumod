@@ -475,6 +475,14 @@ role DataFrame does Positional does Iterable is export {
         $!rc.vstack( right.rc )
     }
 
+#iamerejh
+    method join( DataFrame \right ) {
+        $!lc = LazyFrameC.new( $!rc );          #autolazy self 
+        my $lr = LazyFrameC.new( right.rc );     #autolazy right
+        $!rc = $!lc.join( $lr );
+        self
+    }
+
     method Dan-DataFrame {
         self.flood;
         Dan::DataFrame.new( :@!data, :%!columns )
@@ -557,13 +565,6 @@ role DataFrame does Positional does Iterable is export {
         $!lc.agg( exprs );
         $.collect
     }
-
-#iamerejh (may want concat to align to Dan)
-#`[
-    method join( ) {
-        $!lc = LazyFrameC.new( $!rc ); #autolazy self 
-    }
-#]
 
     #### MAC Methods #####
     #Moves, Adds, Changes#

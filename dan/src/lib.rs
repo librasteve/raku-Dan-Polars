@@ -640,6 +640,15 @@ impl LazyFrameC {
     fn agg(&mut self, exprvec: Vec::<Expr>) {
         self.lf = self.gb.clone().unwrap().agg(exprvec);
     }
+
+    //fn vstack(&self, df_c: &DataFrameC) -> DataFrame {
+    //    self.df.vstack(&df_c.df).unwrap().clone()
+    //}
+    //other, [col("foo"), col("bar")], [col("foo"), col("bar")], JoinType::Inner)
+
+    fn join(&self, lf_c: &LazyFrameC) -> LazyFrame {
+        self.lf.clone().join(lf_c.lf.clone(), [col("letter"), col("number")], [col("letter"), col("number")], JoinType::Inner).clone()
+    }
 }
 
 // extern functions for LazyFrame Container
@@ -737,6 +746,21 @@ pub extern "C" fn lf_agg(
     };
 
     lf_c.agg(exprvec.to_exprs());
+}
+
+#[no_mangle]
+pub extern "C" fn lf_join(
+    l_ptr: *mut LazyFrameC,
+    r_ptr: *mut LazyFrameC,
+) -> *mut DataFrameC {
+    let lf_l = check_ptr(l_ptr);
+    let lf_r = check_ptr(r_ptr);
+    
+    let mut df_n = DataFrameC::new();
+    let mut lf_n = LazyFrameC::new(&mut df_n);
+    lf_n.lf = lf_l.join(lf_r);
+    println!{"{}", df_n.df.head(Some(5))};
+    Box::into_raw(Box::new(df_n))
 }
 
 

@@ -337,9 +337,10 @@ Usually no data needs to be transferred from Raku to Rust (or vice versa). For e
 This will then provide a basis for ...
 
 ### v0.2
+- [x] drop col
 - [ ] Dan splice & concat (s1) as hstack, vstack, join
-- [ ] drop col
 - [ ] non-null, etc.
+- [ ] cast
 
 This will then provide a basis for design Dan::As::Query v0.1 for Dan and Dan::Pandas and review Dan API slice & concat, immutability, refactor...
 

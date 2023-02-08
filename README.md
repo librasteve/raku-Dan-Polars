@@ -346,6 +346,7 @@ This will then provide a basis for design Dan::As::Query v0.1 for Dan and Dan::P
 
 ### v0.3...
 - [ ] datetime
+- [ ] [asof join](https://pola-rs.github.io/polars/polars_core/prelude/struct.AsOfOptions.html)
 - [ ] unique_stable
 - [ ] expr arity > 1
 - [ ] 'over' expr

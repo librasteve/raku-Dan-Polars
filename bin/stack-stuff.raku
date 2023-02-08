@@ -32,16 +32,16 @@ df7.head;
 #]
 
 my \dfa = DataFrame.new(
-#my \dfa = Dan::DataFrame.new(
         [['a', 1], ['b', 2]],
         columns => <letter number>,
 );
+dfa.head;
 
 my \dfc = DataFrame.new(
-#my \dfc = Dan::DataFrame.new(
         [['c', 3, 'cat'], ['d', 4, 'dog']],
-        columns => <animal letter number>,
+        columns => <letter number animal>,
 );
+dfc.head;
 
 my $x=dfa.join: dfc;
 $x.head;

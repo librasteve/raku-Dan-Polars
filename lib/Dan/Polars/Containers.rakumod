@@ -300,7 +300,8 @@ class LazyFrameC is repr('CPointer') is export {
     sub lf_groupby(LazyFrameC, CArray[Str], size_t)    is native($n-path) { * }
     sub lf_agg(LazyFrameC, CArray[Pointer], size_t)    is native($n-path) { * }
     sub lf_collect(LazyFrameC)     returns DataFrameC  is native($n-path) { * }
-    sub lf_join(LazyFrameC, LazyFrameC) returns DataFrameC is native($n-path) { * }
+    sub lf_join(LazyFrameC, LazyFrameC, CArray[Str], size_t, CArray[Str], size_t
+                                  ) returns DataFrameC is native($n-path) { * }
 
     method new( DataFrameC \df_c ) {
         lf_new( df_c )
@@ -330,8 +331,9 @@ class LazyFrameC is repr('CPointer') is export {
         lf_collect(self)
     }
 
-    method join( LazyFrameC \right --> DataFrameC ) {
-        lf_join(self, right)
+    method join( LazyFrameC \right, \l_colspec, \r_colspec --> DataFrameC ) {
+        lf_join(self, right, carray( Str, l_colspec ), l_colspec.elems, carray( Str,  r_colspec ), r_colspec.elems)
+        #lf_join(self, right)
     }
 }
 

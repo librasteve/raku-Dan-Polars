@@ -253,8 +253,8 @@ role Series does Positional does Iterable is export {
 role Categorical does Series is export {
 }
 
-# declare Join Strategy enum
-enum Strategy <inner left outer cross asof semi anti>;
+# viz. https://pola-rs.github.io/polars/polars_core/frame/hash_join/enum.JoinType.html
+enum JoinType (left => 'Left', inner => 'Inner', outer => 'Outer', asof => 'Asof', cross => 'Cross');
 
 role DataFrame does Positional does Iterable is export {
     has Any        @.data;             #redo 2d shaped Array when [; ] implemented
@@ -476,10 +476,21 @@ role DataFrame does Positional does Iterable is export {
     }
 
 #iamerejh
+
+# - do colspecs
+# -- these are the overlap
+# --- same dtype
+# --- same count
+# -- need to auto detect overlap from matching col names (in concat, not join)
+# - do JoinType 
+# -- enum JoinType (left => 'Left', inner => 'Inner', outer => 'Outer', asof => 'Asof', cross => 'Cross');
+
     method join( DataFrame \right ) {
-        $!lc = LazyFrameC.new( $!rc );          #autolazy self 
-        my $lr = LazyFrameC.new( right.rc );     #autolazy right
-        $!rc = $!lc.join( $lr );
+        my @overlap = (self.columns.keys.Set ∩ right.columns.keys.Set).keys;
+
+        $!lc = LazyFrameC.new( $!rc );          #autolazy args 
+        my $lr = LazyFrameC.new( right.rc );
+        $!rc = $!lc.join( $lr, @overlap, @overlap );
         self
     }
 

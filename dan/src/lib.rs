@@ -641,13 +641,23 @@ impl LazyFrameC {
         self.lf = self.gb.clone().unwrap().agg(exprvec);
     }
 
-    fn join(&self, lf_c: &LazyFrameC) -> DataFrameC {
-        //let df = self.lf.clone().collect().unwrap();
+    fn join(&self, 
+        lf_c: &LazyFrameC,
+        l_colvec: Vec::<String>,
+        r_colvec: Vec::<String>,
+    ) -> DataFrameC {
+        //let l_colrefs: Vec<&str> = l_colvec.iter().map(AsRef::as_ref).collect();
+        //let r_colrefs: Vec<&str> = r_colvec.iter().map(AsRef::as_ref).collect();
         let df = self.lf.clone().join(
             lf_c.lf.clone(), 
-            [col("letter"), col("number")], [col("number"), col("letter")], 
-            JoinType::Outer)
-            .collect().unwrap();
+            l_colvec,
+            r_colvec,
+            //l_colrefs,
+            //r_colrefs,
+            //[col("letter"), col("number")], 
+            //[col("letter"), col("number")], 
+            JoinType::Outer
+        ).collect().unwrap();
         let mut df_c = DataFrameC::new();
         df_c.df = df;
         df_c
@@ -755,17 +765,33 @@ pub extern "C" fn lf_agg(
 pub extern "C" fn lf_join(
     l_ptr: *mut LazyFrameC,
     r_ptr: *mut LazyFrameC,
+    l_colspec: *const *const c_char,
+    l_len: size_t,
+    r_colspec: *const *const c_char,
+    r_len: size_t
 ) -> *mut DataFrameC {
     let lf_l = check_ptr(l_ptr);
     let lf_r = check_ptr(r_ptr);
+
+    let mut l_colvec = Vec::<String>::new();
+    unsafe {
+        assert!(!l_colspec.is_null());
+
+        for item in slice::from_raw_parts(l_colspec, l_len as usize) {
+            l_colvec.push(CStr::from_ptr(*item).to_string_lossy().into_owned());
+        };
+    };
+
+    let mut r_colvec = Vec::<String>::new();
+    unsafe {
+        assert!(!r_colspec.is_null());
+
+        for item in slice::from_raw_parts(r_colspec, r_len as usize) {
+            r_colvec.push(CStr::from_ptr(*item).to_string_lossy().into_owned());
+        };
+    };
     
-    Box::into_raw(Box::new(lf_l.join(lf_r)))
-    //let mut df_n = DataFrameC::new();
-    //let mut lf_n = LazyFrameC::new(&mut df_n);
-    //lf_n.lf = lf_l.join(lf_r);
-    //iamerejh
-    //println!{"{}", df_n.df.head(Some(5))};
-    //Box::into_raw(Box::new(df_n))
+    Box::into_raw(Box::new(lf_l.join(lf_r, l_colvec, r_colvec)))
 }
 
 

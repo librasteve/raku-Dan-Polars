@@ -641,13 +641,16 @@ impl LazyFrameC {
         self.lf = self.gb.clone().unwrap().agg(exprvec);
     }
 
-    //fn vstack(&self, df_c: &DataFrameC) -> DataFrame {
-    //    self.df.vstack(&df_c.df).unwrap().clone()
-    //}
-    //other, [col("foo"), col("bar")], [col("foo"), col("bar")], JoinType::Inner)
-
-    fn join(&self, lf_c: &LazyFrameC) -> LazyFrame {
-        self.lf.clone().join(lf_c.lf.clone(), [col("letter"), col("number")], [col("letter"), col("number")], JoinType::Inner).clone()
+    fn join(&self, lf_c: &LazyFrameC) -> DataFrameC {
+        //let df = self.lf.clone().collect().unwrap();
+        let df = self.lf.clone().join(
+            lf_c.lf.clone(), 
+            [col("letter"), col("number")], [col("number"), col("letter")], 
+            JoinType::Outer)
+            .collect().unwrap();
+        let mut df_c = DataFrameC::new();
+        df_c.df = df;
+        df_c
     }
 }
 
@@ -756,11 +759,13 @@ pub extern "C" fn lf_join(
     let lf_l = check_ptr(l_ptr);
     let lf_r = check_ptr(r_ptr);
     
-    let mut df_n = DataFrameC::new();
-    let mut lf_n = LazyFrameC::new(&mut df_n);
-    lf_n.lf = lf_l.join(lf_r);
-    println!{"{}", df_n.df.head(Some(5))};
-    Box::into_raw(Box::new(df_n))
+    Box::into_raw(Box::new(lf_l.join(lf_r)))
+    //let mut df_n = DataFrameC::new();
+    //let mut lf_n = LazyFrameC::new(&mut df_n);
+    //lf_n.lf = lf_l.join(lf_r);
+    //iamerejh
+    //println!{"{}", df_n.df.head(Some(5))};
+    //Box::into_raw(Box::new(df_n))
 }
 
 

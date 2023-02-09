@@ -254,7 +254,7 @@ role Categorical does Series is export {
 }
 
 # viz. https://pola-rs.github.io/polars/polars_core/frame/hash_join/enum.JoinType.html
-enum JoinType (left => 'Left', inner => 'Inner', outer => 'Outer', asof => 'Asof', cross => 'Cross');
+subset JoinType of Str where <left inner outer asof cross>.any;  
 
 role DataFrame does Positional does Iterable is export {
     has Any        @.data;             #redo 2d shaped Array when [; ] implemented
@@ -483,14 +483,15 @@ role DataFrame does Positional does Iterable is export {
 # --- same count
 # -- need to auto detect overlap from matching col names (in concat, not join)
 # - do JoinType 
-# -- enum JoinType (left => 'Left', inner => 'Inner', outer => 'Outer', asof => 'Asof', cross => 'Cross');
 
-    method join( DataFrame \right ) {
+    method join( DataFrame \right, JoinType :$jointype = 'outer' ) {
         my @overlap = (self.columns.keys.Set ∩ right.columns.keys.Set).keys;
+        my $colspec = [@overlap.map({ col($_) })];                      #autogen overlap colspec
 
-        $!lc = LazyFrameC.new( $!rc );          #autolazy args 
+        $!lc = LazyFrameC.new( $!rc );                                  #autolazy self & right args 
         my $lr = LazyFrameC.new( right.rc );
-        $!rc = $!lc.join( $lr, @overlap, @overlap );
+        say $jointype;
+        $!rc = $!lc.join( $lr, $colspec, $colspec, $jointype.tc );    #l_ & r_colspec are the same
         self
     }
 
@@ -547,6 +548,27 @@ role DataFrame does Positional does Iterable is export {
 
     #### Query Methods #####
 
+#`[
+dfa.groupby(["letter"]).agg([col("number").sum]).head;
+--- ------- ----------  ---  --- --------- ---   ----
+ |     |        |        |    |      |      |      -> method head prints some lines of thesresult
+ |     |        |        |    |      |      |
+ |     |        |        |    |      |      -> method sum returns a new Expr
+ |     |        |        |    |      |
+ |     |        |        |    |      -> colname argument
+ |     |        |        |    |
+ |     |        |        |    -> method col(Str \colname) returns a new Expr
+ |     |        |        |
+ |     |        |        -> method agg(Array \expr) applies a list of Expr to the LazyGroupBy,
+ |     |        |                 then calls .collect to convert the LazyFrame result to a new DataFrame
+ |     |        |
+ |     |        -> colspec is List of Str valid column names [1]
+ |     |
+ |     -> method groupby(Array \colspec) creates a LazyFrame and returns a LazyGroupBy object into the lf.gb field 
+ |
+ -> DataFrame object with attributes of pointers to rust DataFrame and LazyFrame structures 
+ #]
+
     submethod collect( --> DataFrame ) {
         my \df = DataFrame.new;
         df.rc: $!lc.collect;
@@ -573,6 +595,7 @@ role DataFrame does Positional does Iterable is export {
     }
 
     method agg( Array \exprs ) {
+    dd exprs;
         $!lc.agg( exprs );
         $.collect
     }
@@ -595,6 +618,15 @@ role DataFrame does Positional does Iterable is export {
         for ^@new-names {
             self.rename( @old-names[$++], @new-names[$++] ) 
         }
+    }
+
+    #| need this to avoid immutable error 
+    multi method rc( $rc ) {
+        $!rc = $rc
+    }
+
+    multi method rc {
+        $!rc
     }
 
     #### File Methods #####

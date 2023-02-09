@@ -37,18 +37,25 @@ my \dfa = DataFrame.new(
 );
 dfa.head;
 
+dfa.groupby(["letter"]).agg([col("number")]).head;
+
 my \dfc = DataFrame.new(
         [['c', 3, 'cat'], ['d', 4, 'dog']],
         columns => <letter number animal>,
 );
 dfc.head;
 
-my $x=dfa.join: dfc;
+my $x=dfa.join( dfc, :jointype<cross> );
 $x.head;
 #say ~dfa.join: dfc; 
 #say ~dfa.concat: dfc; 
 
+#`[
+#dfa.groupby(["letter"]).agg([col("number").sum]).head;
+dfa.groupby(<letter>).agg([col("number")]).head;
+die;
 
+#]
 
 
 

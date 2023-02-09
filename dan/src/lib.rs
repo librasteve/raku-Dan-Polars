@@ -643,23 +643,34 @@ impl LazyFrameC {
 
     fn join(&self, 
         lf_c: &LazyFrameC,
-        l_colvec: Vec::<String>,
-        r_colvec: Vec::<String>,
+        l_colvec: Vec::<Expr>,
+        r_colvec: Vec::<Expr>,
+        jointype: &str 
     ) -> DataFrameC {
-        //let l_colrefs: Vec<&str> = l_colvec.iter().map(AsRef::as_ref).collect();
-        //let r_colrefs: Vec<&str> = r_colvec.iter().map(AsRef::as_ref).collect();
-        let df = self.lf.clone().join(
-            lf_c.lf.clone(), 
-            l_colvec,
-            r_colvec,
-            //l_colrefs,
-            //r_colrefs,
-            //[col("letter"), col("number")], 
-            //[col("letter"), col("number")], 
-            JoinType::Outer
-        ).collect().unwrap();
         let mut df_c = DataFrameC::new();
-        df_c.df = df;
+        match jointype {
+            "Left"  => 
+                { df_c.df = self.lf.clone().join(
+                    lf_c.lf.clone(), l_colvec, r_colvec, JoinType::Left
+                ).collect().unwrap(); ()},
+            "Inner"  => 
+                { df_c.df = self.lf.clone().join(
+                    lf_c.lf.clone(), l_colvec, r_colvec, JoinType::Inner
+                ).collect().unwrap(); ()},
+            "Outer"  => 
+                { df_c.df = self.lf.clone().join(
+                    lf_c.lf.clone(), l_colvec, r_colvec, JoinType::Outer
+                ).collect().unwrap(); ()},
+            //"Asof"  => 
+            //    { df_c.df = self.lf.clone().join(
+            //        lf_c.lf.clone(), l_colvec, r_colvec, JoinType::Asof
+            //    ).collect().unwrap(); ()},
+            "Cross"  => 
+                { df_c.df = self.lf.clone().join(
+                    lf_c.lf.clone(), l_colvec, r_colvec, JoinType::Cross
+                ).collect().unwrap(); ()},
+            _      => (),
+        }
         df_c
     }
 }
@@ -765,35 +776,33 @@ pub extern "C" fn lf_agg(
 pub extern "C" fn lf_join(
     l_ptr: *mut LazyFrameC,
     r_ptr: *mut LazyFrameC,
-    l_colspec: *const *const c_char,
-    l_len: size_t,
-    r_colspec: *const *const c_char,
-    r_len: size_t
+    l_colarr: *const &ExprC,
+    l_len: size_t, 
+    r_colarr: *const &ExprC,
+    r_len: size_t,
+    string: *const c_char
 ) -> *mut DataFrameC {
     let lf_l = check_ptr(l_ptr);
     let lf_r = check_ptr(r_ptr);
 
-    let mut l_colvec = Vec::<String>::new();
+    let mut l_colvec = Vec::<&ExprC>::new();
     unsafe {
-        assert!(!l_colspec.is_null());
-
-        for item in slice::from_raw_parts(l_colspec, l_len as usize) {
-            l_colvec.push(CStr::from_ptr(*item).to_string_lossy().into_owned());
+        for item in slice::from_raw_parts(l_colarr, l_len as usize) {
+            l_colvec.push(item);
         };
     };
-
-    let mut r_colvec = Vec::<String>::new();
+    let mut r_colvec = Vec::<&ExprC>::new();
     unsafe {
-        assert!(!r_colspec.is_null());
-
-        for item in slice::from_raw_parts(r_colspec, r_len as usize) {
-            r_colvec.push(CStr::from_ptr(*item).to_string_lossy().into_owned());
+        for item in slice::from_raw_parts(r_colarr, r_len as usize) {
+            r_colvec.push(item);
         };
     };
-    
-    Box::into_raw(Box::new(lf_l.join(lf_r, l_colvec, r_colvec)))
+    let jointype = unsafe {
+        CStr::from_ptr(string).to_string_lossy().into_owned()
+    };
+
+    Box::into_raw(Box::new(lf_l.join(lf_r, l_colvec.to_exprs(), r_colvec.to_exprs(), &jointype)))
 }
-
 
 // Expressions
 // these from nodejs lazy/dsl.rs...

@@ -482,13 +482,17 @@ role DataFrame does Positional does Iterable is export {
     }
 
     method join( DataFrame \right, JoinType :$jointype = 'outer' ) {
-        my @overlap = (self.columns.keys.Set ∩ right.columns.keys.Set).keys;
+        my @overlap = gather { 
+            for self.columns.&sbv {
+                take $_ if right.columns{$_}:exists
+            }
+        }
         my $colspec = [@overlap.map({ col($_) })];                      #autogen overlap colspec
 
         $!lc = LazyFrameC.new( $!rc );                                  #autolazy self & right args 
         my $lr = LazyFrameC.new( right.rc );
 
-        $!rc = $!lc.join( $lr, $colspec, $colspec, $jointype.tc );    #l_ & r_colspec are the same
+        $!rc = $!lc.join( $lr, $colspec, $colspec, $jointype.tc );      #l_ & r_colspec are the same
         self
     }
 
@@ -823,6 +827,34 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
             when ! .so || /row/ { 0 }
             when   .so || /col/ { 1 }
         }
+    }
+
+    # concat
+    method concat( DataFrame:D $dfr, :ax(:$axis) is copy,
+                     :jn(:$join) = 'outer', :ii(:$ignore-index) ) {
+
+        $axis = clean-axis(:$axis);
+
+        if ! $axis {                        # row-wise with Polars join
+
+            if $join eq 'right' {           # Polars has no JoinType Right
+                $dfr.join( self, jointype => 'left' ) 
+            } else {
+                self.join( $dfr, jointype => $join )
+            }
+
+        } else {                            # col-wise with Polars hstack
+            
+            if $dfr.elems !== self.elems {
+                warn 'Polars column-wise join only implemented for DataFrames with same number of elems!'
+            } else {
+                my @series = $dfr.cx.map({$dfr.column($_)});
+                self.hstack: @series 
+            }
+
+        }
+
+        self
     }
 }
 

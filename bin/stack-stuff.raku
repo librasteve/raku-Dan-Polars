@@ -3,6 +3,10 @@
 use Dan;
 use Dan::Polars;
 
+my \se1 = Series.new(name => "Proton", [29, 47, 79]);
+say se1.^methods;
+my \df1 = DataFrame.new(['Ray Type' => ["α", "β", "X", "γ"]]);
+say df1.^methods;
 #`[
 ### drop
 my \df1 = DataFrame.new(['Ray Type' => ["α", "β", "X", "γ"]]);
@@ -57,7 +61,6 @@ my \t = Series.new( [f=>1, e=>0, d=>2] );
 
 my $u = s.concat: t;                # concatenate
 $u.show;
-#]
 
 ### df_concat
 my \dfa = DataFrame.new(
@@ -91,6 +94,6 @@ $y4.head;
 my \dfd = DataFrame.new( [['bird', 'polly'], ['monkey', 'george']],
                          columns=> <animal name>,                   );
 
-my $y5 = dfb.concat: dfd, axis => 1;             #column-wise
+my $y5 = dfb.concat( dfd, axis => 1);             #column-wise
 $y5.head;
-
+#]

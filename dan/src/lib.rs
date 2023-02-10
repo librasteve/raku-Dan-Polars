@@ -180,6 +180,10 @@ impl SeriesC {
             &_ => todo!(),
         }
     }
+
+    fn append(&mut self, se_c: &SeriesC) -> Series {
+        self.se.append(&se_c.se).unwrap().clone()
+    }
 }
 
 fn se_new_vec<T>(
@@ -348,6 +352,18 @@ pub extern "C" fn se_get_u8(ptr: *mut SeriesC, res: *mut u8, len: size_t ) {
 pub extern "C" fn se_str_lengths(ptr: *mut SeriesC) -> u32 {
     let se_c = check_ptr(ptr);
     se_c.str_lengths()
+}
+
+#[no_mangle]
+pub extern "C" fn se_append(
+    l_ptr: *mut SeriesC,
+    r_ptr: *mut SeriesC,
+) -> *mut SeriesC { 
+    let l_se_c = check_ptr(l_ptr);
+    let r_se_c = check_ptr(r_ptr);
+
+    l_se_c.se = l_se_c.append(r_se_c);
+    l_se_c
 }
 
 // DataFrame Container

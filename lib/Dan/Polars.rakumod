@@ -199,6 +199,12 @@ role Series does Positional does Iterable is export {
         $.push
     }
 
+    # concat (maps onto Polars append)
+    method concat( Series:D $dsr ) {
+        $!rc.append: $dsr.rc;
+        self
+    }
+
     ### Role Support ###
 
     # Positional role support 
@@ -475,22 +481,13 @@ role DataFrame does Positional does Iterable is export {
         $!rc.vstack( right.rc )
     }
 
-#iamerejh
-
-# - do colspecs
-# -- these are the overlap
-# --- same dtype
-# --- same count
-# -- need to auto detect overlap from matching col names (in concat, not join)
-# - do JoinType 
-
     method join( DataFrame \right, JoinType :$jointype = 'outer' ) {
         my @overlap = (self.columns.keys.Set ∩ right.columns.keys.Set).keys;
         my $colspec = [@overlap.map({ col($_) })];                      #autogen overlap colspec
 
         $!lc = LazyFrameC.new( $!rc );                                  #autolazy self & right args 
         my $lr = LazyFrameC.new( right.rc );
-        say $jointype;
+
         $!rc = $!lc.join( $lr, $colspec, $colspec, $jointype.tc );    #l_ & r_colspec are the same
         self
     }

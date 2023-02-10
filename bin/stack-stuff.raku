@@ -29,7 +29,6 @@ my \df6 = DataFrame.new([
 #df6.head;
 my \df7 = df5.vstack(df6);
 df7.head;
-#]
 
 my \dfa = DataFrame.new(
         [['a', 1], ['b', 2]],
@@ -45,19 +44,70 @@ my \dfc = DataFrame.new(
 );
 dfc.head;
 
-my $x=dfa.join( dfc, :jointype<cross> );
+#<left inner outer asof cross>
+#my $x=dfa.join( dfc, :jointype<left> );
+my $x = dfa.join: dfc;
 $x.head;
-#say ~dfa.join: dfc; 
-#say ~dfa.concat: dfc; 
-
-#`[
-#dfa.groupby(["letter"]).agg([col("number").sum]).head;
-dfa.groupby(<letter>).agg([col("number")]).head;
-die;
-
 #]
 
+my \s = Series.new( [b=>1, a=>0, c=>2] );
+my \t = Series.new( [f=>1, e=>0, d=>2] );
 
+my $u = s.concat: t;              # concatenate
+$u.show;
+
+#`[[
+my \dfa = DataFrame.new(
+        [['a', 1], ['b', 2]],
+        columns => <letter number>,
+);
+#`[
+    letter  number
+ 0  a       1
+ 1  b       2
+#]
+
+my \dfc = DataFrame.new(
+        [['c', 3, 'cat'], ['d', 4, 'dog']],
+        columns => <animal letter number>,
+);
+#`[
+    letter  number  animal
+ 0  c       3       cat
+ 1  d       4       dog
+#]
+
+my $y = dfa.concat: dfc; 
+$y.head;
+
+dfa.concat: dfc;        # row-wise / outer join is default
+#`[
+       letter  number  animal
+ 0    a       1       NaN
+ 1    b       2       NaN
+ 0⋅1  c       3       cat
+ 1⋅1  d       4       dog
+#]
+
+dfa.concat: dfc, join => 'inner';
+#`[
+      letter  number
+ 0    a       1
+ 1    b       2
+ 0⋅1  c       3
+ 1⋅1  d       4
+#]
+
+my \dfd = DataFrame.new( [['bird', 'polly'], ['monkey', 'george']],
+                         columns=> <animal name>,                   );
+
+dfb.concat: dfd, axis => 1;             #column-wise
+#`[
+    letter  number  animal  name
+ 0  a       1       bird    polly
+ 1  b       2       monkey  george
+#]
+#]]
 
 #`[[[
 my \df = DataFrame.new;

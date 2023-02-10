@@ -47,6 +47,7 @@ class SeriesC is repr('CPointer') is export {
     sub se_get_f64(SeriesC, CArray[num64], size_t) is native($n-path) { * }
     sub se_get_u8(SeriesC, CArray[uint8], size_t) is native($n-path) { * }
     sub se_str_lengths(SeriesC)                returns uint32 is native($n-path) { * }
+    sub se_append(SeriesC, SeriesC)            returns SeriesC is native($n-path) { * }
 
     method new( $name, @data, :$dtype ) {
 
@@ -198,6 +199,10 @@ class SeriesC is repr('CPointer') is export {
                 Buf.new($array.list).decode.split('","')
             }
         }
+    }
+
+    method append( SeriesC $right ) {
+        se_append(self,$right)
     }
 }
 

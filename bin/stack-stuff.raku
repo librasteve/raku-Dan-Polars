@@ -3,10 +3,6 @@
 use Dan;
 use Dan::Polars;
 
-my \se1 = Series.new(name => "Proton", [29, 47, 79]);
-say se1.^methods;
-my \df1 = DataFrame.new(['Ray Type' => ["α", "β", "X", "γ"]]);
-say df1.^methods;
 #`[
 ### drop
 my \df1 = DataFrame.new(['Ray Type' => ["α", "β", "X", "γ"]]);

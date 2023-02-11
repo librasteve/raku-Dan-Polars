@@ -29,6 +29,6 @@
     "Rust",
     "Polars"
   ],
-  "api": "1",
+  "api": "1.1",
   "source-url": "git://github.com/p6steve/raku-dan-polars.git"
 }

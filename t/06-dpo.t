@@ -20,8 +20,8 @@ ok df[0][4] == 1,                                                           'wit
 # Data Accessors [row;col]
 ok df[0;4] == 1,                                                            '[0;4] get';
 df[0;4] = 3;                # must manual flush
-#df.flush;                  # FIXME too verbose for zef install
-#df.flood;
+df.flush;                  # FIXME too verbose for zef install
+df.flood;
 ok df[0;4] == 3,                                                            '[0;4] set';
 
 ok df ~~ DataFrame:D,                                                       'DataFrame:D';

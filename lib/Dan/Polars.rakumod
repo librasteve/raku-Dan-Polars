@@ -451,7 +451,7 @@ role DataFrame does Positional does Iterable is export {
         $!rc.get_column_names 
     }
 
-    method column( Str \colname ) {
+    submethod column( Str \colname ) {
         my SeriesC $cont = $!rc.column( colname );
         my $news = Series.new( data => [<0>], name => $cont.name, dtype => $cont.dtype );
         $news.rc = $cont;
@@ -666,7 +666,7 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
 
     #| flush DataFrame 
     method flush {
-        say 'flushing...', @!data;
+        say 'flushing...';
         self.load-from-data
     }
 
@@ -737,12 +737,15 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
         Any
     }
     method elems {
+        self.flood;
         @!data.elems
     }
     method AT-POS( $p, $q? ) {
+        self.flood;
         @!data[$p;$q // *]
     }
     method EXISTS-POS( $p ) {
+        self.flood;
         0 <= $p < @!data.elems ?? True !! False
     }
 
@@ -750,17 +753,22 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
     # viz. https://docs.raku.org/type/Iterable
 
     method iterator {
+        self.flood;
         @!data.iterator
     }
     method flat {
+        self.flood;
         @!data.flat
     }
     method lazy {
+        self.flood;
         @!data.lazy
     }
     method hyper {
+        self.flood;
         @!data.hyper
     }
+
     ### Splicing ###
 
     #| reset attributes

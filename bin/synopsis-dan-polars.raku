@@ -8,7 +8,7 @@ df.read_csv("../dan/src/iris.csv");
 
 # ---------------------------------------
 
-my $se = df.column("sepal.length");
+my $se = df.series("sepal.length");
 $se.head;
 
 #`[ a Series...

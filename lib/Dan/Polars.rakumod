@@ -451,20 +451,8 @@ role DataFrame does Positional does Iterable is export {
         $!rc.get_column_names 
     }
 
-    submethod column( Str \colname ) {
-        my SeriesC $cont = $!rc.column( colname );
-        my $news = Series.new( data => [<0>], name => $cont.name, dtype => $cont.dtype );
-        $news.rc = $cont;
-        $news
-    }
-
-    method with_column( Series \column ) {
-        $!rc.with_column( column.rc );
-        self
-    }
-
-    method drop( Str \colname ) {
-        $!rc .= drop( colname );
+    method drop( @colnames ) {              # takes List of Str (unlike Polars native call)
+        $!rc .= drop( $_ ) for @colnames;
         self
     }
 
@@ -472,16 +460,30 @@ role DataFrame does Positional does Iterable is export {
         self.shape ~~ (0,0)
     }
 
-    method hstack( @series ) {
+    #### Polars Specific Submethods ###
+
+    submethod column( Str \colname ) {
+        my SeriesC $cont = $!rc.column( colname );
+        my $news = Series.new( data => [<0>], name => $cont.name, dtype => $cont.dtype );
+        $news.rc = $cont;
+        $news
+    }
+
+    submethod with_column( Series \column ) {
+        $!rc.with_column( column.rc );
+        self
+    }
+
+    submethod hstack( @series ) {
         self.with_column($_) for @series;
         self
     }
 
-    method vstack( DataFrame \right ) {
+    submethod vstack( DataFrame \right ) {
         $!rc.vstack( right.rc )
     }
 
-    method join( DataFrame \right, JoinType :$jointype = 'outer' ) {
+    submethod join( DataFrame \right, JoinType :$jointype = 'outer' ) {
         my @overlap = gather { 
             for self.columns.&sbv {
                 take $_ if right.columns{$_}:exists
@@ -737,15 +739,12 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
         Any
     }
     method elems {
-        self.flood;
         @!data.elems
     }
     method AT-POS( $p, $q? ) {
-        self.flood;
         @!data[$p;$q // *]
     }
     method EXISTS-POS( $p ) {
-        self.flood;
         0 <= $p < @!data.elems ?? True !! False
     }
 
@@ -753,19 +752,15 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
     # viz. https://docs.raku.org/type/Iterable
 
     method iterator {
-        self.flood;
         @!data.iterator
     }
     method flat {
-        self.flood;
         @!data.flat
     }
     method lazy {
-        self.flood;
         @!data.lazy
     }
     method hyper {
-        self.flood;
         @!data.hyper
     }
 
@@ -839,7 +834,7 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
 
     # concat
     method concat( DataFrame:D $dfr, :ax(:$axis) is copy,
-                     :jn(:$join) = 'outer', :ii(:$ignore-index) ) {
+                                     :jn(:$join) = 'outer', :ii(:$ignore-index) ) {
 
         $axis = clean-axis(:$axis);
 

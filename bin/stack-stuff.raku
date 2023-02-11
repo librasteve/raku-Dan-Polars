@@ -3,14 +3,14 @@
 use Dan;
 use Dan::Polars;
 
-#`[
 ### drop
 my \df1 = DataFrame.new(['Ray Type' => ["α", "β", "X", "γ"]]);
-#df1.head;
-my \df2 = df1.drop('Ray Type');
-#df2.head;
-#say df2.is_empty;
+df1.head;
+my \df2 = df1.drop(['Ray Type']);
+df2.head;
+say df2.is_empty;
 
+#`[
 ### hstack
 my \df3 = DataFrame.new(["Element" => ["Copper", "Silver", "Gold"]]);
 my \se1 = Series.new(name => "Proton", [29, 47, 79]);

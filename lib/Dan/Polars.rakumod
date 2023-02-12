@@ -270,6 +270,15 @@ role DataFrame does Positional does Iterable is export {
     has DataFrameC $.rc;       #Rust container
     has LazyFrameC $.lc;       #Rust container
 
+    #| need this to avoid immutable error 
+    multi method rc( $rc ) {
+        $!rc = $rc
+    }
+
+    multi method rc {
+        $!rc
+    }
+
     ### Constructors ###
  
     # Positional data array arg => redispatch as Named
@@ -435,32 +444,81 @@ role DataFrame does Positional does Iterable is export {
         $!rc.head
     }
 
-    method height { 
-        $!rc.height
-    }
-
-    method width { 
-        $!rc.width
-    }
-
     method dtypes {
         $!rc.dtypes
     }
 
-    method get_column_names {
-        $!rc.get_column_names 
+    method shape {
+	    $.height, $.width 
     }
 
-    method drop( @colnames ) {              # takes List of Str (unlike Polars native call)
-        $!rc .= drop( $_ ) for @colnames;
-        self
+    method describe {
+        my \df = $.Dan-DataFrame;
+	    df.describe
     }
 
-    method is_empty {
-        self.shape ~~ (0,0)
+    multi method ix {                   # get index as Array
+        $.index.&sbv
+    }
+
+    method index {                      # get index as Hash
+        %!index = gather {
+            for 0..^$.height {
+                take ( $_ => $_ )
+            }
+        }.Hash
+    }
+
+    multi method cx {                   # get columns as Array
+        $.get_column_names
+    }
+
+    method columns {                    # get columns as Hash
+        my @keys = |$.cx;
+        @keys.map({ $_ => $++ }).Hash
+    }
+
+    #### Coercion / Export Methods ####
+
+    method Dan-DataFrame {
+        self.flood;
+        Dan::DataFrame.new( :@!data, :%!columns )
+    }
+
+    method to-dataset {
+        my $dataset = [;];
+        my @aoa = [];
+        my $colname;
+        my $series;
+
+        say DateTime.now, "...converting to dataset";
+        for 0..^$.cx -> $j {
+            $colname = $.cx[$j];
+
+            say DateTime.now, "...column $colname";
+            $series = $.column($colname);
+
+            @aoa.push: [$series.get-data.map({$colname => $_})];
+        }
+
+        say DateTime.now, "...transpose dataset";
+        $dataset = [Z] @aoa;
+        $dataset
     }
 
     #### Polars Specific Submethods ###
+
+    submethod height { 
+        $!rc.height
+    }
+
+    submethod width { 
+        $!rc.width
+    }
+
+    submethod get_column_names {
+        $!rc.get_column_names 
+    }
 
     submethod column( Str \colname ) {
         my SeriesC $cont = $!rc.column( colname );
@@ -498,57 +556,6 @@ role DataFrame does Positional does Iterable is export {
         self
     }
 
-    method Dan-DataFrame {
-        self.flood;
-        Dan::DataFrame.new( :@!data, :%!columns )
-    }
-
-    method to-dataset {
-        my $dataset = [;];
-        my @aoa = [];
-        my $colname;
-        my $series;
-
-        say DateTime.now, "...converting to dataset";
-        for 0..^$.cx -> $j {
-            $colname = $.cx[$j];
-
-            say DateTime.now, "...column $colname";
-            $series = $.column($colname);
-
-            @aoa.push: [$series.get-data.map({$colname => $_})];
-        }
-
-        say DateTime.now, "...transpose dataset";
-        $dataset = [Z] @aoa;
-        $dataset
-    }
-
-    #| get index as Array
-    multi method ix {
-        $.index.&sbv
-    }
-
-    #| get index as Hash
-    method index {
-        %!index = gather {
-            for 0..^$.height {
-                take ( $_ => $_ )
-            }
-        }.Hash
-    }
-
-    #| get columns as Array
-    multi method cx {
-        $.get_column_names
-    }
-
-    #| get columns as Hash
-    method columns {
-        my @keys = |$.cx;
-        @keys.map({ $_ => $++ }).Hash
-    }
-
     #### Query Methods #####
 
 #`[
@@ -572,27 +579,35 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
  -> DataFrame object with attributes of pointers to rust DataFrame and LazyFrame structures 
  #]
 
+    method series( $k ) {
+        $.column( $k ) 
+    }
+
+    method select( Array \exprs ) {
+        $!lc = LazyFrameC.new( $!rc );      # autolazy 
+        $!lc.select( exprs );
+        $.collect
+    }
+
+    method with_columns( Array \exprs ) {
+        $!lc = LazyFrameC.new( $!rc );      # autolazy 
+        $!lc.with_columns( exprs );
+        $.collect
+    }
+
+    method drop( @colnames ) {              # takes List of Str (unlike Polars native call)
+        $!rc .= drop( $_ ) for @colnames;
+        self
+    }
+
     submethod collect( --> DataFrame ) {
         my \df = DataFrame.new;
         df.rc: $!lc.collect;
         df
     }
 
-    method select( Array \exprs ) {
-        $!lc = LazyFrameC.new( $!rc ); #autolazy 
-        $!lc.select( exprs );
-        $.collect
-    }
-
-    method with_columns( Array \exprs ) {
-        $!lc = LazyFrameC.new( $!rc ); #autolazy 
-        $!lc.with_columns( exprs );
-        $.collect
-    }
-
-    #autocollect means groupby must always have an agg
-    method groupby( Array \colspec ) {
-        $!lc = LazyFrameC.new( $!rc ); #autolazy 
+    method groupby( Array \colspec ) {      # autocollect means groupby must always have an agg
+        $!lc = LazyFrameC.new( $!rc );      # autolazy 
         $!lc.groupby( colspec );
         self
     }
@@ -601,6 +616,82 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
     dd exprs;
         $!lc.agg( exprs );
         $.collect
+    }
+
+    method sort( &cruton ) {                # &custom-routine-to-use
+        self.flood;
+
+        my $i;
+        loop ( $i=0; $i < @!data; $i++ ) {
+            @!data[$i].push: %!index.&sbv[$i]
+        }
+
+        @!data .= sort: &cruton;
+        %!index = %();
+
+        loop ( $i=0; $i < @!data; $i++ ) {
+            %!index{@!data[$i].pop} = $i
+        }
+
+        DataFrame.new( :%!index, :%!columns, :@!data )
+    }
+
+    method grep( &cruton ) {                # &custom-routine-to-use
+        self.flood;
+
+        my $i;
+        loop ( $i=0; $i < @!data; $i++ ) {
+            @!data[$i].push: %!index.&sbv[$i]
+        }
+
+        @!data .= grep: &cruton;
+        %!index = %();
+
+        loop ( $i=0; $i < @!data; $i++ ) {
+            %!index{@!data[$i].pop} = $i
+        }
+
+	    DataFrame.new( :%!index, :%!columns, :@!data )
+    }
+
+    sub clean-axis( :$axis ) {
+        given $axis {
+            when ! .so || /row/ { 0 }
+            when   .so || /col/ { 1 }
+        }
+    }
+
+    method concat( DataFrame:D $dfr, :ax(:$axis) is copy,
+                                     :jn(:$join) = 'outer', :ii(:$ignore-index) ) {
+
+        $axis = clean-axis(:$axis);
+
+        if ! $axis {                        # row-wise with Polars join
+
+            if $join eq 'right' {           # Polars has no JoinType Right
+                $dfr.join( self, jointype => 'left' ) 
+            } else {
+                self.join( $dfr, jointype => $join )
+            }
+
+        } else {                            # col-wise with Polars hstack
+            
+            if $dfr.elems !== self.elems {
+                warn 'Polars column-wise join only implemented for DataFrames with same number of elems!'
+            } else {
+                my @series = $dfr.cx.map({$dfr.column($_)});
+                self.hstack: @series 
+            }
+
+        }
+
+        self
+    }
+
+    #### Test Methods ###
+
+    method is_empty {
+        self.shape ~~ (0,0)
     }
 
     #### MAC Methods #####
@@ -623,15 +714,6 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
         }
     }
 
-    #| need this to avoid immutable error 
-    multi method rc( $rc ) {
-        $!rc = $rc
-    }
-
-    multi method rc {
-        $!rc
-    }
-
     #### File Methods #####
     #### Read & Write #####
 
@@ -640,7 +722,7 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
     }
 
     #### Sync Methods #####
-    #### Flood & Flush  #####
+    #### Flood & Flush ####
 
     #| set raku attrs to rc_cols, rc_data, reset index
     method flood {
@@ -679,55 +761,6 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
         DataFrame.new: df.T
     }
 
-    method shape {
-	    $.height, $.width 
-    }
-
-    method describe {
-        my \df = $.Dan-DataFrame;
-	    df.describe
-    }
-
-    method series( $k ) {
-        $.column( $k ) 
-    }
-
-    method sort( &cruton ) {  #&custom-routine-to-use
-        self.flood;
-
-        my $i;
-        loop ( $i=0; $i < @!data; $i++ ) {
-            @!data[$i].push: %!index.&sbv[$i]
-        }
-
-        @!data .= sort: &cruton;
-        %!index = %();
-
-        loop ( $i=0; $i < @!data; $i++ ) {
-            %!index{@!data[$i].pop} = $i
-        }
-
-        DataFrame.new( :%!index, :%!columns, :@!data )
-    }
-
-    method grep( &cruton ) {  #&custom-routine-to-use
-        self.flood;
-
-        my $i;
-        loop ( $i=0; $i < @!data; $i++ ) {
-            @!data[$i].push: %!index.&sbv[$i]
-        }
-
-        @!data .= grep: &cruton;
-        %!index = %();
-
-        loop ( $i=0; $i < @!data; $i++ ) {
-            %!index{@!data[$i].pop} = $i
-        }
-
-	    DataFrame.new( :%!index, :%!columns, :@!data )
-    }
-
     ### Role Support ###
 
     # Positional role support 
@@ -764,6 +797,7 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
         @!data.hyper
     }
 
+#`[[
     ### Splicing ###
 
     #| reset attributes
@@ -824,41 +858,7 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
             }
         }
     }
-
-    sub clean-axis( :$axis ) {
-        given $axis {
-            when ! .so || /row/ { 0 }
-            when   .so || /col/ { 1 }
-        }
-    }
-
-    # concat
-    method concat( DataFrame:D $dfr, :ax(:$axis) is copy,
-                                     :jn(:$join) = 'outer', :ii(:$ignore-index) ) {
-
-        $axis = clean-axis(:$axis);
-
-        if ! $axis {                        # row-wise with Polars join
-
-            if $join eq 'right' {           # Polars has no JoinType Right
-                $dfr.join( self, jointype => 'left' ) 
-            } else {
-                self.join( $dfr, jointype => $join )
-            }
-
-        } else {                            # col-wise with Polars hstack
-            
-            if $dfr.elems !== self.elems {
-                warn 'Polars column-wise join only implemented for DataFrames with same number of elems!'
-            } else {
-                my @series = $dfr.cx.map({$dfr.column($_)});
-                self.hstack: @series 
-            }
-
-        }
-
-        self
-    }
+#]]
 }
 
 ### Infix operators for ExprCs 

@@ -338,11 +338,12 @@ This will then provide a basis for ...
 
 ### v0.2
 - [x] Dan concat as hstack, vstack, join
-- [x] splice to As Query
+- [x] splice to AsQuery
 - [x] drop col
+- [ ] map & apply (jit DSL style)
 - [ ] non-null, etc.
 
-This will then provide a basis for design Dan::As::Query v0.1 for Dan and Dan::Pandas and review Dan API slice & concat, immutability, refactor...
+Thus AsQuery (API v1.1) for Dan and Dan::Pandas and review Dan API slice & concat, immutability, refactor...
 
 ### v0.3...
 - [ ] datetime
@@ -357,10 +358,9 @@ This will then provide a basis for design Dan::As::Query v0.1 for Dan and Dan::P
 - [ ] strip / fold Index
 - [ ] cross join (aka cross product)
 - [ ] pivot / cross-tabluate
-- [ ] map & apply (jit DSL style)
 - [ ] apply over [multiple cols](https://stackoverflow.com/questions/72372821/how-to-apply-a-function-to-multiple-columns-of-a-polars-dataframe-in-rust)
-- [ ] ternary if-then-else (Dan::As::Ternary)
-- [ ] str operations (Dan::As::Str)
+- [ ] ternary if-then-else (AsTernary)
+- [ ] str operations (AsStr)
 - [ ] chunked transfer
 - [ ] serde
 

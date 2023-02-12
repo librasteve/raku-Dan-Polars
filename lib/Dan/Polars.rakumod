@@ -796,69 +796,6 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
     method hyper {
         @!data.hyper
     }
-
-#`[[
-    ### Splicing ###
-
-    #| reset attributes
-    method reset( :$axis ) {
-
-        @!data = [];
-
-        if ! $axis {
-            %!index = %()
-        } else {
-            %!columns = %()
-        }
-
-        $!rc = DataFrameC.new()
-    }
-
-    #| get as Array or Array of Pairs - [index|columns =>] DataSlice|Series
-    method get-ap( :$axis, :$pair ) {
-        given $axis, $pair {
-            when 0, 0 {
-                self.[*]
-            }
-            when 0, 1 {
-                my @slices = self.[*];
-                self.ix.map({ $_ => @slices[$++] })
-            }
-            when 1, 0 {
-                self.cx.map({self.series($_)}).Array
-            }
-            when 1, 1 {
-                my @series = self.cx.map({self.series($_)}).Array;
-                self.cx.map({ $_ => @series[$++] })
-            }
-        }
-    }
-
-    #| set from Array or Array of Pairs - [index|columns =>] DataSlice|Series
-    method set-ap( :$axis, :$pair, *@set ) {
-
-        self.reset: :$axis;
-
-        given $axis, $pair {
-            when 0, 0 {                         # row - array
-                self.load-from-slices: @set
-            }
-            when 0, 1 {                         # row - aops
-                self.load-from-slices: @set.map(*.value);
-                self.ix: @set.map(*.key)
-            }
-            when 1, 0 {                         # col - array
-                self.load-from-series: |@set;
-                self.flood
-            }
-            when 1, 1 {                         # col - aops
-                @set.map({ $_.value.rename( $_.key ) });
-                self.load-from-series: |@set.map(*.value);
-                self.flood
-            }
-        }
-    }
-#]]
 }
 
 ### Infix operators for ExprCs 

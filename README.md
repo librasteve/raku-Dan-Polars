@@ -350,13 +350,14 @@ Thus AsQuery (API v1.1) for Dan and Dan::Pandas and review Dan API slice & conca
 - [ ] unique_stable
 - [ ] expr arity > 1
 - [ ] 'over' expr
+- [ ] 'fold' expr
 - [ ] clone (then retest h2o-par)
 - [ ] immutability
-- [ ] reset @data after load rc (also to Pandas)
+- [ ] auto reset @data after load rc (also to Pandas)
+- [ ] cross join (aka cross product)
  
 ### v0.4...
-- [ ] strip / fold Index
-- [ ] cross join (aka cross product)
+- [ ] append / strip Index
 - [ ] pivot / cross-tabluate
 - [ ] apply over [multiple cols](https://stackoverflow.com/questions/72372821/how-to-apply-a-function-to-multiple-columns-of-a-polars-dataframe-in-rust)
 - [ ] ternary if-then-else (AsTernary)

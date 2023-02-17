@@ -950,6 +950,62 @@ impl ExprC {
 }
 
 //iamerejh ... this is vestigal working apply for Plan B development 
+//fn get_add_one(
+
+// viz. https://stackoverflow.com/questions/41081240/idiomatic-callbacks-in-rust
+// CallBackC == Processor
+
+struct CallBackC {
+    callback: Box<dyn FnMut()>,
+}
+impl CallBackC {
+    fn set_callback(&mut self, c: impl FnMut() + 'static) {
+        self.callback = Box::new(c);
+    }
+
+    fn process_events(&mut self) {
+        (self.callback)();
+    }
+}
+
+fn simple_callback() {
+    println!("hello");
+}
+
+fn add_one(num_val: Series) -> Result<Series> {
+    let x = num_val
+        .i32()
+        .unwrap()
+        .into_iter()
+        // your actual custom function would be in this map
+        .map(|opt_name: Option<i32>| opt_name.map(|name: i32| (name + 1) as i32))
+        .collect::<Int32Chunked>();
+    Ok(x.into_series())
+}
+
+#[no_mangle]
+pub extern "C" fn ex_apply(ptr: *mut ExprC) -> *mut ExprC {
+    let mut cb_c = CallBackC {
+        callback: Box::new(simple_callback),
+    };
+    cb_c.process_events();
+
+    let s = "world!".to_string();
+    let callback2 = move || println!("hello {}", s);
+    cb_c.set_callback(callback2);
+    cb_c.process_events();
+
+
+    let ex_c = check_ptr(ptr);
+
+    let o = GetOutput::from_type(DataType::Int32);
+    let new_inner: Expr = ex_c.inner.clone().apply(add_one, o).into();
+
+    let ex_n = ExprC::new(new_inner.clone());
+    Box::into_raw(Box::new(ex_n))
+}
+
+/*
 fn add_one(num_val: Series) -> Result<Series> {
     let x = num_val
         .i32()
@@ -971,6 +1027,7 @@ pub extern "C" fn ex_apply(ptr: *mut ExprC) -> *mut ExprC {
     let ex_n = ExprC::new(new_inner.clone());
     Box::into_raw(Box::new(ex_n))
 }
+*/
 
 //col() is the extern for new()
 #[no_mangle]

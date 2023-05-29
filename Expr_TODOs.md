@@ -1,6 +1,6 @@
 Here is the set of Polars Exprs yet to be implement in Dan::Polars:
 
-todos from https://github.com/p6steve/polars/blob/master/nodejs-polars/src/lazy/dsl.rs
+todos from https://github.com/librasteve/polars/blob/master/nodejs-polars/src/lazy/dsl.rs
 - [ ] all ```__add__``` operators
 - [ ] to_string (what for)
 - [ ] binary - cmps

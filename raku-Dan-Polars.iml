@@ -8,5 +8,23 @@
       <sourceFolder url="file://$MODULE_DIR$/t" isTestSource="true" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module-library">
+      <library name="Dan" type="perl6">
+        <CLASSES />
+        <JAVADOC />
+        <SOURCES>
+          <root url="raku://-1954356261:Dan!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Timer" type="perl6">
+        <CLASSES />
+        <JAVADOC />
+        <SOURCES>
+          <root url="raku://-1954356261:Timer!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
   </component>
 </module>

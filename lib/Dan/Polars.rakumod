@@ -248,6 +248,15 @@ role Series does Positional does Iterable is export {
         %!index{$k}:exists
     }
 
+    # Extra support for + numeric and  [+] reduce via list and Numeric
+
+    method Numeric {
+        @!data.Numeric
+    }
+    method list {
+        @!data.list
+    }
+
 }
 
 role Categorical does Series is export {
@@ -692,6 +701,16 @@ role DataFrame does Positional does Iterable is export {
     method hyper {
         @!data.hyper
     }
+
+    # Extra support for + numeric and  [+] reduce via list and Numeric
+
+    method Numeric {
+        @!data.Numeric
+    }   
+    method list {
+        @!data.list
+    }   
+
     ### Splicing ###
 
     #| reset attributes

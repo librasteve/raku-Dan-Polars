@@ -30,7 +30,7 @@ The aim is to emulate the examples in the [Polars User Guide](https://pola-rs.gi
  
 ### Installation
 Based on the Dockerfile chain [(1)](https://github.com/librasteve/raku-Dan-Polars/blob/main/Dockerfile) FROM [(2)](https://github.com/librasteve/raku-Dockerfiles/blob/main/rusty-ma/Dockerfile)
-- ```docker run -it librasteve/raku-dan:polars```
+- ```docker run -it librasteve/raku-dan:polars-amd64```
 - ```cd ~/raku-Dan-Polars/bin``` (this repo was cloned to load test_data)
 - ```./synopsis-dan-polars.raku``` or ```./nutshell.raku```
 

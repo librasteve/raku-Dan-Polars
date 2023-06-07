@@ -47,6 +47,7 @@ class SeriesC is repr('CPointer') is export {
     sub se_get_f64(SeriesC, CArray[num64], size_t) is native($n-path) { * }
     sub se_get_u8(SeriesC, CArray[uint8], size_t) is native($n-path) { * }
     sub se_str_lengths(SeriesC)                returns uint32 is native($n-path) { * }
+    sub se_append(SeriesC, SeriesC)            returns SeriesC is native($n-path) { * }
 
     method new( $name, @data, :$dtype ) {
 
@@ -199,6 +200,10 @@ class SeriesC is repr('CPointer') is export {
             }
         }
     }
+
+    method append( SeriesC $right ) {
+        se_append(self,$right)
+    }
 }
 
 
@@ -216,6 +221,8 @@ class DataFrameC is repr('CPointer') is export {
     sub df_column(DataFrameC, Str) returns SeriesC is native($n-path) { * }
     sub df_select(DataFrameC, CArray[Str], size_t) returns DataFrameC is native($n-path) { * }
     sub df_with_column(DataFrameC, SeriesC) returns DataFrameC is native($n-path) { * }
+    sub df_drop(DataFrameC, Str) returns DataFrameC is native($n-path) { * }
+    sub df_vstack(DataFrameC, DataFrameC) returns DataFrameC is native($n-path) { * }
 
     method new {
         df_new
@@ -280,6 +287,14 @@ class DataFrameC is repr('CPointer') is export {
     method with_column( SeriesC \column ) {
         df_with_column(self, column)
     }
+
+    method drop( Str \colname --> DataFrameC ) {
+        df_drop(self, colname)
+    }
+
+    method vstack( DataFrameC \right --> DataFrameC ) {
+        df_vstack(self, right)
+    }
 }
 
 class LazyFrameC is repr('CPointer') is export {
@@ -290,6 +305,8 @@ class LazyFrameC is repr('CPointer') is export {
     sub lf_groupby(LazyFrameC, CArray[Str], size_t)    is native($n-path) { * }
     sub lf_agg(LazyFrameC, CArray[Pointer], size_t)    is native($n-path) { * }
     sub lf_collect(LazyFrameC)     returns DataFrameC  is native($n-path) { * }
+    sub lf_join(LazyFrameC, LazyFrameC, CArray[Pointer], size_t, CArray[Pointer], size_t, Str) 
+                                   returns DataFrameC  is native($n-path) { * }
 
     method new( DataFrameC \df_c ) {
         lf_new( df_c )
@@ -317,6 +334,11 @@ class LazyFrameC is repr('CPointer') is export {
 
     method collect {
         lf_collect(self)
+    }
+
+    method join( LazyFrameC \right, Array \l_colvec, Array \r_colvec, Str \jointype --> DataFrameC ) {
+        lf_join(self, right, carray( Pointer, l_colvec ), l_colvec.elems, 
+                             carray( Pointer, r_colvec ), r_colvec.elems, jointype)
     }
 }
 

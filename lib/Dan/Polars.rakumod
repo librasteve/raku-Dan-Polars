@@ -199,6 +199,12 @@ role Series does Positional does Iterable is export {
         $.push
     }
 
+    # concat (maps onto Polars append)
+    method concat( Series:D $dsr ) {
+        $!rc.append: $dsr.rc;
+        self
+    }
+
     ### Role Support ###
 
     # Positional role support 
@@ -262,6 +268,9 @@ role Series does Positional does Iterable is export {
 role Categorical does Series is export {
 }
 
+# viz. https://pola-rs.github.io/polars/polars_core/frame/hash_join/enum.JoinType.html
+subset JoinType of Str where <left inner outer asof cross>.any;
+
 role DataFrame does Positional does Iterable is export {
     has Any        @.data;             #redo 2d shaped Array when [; ] implemented
     has Int        %!index;            #row index
@@ -269,6 +278,15 @@ role DataFrame does Positional does Iterable is export {
 
     has DataFrameC $.rc;       #Rust container
     has LazyFrameC $.lc;       #Rust container
+
+    #| need this to avoid immutable error
+    multi method rc( $rc ) {
+        $!rc = $rc
+    }
+
+    multi method rc {
+        $!rc
+    }
 
     ### Constructors ###
  
@@ -435,33 +453,41 @@ role DataFrame does Positional does Iterable is export {
         $!rc.head
     }
 
-    method height { 
-        $!rc.height
-    }
-
-    method width { 
-        $!rc.width
-    }
-
     method dtypes {
         $!rc.dtypes
     }
 
-    method get_column_names {
-        $!rc.get_column_names 
+    method shape {
+	    $.height, $.width
     }
 
-    method column( Str \colname ) {
-        my SeriesC $cont = $!rc.column( colname );
-        my $news = Series.new( data => [<0>], name => $cont.name, dtype => $cont.dtype );
-        $news.rc = $cont;
-        $news
+    method describe {
+        my \df = $.Dan-DataFrame;
+	    df.describe
     }
 
-    method with_column( Series \column ) {
-        $!rc.with_column( column.rc );
-        self
+    multi method ix {                   # get index as Array
+        $.index.&sbv
     }
+
+    method index {                      # get index as Hash
+        %!index = gather {
+            for 0..^$.height {
+                take ( $_ => $_ )
+            }
+        }.Hash
+    }
+
+    multi method cx {                   # get columns as Array
+        $.get_column_names
+    }
+
+    method columns {                    # get columns as Hash
+        my @keys = |$.cx;
+        @keys.map({ $_ => $++ }).Hash
+    }
+
+    #### Coercion / Export Methods ####
 
     method Dan-DataFrame {
         self.flood;
@@ -489,32 +515,99 @@ role DataFrame does Positional does Iterable is export {
         $dataset
     }
 
-    #| get index as Array
-    multi method ix {
-        $.index.&sbv
+    #### Polars Specific Submethods ###
+
+    submethod height {
+        $!rc.height
     }
 
-    #| get index as Hash
-    method index {
-        %!index = gather {
-            for 0..^$.height {
-                take ( $_ => $_ )
+    submethod width {
+        $!rc.width
+    }
+
+    submethod get_column_names {
+        $!rc.get_column_names
+    }
+
+    submethod column( Str \colname ) {
+        my SeriesC $cont = $!rc.column( colname );
+        my $news = Series.new( data => [<0>], name => $cont.name, dtype => $cont.dtype );
+        $news.rc = $cont;
+        $news
+    }
+
+    submethod with_column( Series \column ) {
+        $!rc.with_column( column.rc );
+        self
+    }
+
+    submethod hstack( @series ) {
+        self.with_column($_) for @series;
+        self
+    }
+
+    submethod vstack( DataFrame \right ) {
+        $!rc.vstack( right.rc )
+    }
+
+    submethod join( DataFrame \right, JoinType :$jointype = 'outer' ) {
+        my @overlap = gather {
+            for self.columns.&sbv {
+                take $_ if right.columns{$_}:exists
             }
-        }.Hash
-    }
+        }
+        my $colspec = [@overlap.map({ col($_) })];                      #autogen overlap colspec
 
-    #| get columns as Array
-    multi method cx {
-        $.get_column_names
-    }
+        $!lc = LazyFrameC.new( $!rc );                                  #autolazy self & right args
+        my $lr = LazyFrameC.new( right.rc );
 
-    #| get columns as Hash
-    method columns {
-        my @keys = |$.cx;
-        @keys.map({ $_ => $++ }).Hash
+        $!rc = $!lc.join( $lr, $colspec, $colspec, $jointype.tc );      #l_ & r_colspec are the same
+        self
     }
 
     #### Query Methods #####
+
+#`[
+dfa.groupby(["letter"]).agg([col("number").sum]).head;
+--- ------- ----------  ---  --- --------- ---   ----
+ |     |        |        |    |      |      |      -> method head prints some lines of thesresult
+ |     |        |        |    |      |      |
+ |     |        |        |    |      |      -> method sum returns a new Expr
+ |     |        |        |    |      |
+ |     |        |        |    |      -> colname argument
+ |     |        |        |    |
+ |     |        |        |    -> method col(Str \colname) returns a new Expr
+ |     |        |        |
+ |     |        |        -> method agg(Array \expr) applies a list of Expr to the LazyGroupBy,
+ |     |        |                 then calls .collect to convert the LazyFrame result to a new DataFrame
+ |     |        |
+ |     |        -> colspec is List of Str valid column names [1]
+ |     |
+ |     -> method groupby(Array \colspec) creates a LazyFrame and returns a LazyGroupBy object into the lf.gb field
+ |
+ -> DataFrame object with attributes of pointers to rust DataFrame and LazyFrame structures
+ #]
+
+    method series( $k ) {
+        $.column( $k )
+    }
+
+    method select( Array \exprs ) {
+        $!lc = LazyFrameC.new( $!rc );      # autolazy
+        $!lc.select( exprs );
+        $.collect
+    }
+
+    method with_columns( Array \exprs ) {
+        $!lc = LazyFrameC.new( $!rc );      # autolazy
+        $!lc.with_columns( exprs );
+        $.collect
+    }
+
+    method drop( @colnames ) {              # takes List of Str (unlike Polars native call)
+        $!rc .= drop( $_ ) for @colnames;
+        self
+    }
 
     submethod collect( --> DataFrame ) {
         my \df = DataFrame.new;
@@ -522,21 +615,8 @@ role DataFrame does Positional does Iterable is export {
         df
     }
 
-    method select( Array \exprs ) {
-        $!lc = LazyFrameC.new( $!rc ); #autolazy 
-        $!lc.select( exprs );
-        $.collect
-    }
-
-    method with_columns( Array \exprs ) {
-        $!lc = LazyFrameC.new( $!rc ); #autolazy 
-        $!lc.with_columns( exprs );
-        $.collect
-    }
-
-    #autocollect means groupby must always have an agg
-    method groupby( Array \colspec ) {
-        $!lc = LazyFrameC.new( $!rc ); #autolazy 
+    method groupby( Array \colspec ) {      # autocollect means groupby must always have an agg
+        $!lc = LazyFrameC.new( $!rc );      # autolazy
         $!lc.groupby( colspec );
         self
     }
@@ -544,6 +624,82 @@ role DataFrame does Positional does Iterable is export {
     method agg( Array \exprs ) {
         $!lc.agg( exprs );
         $.collect
+    }
+
+    method sort( &cruton ) {                # &custom-routine-to-use
+        self.flood;
+
+        my $i;
+        loop ( $i=0; $i < @!data; $i++ ) {
+            @!data[$i].push: %!index.&sbv[$i]
+        }
+
+        @!data .= sort: &cruton;
+        %!index = %();
+
+        loop ( $i=0; $i < @!data; $i++ ) {
+            %!index{@!data[$i].pop} = $i
+        }
+
+        DataFrame.new( :%!index, :%!columns, :@!data )
+    }
+
+    method grep( &cruton ) {                # &custom-routine-to-use
+        self.flood;
+
+        my $i;
+        loop ( $i=0; $i < @!data; $i++ ) {
+            @!data[$i].push: %!index.&sbv[$i]
+        }
+
+        @!data .= grep: &cruton;
+        %!index = %();
+
+        loop ( $i=0; $i < @!data; $i++ ) {
+            %!index{@!data[$i].pop} = $i
+        }
+
+	    DataFrame.new( :%!index, :%!columns, :@!data )
+    }
+
+    sub clean-axis( :$axis ) {
+        given $axis {
+            when ! .so || /row/ { 0 }
+            when   .so || /col/ { 1 }
+        }
+    }
+
+    method concat( DataFrame:D $dfr, :ax(:$axis) is copy,
+                                     :jn(:$join) = 'outer', :ii(:$ignore-index) ) {
+
+        $axis = clean-axis(:$axis);
+
+        if ! $axis {                        # row-wise with Polars join
+
+            if $join eq 'right' {           # Polars has no JoinType Right
+                $dfr.join( self, jointype => 'left' )
+            } else {
+                self.join( $dfr, jointype => $join )
+            }
+
+        } else {                            # col-wise with Polars hstack
+
+            if $dfr.elems !== self.elems {
+                warn 'Polars column-wise join only implemented for DataFrames with same number of elems!'
+            } else {
+                my @series = $dfr.cx.map({$dfr.column($_)});
+                self.hstack: @series
+            }
+
+        }
+
+        self
+    }
+
+    #### Test Methods ###
+
+    method is_empty {
+        self.shape ~~ (0,0)
     }
 
     #### MAC Methods #####
@@ -566,10 +722,6 @@ role DataFrame does Positional does Iterable is export {
         }
     }
 
-    method rc( $rc ) {
-        $!rc = $rc
-    }
-
     #### File Methods #####
     #### Read & Write #####
 
@@ -578,7 +730,7 @@ role DataFrame does Positional does Iterable is export {
     }
 
     #### Sync Methods #####
-    #### Flood & Flush  #####
+    #### Flood & Flush ####
 
     #| set raku attrs to rc_cols, rc_data, reset index
     method flood {
@@ -606,7 +758,7 @@ role DataFrame does Positional does Iterable is export {
 
     #| flush DataFrame 
     method flush {
-        say 'flushing...', @!data;
+        say 'flushing...';
         self.load-from-data
     }
 
@@ -615,55 +767,6 @@ role DataFrame does Positional does Iterable is export {
     method T {                      #FIXME - rust not working
         my \df = $.Dan-DataFrame;
         DataFrame.new: df.T
-    }
-
-    method shape {
-	    $.height, $.width 
-    }
-
-    method describe {
-        my \df = $.Dan-DataFrame;
-	    df.describe
-    }
-
-    method series( $k ) {
-        $.column( $k ) 
-    }
-
-    method sort( &cruton ) {  #&custom-routine-to-use
-        self.flood;
-
-        my $i;
-        loop ( $i=0; $i < @!data; $i++ ) {
-            @!data[$i].push: %!index.&sbv[$i]
-        }
-
-        @!data .= sort: &cruton;
-        %!index = %();
-
-        loop ( $i=0; $i < @!data; $i++ ) {
-            %!index{@!data[$i].pop} = $i
-        }
-
-        DataFrame.new( :%!index, :%!columns, :@!data )
-    }
-
-    method grep( &cruton ) {  #&custom-routine-to-use
-        self.flood;
-
-        my $i;
-        loop ( $i=0; $i < @!data; $i++ ) {
-            @!data[$i].push: %!index.&sbv[$i]
-        }
-
-        @!data .= grep: &cruton;
-        %!index = %();
-
-        loop ( $i=0; $i < @!data; $i++ ) {
-            %!index{@!data[$i].pop} = $i
-        }
-
-	    DataFrame.new( :%!index, :%!columns, :@!data )
     }
 
     ### Role Support ###
@@ -706,77 +809,9 @@ role DataFrame does Positional does Iterable is export {
 
     method Numeric {
         @!data.Numeric
-    }   
+    }
     method list {
         @!data.list
-    }   
-
-    ### Splicing ###
-
-    #| reset attributes
-    method reset( :$axis ) {
-
-        @!data = [];
-
-        if ! $axis {
-            %!index = %()
-        } else {
-            %!columns = %()
-        }
-
-        $!rc = DataFrameC.new()
-    }
-
-    #| get as Array or Array of Pairs - [index|columns =>] DataSlice|Series
-    method get-ap( :$axis, :$pair ) {
-        given $axis, $pair {
-            when 0, 0 {
-                self.[*]
-            }
-            when 0, 1 {
-                my @slices = self.[*];
-                self.ix.map({ $_ => @slices[$++] })
-            }
-            when 1, 0 {
-                self.cx.map({self.series($_)}).Array
-            }
-            when 1, 1 {
-                my @series = self.cx.map({self.series($_)}).Array;
-                self.cx.map({ $_ => @series[$++] })
-            }
-        }
-    }
-
-    #| set from Array or Array of Pairs - [index|columns =>] DataSlice|Series
-    method set-ap( :$axis, :$pair, *@set ) {
-
-        self.reset: :$axis;
-
-        given $axis, $pair {
-            when 0, 0 {                         # row - array
-                self.load-from-slices: @set
-            }
-            when 0, 1 {                         # row - aops
-                self.load-from-slices: @set.map(*.value);
-                self.ix: @set.map(*.key)
-            }
-            when 1, 0 {                         # col - array
-                self.load-from-series: |@set;
-                self.flood
-            }
-            when 1, 1 {                         # col - aops
-                @set.map({ $_.value.rename( $_.key ) });
-                self.load-from-series: |@set.map(*.value);
-                self.flood
-            }
-        }
-    }
-
-    sub clean-axis( :$axis ) {
-        given $axis {
-            when ! .so || /row/ { 0 }
-            when   .so || /col/ { 1 }
-        }
     }
 }
 

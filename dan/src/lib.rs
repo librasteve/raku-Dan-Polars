@@ -180,6 +180,10 @@ impl SeriesC {
             &_ => todo!(),
         }
     }
+
+    fn append(&mut self, se_c: &SeriesC) -> Series {
+        self.se.append(&se_c.se).unwrap().clone()
+    }
 }
 
 fn se_new_vec<T>(
@@ -350,6 +354,18 @@ pub extern "C" fn se_str_lengths(ptr: *mut SeriesC) -> u32 {
     se_c.str_lengths()
 }
 
+#[no_mangle]
+pub extern "C" fn se_append(
+    l_ptr: *mut SeriesC,
+    r_ptr: *mut SeriesC,
+) -> *mut SeriesC { 
+    let l_se_c = check_ptr(l_ptr);
+    let r_se_c = check_ptr(r_ptr);
+
+    l_se_c.se = l_se_c.append(r_se_c);
+    l_se_c
+}
+
 // DataFrame Container
 
 pub fn df_load_csv(spath: &str) -> PolarResult<DataFrame> {
@@ -425,6 +441,14 @@ impl DataFrameC {
 
     fn with_column(&mut self, series: Series) -> DataFrame {
         self.df.with_column(series).unwrap().clone()
+    }
+
+    fn drop(&self, string: String) -> DataFrame {
+        self.df.drop(&string).unwrap().clone()
+    }
+
+    fn vstack(&self, df_c: &DataFrameC) -> DataFrame {
+        self.df.vstack(&df_c.df).unwrap().clone()
     }
 }
 
@@ -564,6 +588,35 @@ pub extern "C" fn df_with_column(
     Box::into_raw(Box::new(df_n))
 }
 
+#[no_mangle]
+pub extern "C" fn df_drop(
+    d_ptr: *mut DataFrameC,
+    string: *const c_char,
+) -> *mut DataFrameC {
+    let df_c = check_ptr(d_ptr);
+
+    let colname = unsafe {
+        CStr::from_ptr(string).to_string_lossy().into_owned()
+    };
+
+    let mut df_n = DataFrameC::new();
+    df_n.df = df_c.drop(colname);
+    Box::into_raw(Box::new(df_n))
+}
+
+#[no_mangle]
+pub extern "C" fn df_vstack(
+    l_ptr: *mut DataFrameC,
+    r_ptr: *mut DataFrameC,
+) -> *mut DataFrameC {
+    let df_l = check_ptr(l_ptr);
+    let df_r = check_ptr(r_ptr);
+    
+    let mut df_n = DataFrameC::new();
+    df_n.df = df_l.vstack(df_r);
+    Box::into_raw(Box::new(df_n))
+}
+
 // LazyFrame Container
 
 #[repr(C)]
@@ -602,6 +655,39 @@ impl LazyFrameC {
 
     fn agg(&mut self, exprvec: Vec::<Expr>) {
         self.lf = self.gb.clone().unwrap().agg(exprvec);
+    }
+
+    fn join(&self, 
+        lf_c: &LazyFrameC,
+        l_colvec: Vec::<Expr>,
+        r_colvec: Vec::<Expr>,
+        jointype: &str 
+    ) -> DataFrameC {
+        let mut df_c = DataFrameC::new();
+        match jointype {
+            "Left"  => 
+                { df_c.df = self.lf.clone().join(
+                    lf_c.lf.clone(), l_colvec, r_colvec, JoinType::Left
+                ).collect().unwrap(); ()},
+            "Inner"  => 
+                { df_c.df = self.lf.clone().join(
+                    lf_c.lf.clone(), l_colvec, r_colvec, JoinType::Inner
+                ).collect().unwrap(); ()},
+            "Outer"  => 
+                { df_c.df = self.lf.clone().join(
+                    lf_c.lf.clone(), l_colvec, r_colvec, JoinType::Outer
+                ).collect().unwrap(); ()},
+            //"Asof"  => 
+            //    { df_c.df = self.lf.clone().join(
+            //        lf_c.lf.clone(), l_colvec, r_colvec, JoinType::Asof
+            //    ).collect().unwrap(); ()},
+            "Cross"  => 
+                { df_c.df = self.lf.clone().join(
+                    lf_c.lf.clone(), l_colvec, r_colvec, JoinType::Cross
+                ).collect().unwrap(); ()},
+            _      => (),
+        }
+        df_c
     }
 }
 
@@ -702,6 +788,37 @@ pub extern "C" fn lf_agg(
     lf_c.agg(exprvec.to_exprs());
 }
 
+#[no_mangle]
+pub extern "C" fn lf_join(
+    l_ptr: *mut LazyFrameC,
+    r_ptr: *mut LazyFrameC,
+    l_colarr: *const &ExprC,
+    l_len: size_t, 
+    r_colarr: *const &ExprC,
+    r_len: size_t,
+    string: *const c_char
+) -> *mut DataFrameC {
+    let lf_l = check_ptr(l_ptr);
+    let lf_r = check_ptr(r_ptr);
+
+    let mut l_colvec = Vec::<&ExprC>::new();
+    unsafe {
+        for item in slice::from_raw_parts(l_colarr, l_len as usize) {
+            l_colvec.push(item);
+        };
+    };
+    let mut r_colvec = Vec::<&ExprC>::new();
+    unsafe {
+        for item in slice::from_raw_parts(r_colarr, r_len as usize) {
+            r_colvec.push(item);
+        };
+    };
+    let jointype = unsafe {
+        CStr::from_ptr(string).to_string_lossy().into_owned()
+    };
+
+    Box::into_raw(Box::new(lf_l.join(lf_r, l_colvec.to_exprs(), r_colvec.to_exprs(), &jointype)))
+}
 
 // Expressions
 // these from nodejs lazy/dsl.rs...
@@ -833,6 +950,76 @@ impl ExprC {
 }
 
 //iamerejh ... this is vestigal working apply for Plan B development 
+//fn get_add_one(
+
+// viz. https://stackoverflow.com/questions/41081240/idiomatic-callbacks-in-rust
+// CallBackC == Processor
+
+struct CallBackC {
+    callback: Box<dyn FnMut()>,
+}
+impl CallBackC {
+    fn set_callback(&mut self, c: impl FnMut() + 'static) {
+        self.callback = Box::new(c);
+    }
+
+    fn process_events(&mut self) {
+        (self.callback)();
+    }
+}
+
+fn simple_callback() {
+    println!("hello");
+}
+
+fn add_one_shallow( opt_name: Option<i32> ) -> Option<i32> {
+    opt_name.map( |name| add_one_deep(name) ) 
+}
+
+fn add_one_deep( name: i32 ) -> i32 {
+    (name + 2) as i32
+}
+
+
+fn do_apply(num_val: Series) -> Result<Series> {
+    let x = num_val
+        .i32()
+        .unwrap()
+        .into_iter()
+        // your actual custom function would be in this map
+        //.map(|opt_name: Option<i32>| opt_name.map(|name: i32| (name + 1) as i32))
+
+        .map(|opt_name| { 
+            add_one_shallow(opt_name)
+        } )
+
+        .collect::<Int32Chunked>();
+    Ok(x.into_series())
+}
+
+#[no_mangle]
+pub extern "C" fn ex_apply(ptr: *mut ExprC) -> *mut ExprC {
+    let mut cb_c = CallBackC {
+        callback: Box::new(simple_callback),
+    };
+    cb_c.process_events();
+
+    let s = "world!".to_string();
+    let callback2 = move || println!("hello {}", s);
+    cb_c.set_callback(callback2);
+    cb_c.process_events();
+
+
+    let ex_c = check_ptr(ptr);
+
+    let o = GetOutput::from_type(DataType::Int32);
+    let new_inner: Expr = ex_c.inner.clone().apply(do_apply, o).into();
+
+    let ex_n = ExprC::new(new_inner.clone());
+    Box::into_raw(Box::new(ex_n))
+}
+
+/*
 fn add_one(num_val: Series) -> Result<Series> {
     let x = num_val
         .i32()
@@ -854,6 +1041,7 @@ pub extern "C" fn ex_apply(ptr: *mut ExprC) -> *mut ExprC {
     let ex_n = ExprC::new(new_inner.clone());
     Box::into_raw(Box::new(ex_n))
 }
+*/
 
 //col() is the extern for new()
 #[no_mangle]

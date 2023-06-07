@@ -337,31 +337,33 @@ Usually no data needs to be transferred from Raku to Rust (or vice versa). For e
 This will then provide a basis for ...
 
 ### v0.2
-- [x] Dan concat as hstack, vstack, join
-- [x] splice to AsQuery
 - [x] drop col
-- [ ] map & apply (jit DSL style)
+- [ ] [Dan concat (s1) via Rust join](https://github.com/p6steve/raku-Dan-Polars/issues/10)
+- [ ] Dan splice to with_col, col, drop, hstack, vstack, append (need Issue discussion)
 - [ ] non-null, etc.
+- [ ] map & apply (jit DSL style)
+- [ ] cast
 
-Thus AsQuery (API v1.1) for Dan and Dan::Pandas and review Dan API slice & concat, immutability, refactor...
+This will then provide a basis for design Dan::As::Query v0.1 for Dan and Dan::Pandas and review Dan API slice & concat, immutability, refactor...
 
 ### v0.3...
 - [ ] datetime
+- [ ] [asof join](https://pola-rs.github.io/polars/polars_core/prelude/struct.AsOfOptions.html)
 - [ ] unique_stable
 - [ ] expr arity > 1
 - [ ] 'over' expr
 - [ ] 'fold' expr
 - [ ] clone (then retest h2o-par)
 - [ ] immutability
-- [ ] auto reset @data after load rc (also to Pandas)
-- [ ] cross join (aka cross product)
+- [ ] reset @data after load rc (also to Pandas)
  
 ### v0.4...
-- [ ] append / strip Index
+- [ ] strip / fold Index
+- [ ] cross join (aka cross product)
 - [ ] pivot / cross-tabluate
 - [ ] apply over [multiple cols](https://stackoverflow.com/questions/72372821/how-to-apply-a-function-to-multiple-columns-of-a-polars-dataframe-in-rust)
-- [ ] ternary if-then-else (AsTernary)
-- [ ] str operations (AsStr)
+- [ ] ternary if-then-else (Dan::As::Ternary)
+- [ ] str operations (Dan::As::Str)
 - [ ] chunked transfer
 - [ ] serde
 

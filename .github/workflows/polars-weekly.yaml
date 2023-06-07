@@ -35,11 +35,11 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          #tags: librasteve/raku-dan:polars
-          tags: librasteve/raku-dan:polars-amd64
+          tags: librasteve/raku-dan:polars
+          #tags: librasteve/raku-dan:polars-amd64
           push: true
-          #platforms: linux/arm64,linux/amd64 - build fails on gha arm64
-          platforms: linux/amd64
+          platforms: linux/arm64,linux/amd64
+          #platforms: linux/amd64
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}

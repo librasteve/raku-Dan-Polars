@@ -8,16 +8,16 @@ _If you would like to alter the priority, please create an issue (or find an exi
 
 _Even better would be to work with me to do a PR (I will probbaly need to do a bit of guidance initiallly)._
 
-_p6steve@furnival.net_
+_librasteve@furnival.net_
 
 *THIS MODULE IS EXPERIMENTAL AND SUBJECT TO CHANGE WITHOUT NOTICE*
  
 [![License: Artistic-2.0](https://img.shields.io/badge/License-Artistic%202.0-0298c3.svg)](https://opensource.org/licenses/Artistic-2.0)
-[![raku-dan:polars -> DH](https://github.com/p6steve/raku-Dan-Polars/actions/workflows/polars-weekly.yaml/badge.svg)](https://github.com/p6steve/raku-Dan-Polars/actions/workflows/polars-weekly.yaml)
+[![raku-dan:polars -> DH](https://github.com/librasteve/raku-Dan-Polars/actions/workflows/polars-weekly.yaml/badge.svg)](https://github.com/librasteve/raku-Dan-Polars/actions/workflows/polars-weekly.yaml)
 
 # raku Dan::Polars - WIP
 
-This new module binds Raku [Dan](https://github.com/p6steve/raku-Dan) to Polars via Raku NativeCall / Rust FFI.
+This new module binds Raku [Dan](https://github.com/librasteve/raku-Dan) to Polars via Raku NativeCall / Rust FFI.
 
 The following broad capabilities are included:
 - Polars structures (Series & DataFrames)
@@ -29,8 +29,8 @@ The following broad capabilities are included:
 The aim is to emulate the examples in the [Polars User Guide](https://pola-rs.github.io/polars-book/user-guide/dsl/expressions.html)
  
 ### Installation
-Based on the Dockerfile chain [(1)](https://github.com/p6steve/raku-Dan-Polars/blob/main/Dockerfile) FROM [(2)](https://github.com/p6steve/raku-Dockerfiles/blob/main/rusty-ma/Dockerfile)
-- ```docker run -it p6steve/raku-dan:polars```
+Based on the Dockerfile chain [(1)](https://github.com/librasteve/raku-Dan-Polars/blob/main/Dockerfile) FROM [(2)](https://github.com/librasteve/raku-Dockerfiles/blob/main/rusty-ma/Dockerfile)
+- ```docker run -it librasteve/raku-dan:polars-amd64```
 - ```cd ~/raku-Dan-Polars/bin``` (this repo was cloned to load test_data)
 - ```./synopsis-dan-polars.raku``` or ```./nutshell.raku```
 
@@ -91,7 +91,7 @@ _datasets are used by raku [Data::...](https://raku.land/?q=Data%3A%3A) modules_
 
 ### Synopsis
 
-Dan::Polars is a specialization of raku Dan. Checkout the [Dan synopsis](https://github.com/p6steve/raku-Dan/blob/main/README.md#synopsis) for base Series and DataFrame operations. The following covers the additional features that are specific to Dan::Polars.
+Dan::Polars is a specialization of raku Dan. Checkout the [Dan synopsis](https://github.com/librasteve/raku-Dan/blob/main/README.md#synopsis) for base Series and DataFrame operations. The following covers the additional features that are specific to Dan::Polars.
 
 * Each Dan::Polars object (Series or DataFrame) contains a pointer to its Rust Polars "shadow". 
 * Polars does not implement indexes, so any attempt to set a row index will be ignored.
@@ -341,6 +341,7 @@ This will then provide a basis for ...
 - [ ] [Dan concat (s1) via Rust join](https://github.com/p6steve/raku-Dan-Polars/issues/10)
 - [ ] Dan splice to with_col, col, drop, hstack, vstack, append (need Issue discussion)
 - [ ] non-null, etc.
+- [ ] map & apply (jit DSL style)
 - [ ] cast
 
 This will then provide a basis for design Dan::As::Query v0.1 for Dan and Dan::Pandas and review Dan API slice & concat, immutability, refactor...
@@ -351,6 +352,7 @@ This will then provide a basis for design Dan::As::Query v0.1 for Dan and Dan::P
 - [ ] unique_stable
 - [ ] expr arity > 1
 - [ ] 'over' expr
+- [ ] 'fold' expr
 - [ ] clone (then retest h2o-par)
 - [ ] immutability
 - [ ] reset @data after load rc (also to Pandas)
@@ -359,7 +361,6 @@ This will then provide a basis for design Dan::As::Query v0.1 for Dan and Dan::P
 - [ ] strip / fold Index
 - [ ] cross join (aka cross product)
 - [ ] pivot / cross-tabluate
-- [ ] map & apply (jit DSL style)
 - [ ] apply over [multiple cols](https://stackoverflow.com/questions/72372821/how-to-apply-a-function-to-multiple-columns-of-a-polars-dataframe-in-rust)
 - [ ] ternary if-then-else (Dan::As::Ternary)
 - [ ] str operations (Dan::As::Str)

@@ -1,4 +1,4 @@
-unit module Dan::Polars:ver<0.0.2>:auth<Steve Roe (p6steve@furnival.net)>;
+unit module Dan::Polars:ver<0.0.3>:auth<Steve Roe (librasteve@furnival.net)>;
 
 use Dan;
 use Dan::Polars::Containers;
@@ -254,13 +254,22 @@ role Series does Positional does Iterable is export {
         %!index{$k}:exists
     }
 
+    # Extra support for + numeric and  [+] reduce via list and Numeric
+
+    method Numeric {
+        @!data.Numeric
+    }
+    method list {
+        @!data.list
+    }
+
 }
 
 role Categorical does Series is export {
 }
 
 # viz. https://pola-rs.github.io/polars/polars_core/frame/hash_join/enum.JoinType.html
-subset JoinType of Str where <left inner outer asof cross>.any;  
+subset JoinType of Str where <left inner outer asof cross>.any;
 
 role DataFrame does Positional does Iterable is export {
     has Any        @.data;             #redo 2d shaped Array when [; ] implemented
@@ -270,7 +279,7 @@ role DataFrame does Positional does Iterable is export {
     has DataFrameC $.rc;       #Rust container
     has LazyFrameC $.lc;       #Rust container
 
-    #| need this to avoid immutable error 
+    #| need this to avoid immutable error
     multi method rc( $rc ) {
         $!rc = $rc
     }
@@ -449,7 +458,7 @@ role DataFrame does Positional does Iterable is export {
     }
 
     method shape {
-	    $.height, $.width 
+	    $.height, $.width
     }
 
     method describe {
@@ -508,16 +517,16 @@ role DataFrame does Positional does Iterable is export {
 
     #### Polars Specific Submethods ###
 
-    submethod height { 
+    submethod height {
         $!rc.height
     }
 
-    submethod width { 
+    submethod width {
         $!rc.width
     }
 
     submethod get_column_names {
-        $!rc.get_column_names 
+        $!rc.get_column_names
     }
 
     submethod column( Str \colname ) {
@@ -542,14 +551,14 @@ role DataFrame does Positional does Iterable is export {
     }
 
     submethod join( DataFrame \right, JoinType :$jointype = 'outer' ) {
-        my @overlap = gather { 
+        my @overlap = gather {
             for self.columns.&sbv {
                 take $_ if right.columns{$_}:exists
             }
         }
         my $colspec = [@overlap.map({ col($_) })];                      #autogen overlap colspec
 
-        $!lc = LazyFrameC.new( $!rc );                                  #autolazy self & right args 
+        $!lc = LazyFrameC.new( $!rc );                                  #autolazy self & right args
         my $lr = LazyFrameC.new( right.rc );
 
         $!rc = $!lc.join( $lr, $colspec, $colspec, $jointype.tc );      #l_ & r_colspec are the same
@@ -574,23 +583,23 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
  |     |        |
  |     |        -> colspec is List of Str valid column names [1]
  |     |
- |     -> method groupby(Array \colspec) creates a LazyFrame and returns a LazyGroupBy object into the lf.gb field 
+ |     -> method groupby(Array \colspec) creates a LazyFrame and returns a LazyGroupBy object into the lf.gb field
  |
- -> DataFrame object with attributes of pointers to rust DataFrame and LazyFrame structures 
+ -> DataFrame object with attributes of pointers to rust DataFrame and LazyFrame structures
  #]
 
     method series( $k ) {
-        $.column( $k ) 
+        $.column( $k )
     }
 
     method select( Array \exprs ) {
-        $!lc = LazyFrameC.new( $!rc );      # autolazy 
+        $!lc = LazyFrameC.new( $!rc );      # autolazy
         $!lc.select( exprs );
         $.collect
     }
 
     method with_columns( Array \exprs ) {
-        $!lc = LazyFrameC.new( $!rc );      # autolazy 
+        $!lc = LazyFrameC.new( $!rc );      # autolazy
         $!lc.with_columns( exprs );
         $.collect
     }
@@ -607,13 +616,12 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
     }
 
     method groupby( Array \colspec ) {      # autocollect means groupby must always have an agg
-        $!lc = LazyFrameC.new( $!rc );      # autolazy 
+        $!lc = LazyFrameC.new( $!rc );      # autolazy
         $!lc.groupby( colspec );
         self
     }
 
     method agg( Array \exprs ) {
-    dd exprs;
         $!lc.agg( exprs );
         $.collect
     }
@@ -669,18 +677,18 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
         if ! $axis {                        # row-wise with Polars join
 
             if $join eq 'right' {           # Polars has no JoinType Right
-                $dfr.join( self, jointype => 'left' ) 
+                $dfr.join( self, jointype => 'left' )
             } else {
                 self.join( $dfr, jointype => $join )
             }
 
         } else {                            # col-wise with Polars hstack
-            
+
             if $dfr.elems !== self.elems {
                 warn 'Polars column-wise join only implemented for DataFrames with same number of elems!'
             } else {
                 my @series = $dfr.cx.map({$dfr.column($_)});
-                self.hstack: @series 
+                self.hstack: @series
             }
 
         }
@@ -795,6 +803,15 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
     }
     method hyper {
         @!data.hyper
+    }
+
+    # Extra support for + numeric and  [+] reduce via list and Numeric
+
+    method Numeric {
+        @!data.Numeric
+    }
+    method list {
+        @!data.list
     }
 }
 

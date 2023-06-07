@@ -1,12 +1,12 @@
 {
   "name": "Dan::Polars",
   "description": "Bridge Dan to Rust Polars",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "perl": "6.d",
   "authors": [
-    "p6steve"
+    "librasteve"
   ],
-  "auth": "zef:p6steve",
+  "auth": "zef:librasteve",
   "depends": [
     "Dan",
     "Timer"
@@ -18,7 +18,7 @@
     "Dan::Polars::Containers": "lib/Dan/Polars/Containers.rakumod"
   },
   "resources": [
-        "libraries/dan"
+    "libraries/dan"
   ],
   "license": "Artistic-2.0",
   "tags": [
@@ -30,5 +30,5 @@
     "Polars"
   ],
   "api": "1.1",
-  "source-url": "git://github.com/p6steve/raku-dan-polars.git"
+  "source-url": "git://github.com/librasteve/raku-dan-polars.git"
 }

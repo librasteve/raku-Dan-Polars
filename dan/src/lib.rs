@@ -976,6 +976,7 @@ fn do_apply(num_val: Series) -> Result<Series> {
 }
 
 fn get_apply(ex_c: &mut ExprC) -> *mut ExprC {
+
     let o = GetOutput::from_type(DataType::Int32);
     let new_inner: Expr = ex_c.inner.clone().apply(do_apply, o).into();
 
@@ -988,12 +989,6 @@ pub extern "C" fn ex_apply(ptr: *mut ExprC) -> *mut ExprC {
     let ex_c = check_ptr(ptr);
 
     get_apply(ex_c)
-
-    //let o = GetOutput::from_type(DataType::Int32);
-    //let new_inner: Expr = ex_c.inner.clone().apply(do_apply, o).into();
-
-    //let ex_n = ExprC::new(new_inner.clone());
-    //Box::into_raw(Box::new(ex_n))
 }
 
 /*

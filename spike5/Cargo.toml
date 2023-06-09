@@ -1,0 +1,13 @@
+[package]
+name = "rendering_test"
+version = "0.0.1"
+authors = [ "Your name <you@example.com>" ]
+
+[dependencies]
+time = "0.1"
+gtk = "*"
+gdk = "*"
+glib = "*"
+cairo-rs = "*"
+libloading = "*"
+

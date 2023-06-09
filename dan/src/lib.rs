@@ -958,12 +958,15 @@ type AddFunc = fn(isize, isize) -> isize;
 
 fn libapply() {
     unsafe {
-        let lib = Library::new("/root//raku-Dan-Polars/dan/src/libapply.so").unwrap();
+        let lib = Library::new("/root/raku-Dan-Polars/dan/src/libapply.so").unwrap();
 
-        let func: Symbol<AddFunc> = lib.get(b"add").unwrap();
+        let add: Symbol<AddFunc> = lib.get(b"add").unwrap();
+        let add_ans = add(1, 2);
+        println!("1 + 2 = {}", add_ans);
 
-        let answer = func(1, 2);
-        println!("1 + 2 = {}", answer);
+        let cod: Symbol<AddFunc> = lib.get(b"cod").unwrap();
+        //let cod_ans = cod(1);
+        //println!("{}", cod_ans);
     }
 }
 

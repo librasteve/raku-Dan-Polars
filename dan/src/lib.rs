@@ -950,27 +950,6 @@ impl ExprC {
 }
 
 //iamerejh ... this is vestigal working apply for Plan B development 
-//fn get_add_one(
-
-// viz. https://stackoverflow.com/questions/41081240/idiomatic-callbacks-in-rust
-// CallBackC == Processor
-
-struct CallBackC {
-    callback: Box<dyn FnMut()>,
-}
-impl CallBackC {
-    fn set_callback(&mut self, c: impl FnMut() + 'static) {
-        self.callback = Box::new(c);
-    }
-
-    fn process_events(&mut self) {
-        (self.callback)();
-    }
-}
-
-fn simple_callback() {
-    println!("hello");
-}
 
 fn add_one_shallow( opt_name: Option<i32> ) -> Option<i32> {
     opt_name.map( |name| add_one_deep(name) ) 
@@ -999,17 +978,6 @@ fn do_apply(num_val: Series) -> Result<Series> {
 
 #[no_mangle]
 pub extern "C" fn ex_apply(ptr: *mut ExprC) -> *mut ExprC {
-    let mut cb_c = CallBackC {
-        callback: Box::new(simple_callback),
-    };
-    cb_c.process_events();
-
-    let s = "world!".to_string();
-    let callback2 = move || println!("hello {}", s);
-    cb_c.set_callback(callback2);
-    cb_c.process_events();
-
-
     let ex_c = check_ptr(ptr);
 
     let o = GetOutput::from_type(DataType::Int32);

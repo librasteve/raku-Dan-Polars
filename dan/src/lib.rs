@@ -949,6 +949,24 @@ impl ExprC {
     }
 }
 
+
+extern crate libloading;
+
+use libloading::{Library, Symbol};
+
+type AddFunc = fn(isize, isize) -> isize;
+
+fn libapply() {
+    unsafe {
+        let lib = Library::new("/root//raku-Dan-Polars/dan/src/libapply.so").unwrap();
+
+        let func: Symbol<AddFunc> = lib.get(b"add").unwrap();
+
+        let answer = func(1, 2);
+        println!("1 + 2 = {}", answer);
+    }
+}
+
 //iamerejh ... this is vestigal working apply for Plan B development 
 
 fn add_one_shallow( opt_name: Option<i32> ) -> Option<i32> {
@@ -956,6 +974,7 @@ fn add_one_shallow( opt_name: Option<i32> ) -> Option<i32> {
 }
 
 fn add_one_deep( name: i32 ) -> i32 {
+    libapply();
     (name + 2) as i32
 }
 

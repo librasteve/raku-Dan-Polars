@@ -26,7 +26,7 @@ The following broad capabilities are included:
 - broad datatype support
 - concurrency
 
-The aim is to emulate the examples in the [Polars User Guide](https://pola-rs.github.io/polars-book/user-guide/dsl/expressions.html)
+The aim is to emulate the examples in the [Polars User Guide](https://pola-rs.github.io/polars-book/)
  
 ### Installation
 Based on the Dockerfile chain [(1)](https://github.com/librasteve/raku-Dan-Polars/blob/main/Dockerfile) FROM [(2)](https://github.com/librasteve/raku-Dockerfiles/blob/main/rusty-ma/Dockerfile)

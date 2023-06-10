@@ -994,9 +994,11 @@ use libloading::{Library, Symbol};
 //type AddFunc = fn(isize, isize) -> isize;
 //type AddFunc = fn(i32) -> i32;
 //type AddFunc = fn(&mut ExprC);
-type AddFunc = fn(*mut ExprC) -> &'static mut ExprC;
+//type AddFunc = fn(*mut ExprC) -> &'static mut ExprC;
+type AddFunc = fn(*mut ExprC) -> *mut ExprC;
 
-fn libapply(ptr: *mut ExprC) -> &'static mut ExprC {
+//fn libapply(ptr: *mut ExprC) -> &'static mut ExprC {
+fn libapply(ptr: *mut ExprC) -> *mut ExprC {
     unsafe {
         let lib = Library::new("/root/raku-Dan-Polars/dan/src/libapply.so").unwrap();
 
@@ -1021,7 +1023,10 @@ fn libapply(ptr: *mut ExprC) -> &'static mut ExprC {
 pub extern "C" fn ex_apply(ptr: *mut ExprC) -> *mut ExprC {
     //let ex_c = check_ptr(ptr);
 
-    libapply(ptr)
+    let ret = libapply(ptr);
+    //iamerejh
+    println!("{}", (*ret).inner);
+    ret
     //get_apply(ex_c)
     //ptr
 }

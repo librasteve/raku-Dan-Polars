@@ -59,12 +59,13 @@ fn do_apply(num_val: Series) -> Result<Series> {
 }
 
 fn get_apply(ex_c: &mut ExprC) -> *mut ExprC {
-    println!("17");
 
     let o = GetOutput::from_type(DataType::Int32);
     let new_inner: Expr = ex_c.inner.clone().apply(do_apply, o).into();
+    println!("17");
 
     let ex_n = ExprC::new(new_inner.clone());
+    println!("18");
     Box::into_raw(Box::new(ex_n))
 }
 

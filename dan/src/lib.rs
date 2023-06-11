@@ -986,52 +986,47 @@ fn get_apply(ex_c: &mut ExprC) -> *mut ExprC {
     Box::into_raw(Box::new(ex_n))
 }
 
-
+/*
 extern crate libloading;
 
 use libloading::{Library, Symbol};
 
-//type AddFunc = fn(isize, isize) -> isize;
-//type AddFunc = fn(i32) -> i32;
-//type AddFunc = fn(&mut ExprC);
-//type AddFunc = fn(*mut ExprC) -> &'static mut ExprC;
 type AddFunc = fn(*mut ExprC) -> *mut ExprC;
 
-//fn libapply(ptr: *mut ExprC) -> &'static mut ExprC {
+#[no_mangle]
+pub extern "C" fn ex_apply(ptr: *mut ExprC) -> *mut ExprC {
+    unsafe {
+        let lib = Library::new("/root/raku-Dan-Polars/dan/src/libapply.so").unwrap();
+
+        let ap_apply: Symbol<AddFunc> = lib.get(b"ap_apply").unwrap();
+
+        let ex_n = ap_apply(ptr);
+        println!("nono");
+
+        ex_n
+    }
+}
+*/
+
+/*
 fn libapply(ptr: *mut ExprC) -> *mut ExprC {
     unsafe {
         let lib = Library::new("/root/raku-Dan-Polars/dan/src/libapply.so").unwrap();
 
-        //let add: Symbol<AddFunc> = lib.get(b"add").unwrap();
-        //let add_ans = add(1, 2);
-        //println!("1 + 2 = {}", add_ans);
-
-        //let cod: Symbol<AddFunc> = lib.get(b"cod").unwrap();
-        //let cod_ans = cod(1);
-        //println!("{}", cod_ans);
-
         let ap_apply: Symbol<AddFunc> = lib.get(b"ap_apply").unwrap();
+
         let ap_ans = ap_apply(ptr);
         println!("nono");
         ap_ans
-        //let cod_ans = cod(1);
-        //println!("{}", cod_ans);
     }
 }
 
 #[no_mangle]
 pub extern "C" fn ex_apply(ptr: *mut ExprC) -> *mut ExprC {
-    //let ex_c = check_ptr(ptr);
-
-    let ret = libapply(ptr);
-    //iamerejh
-    println!("{}", (*ret).inner);
-    ret
-    //get_apply(ex_c)
-    //ptr
+    libapply(ptr)
 }
+*/
 
-/*
 fn add_one(num_val: Series) -> Result<Series> {
     let x = num_val
         .i32()
@@ -1053,7 +1048,6 @@ pub extern "C" fn ex_apply(ptr: *mut ExprC) -> *mut ExprC {
     let ex_n = ExprC::new(new_inner.clone());
     Box::into_raw(Box::new(ex_n))
 }
-*/
 
 //col() is the extern for new()
 #[no_mangle]

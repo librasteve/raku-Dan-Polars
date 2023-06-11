@@ -541,19 +541,24 @@ class ExprC is repr('CPointer') is export {
         # source: '(Int \a --> Int){a + 1}'
         # target: .map(|opt: Option<i32>| opt.map(|a: i32| (a + 1) as i32))
 
+        my @types = <i32>;
+
         use Grammar::Tracer;
 
         my grammar Lambda {
-            token TOP       { <signature><body> }
-            token signature { '(Int \a --> Int)' } 
-            token body      { '{a + 1}' }
+            rule  TOP       { <signature> <body> 'as' <rtn-type> }
+            rule  signature { '|a:' <a-type> '|' } 
+            token body      { '(a + 1)' }
+            token a-type    { @types }
+            token rtn-type  { @types }
         }
 
         class Lambda-actions {
-            #method data($/) { make $/.split('/') }
+           # method body($/) { make 'yo' }  ## not needed
         }
 
         dd my $match = Lambda.parse($lambda, actions => Lambda-actions.new);
+        say $match<body>;
 
         my $apply_lib = '../dan/src/apply.rs'.IO.slurp; 
         say $apply_lib;

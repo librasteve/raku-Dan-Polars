@@ -376,7 +376,10 @@ class ExprC is repr('CPointer') is export {
     sub ex__div__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
     sub ex__mod__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
     sub ex__floordiv__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
-    sub ex_apply(ExprC)          returns ExprC is native($n-path) { * }
+    #sub ex_apply(ExprC)          returns ExprC is native($n-path) { * }
+
+    constant $a-path = ?%*ENV<PSIXSTEVE> ?? '../dan/src/apply' !! %?RESOURCES<libraries/dan>;
+    sub ap_apply(ExprC)          returns ExprC is native($a-path) { * }
 
     method new {
         ex_new
@@ -520,7 +523,8 @@ class ExprC is repr('CPointer') is export {
 
     #iamerejh ... this is vestigal working apply for Plan B "DSL as SO" development
     method apply {
-        ex_apply(self)
+        #ex_apply(self)
+        ap_apply(self)
     }
 }
 

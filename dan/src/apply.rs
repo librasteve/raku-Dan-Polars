@@ -21,13 +21,22 @@ impl ExprC {
     }
 }
 
-fn add_one(num_val: Series) -> Result<Series> {
-    let x = num_val
+fn do_shallow( opt_name: Option<i32> ) -> Option<i32> {
+    opt_name.map( |name| do_deep(name) )
+}
+
+fn do_deep( a: i32 ) -> i32 {
+    (a + 2) as i32
+}
+
+fn do_apply(vals: Series) -> Result<Series> {
+    let x = vals
         .i32()
         .unwrap()
         .into_iter()
-        // your actual custom function would be in this map
-        .map(|opt_name: Option<i32>| opt_name.map(|name: i32| (name + 1) as i32))
+        .map(|opt_name| {
+            do_shallow(opt_name)
+        } )
         .collect::<Int32Chunked>();
     Ok(x.into_series())
 }
@@ -37,10 +46,9 @@ pub extern "C" fn ap_apply(ptr: *mut ExprC) -> *mut ExprC {
     let ex_c = check_ptr(ptr);
 
     let o = GetOutput::from_type(DataType::Int32);
-    let new_inner: Expr = ex_c.inner.clone().apply(add_one, o).into();
+    let new_inn: Expr = ex_c.inner.clone().apply(do_apply, o).into();
 
-    //let ex_n = ExprC::new(ex_c.inner.clone());
-    let ex_n = ExprC::new(new_inner.clone());
+    let ex_n = ExprC::new(new_inn.clone());
     Box::into_raw(Box::new(ex_n))
 }
 

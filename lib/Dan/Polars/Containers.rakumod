@@ -523,7 +523,14 @@ class ExprC is repr('CPointer') is export {
 
     #iamerejh ... this is vestigal working apply for Plan B "DSL as SO" development
     method apply {
-        #ex_apply(self)
+        # 1. get dtype of col
+        # 2. get equation Str
+        # 3. get arity (monadic or dyadic)
+        # 4. parse(?) equation Str to '(a + 1)'
+        # 5. generate swap map ( => 'i32', => 'Int32Chunked', => 'DataType::Int32' )
+        # 6. apply swap map
+        # 7. rustc -L ../target/debug/deps --crate-type cdylib apply.rs
+
         ap_apply(self)
     }
 }

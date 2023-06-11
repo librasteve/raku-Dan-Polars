@@ -21,12 +21,14 @@ impl ExprC {
     }
 }
 
-fn do_shallow( opt_name: Option<i32> ) -> Option<i32> {
-    opt_name.map( |name| do_deep(name) )
+// START_APPLY - monadic, Real
+fn do_deep( a: i32 ) -> i32 {
+    (a + 2) 
+    as i32
 }
 
-fn do_deep( a: i32 ) -> i32 {
-    (a + 2) as i32
+fn do_shallow( opt_name: Option<i32> ) -> Option<i32> {
+    opt_name.map( |name| do_deep(name) )
 }
 
 fn do_apply(vals: Series) -> Result<Series> {
@@ -51,5 +53,5 @@ pub extern "C" fn ap_apply(ptr: *mut ExprC) -> *mut ExprC {
     let ex_n = ExprC::new(new_inn.clone());
     Box::into_raw(Box::new(ex_n))
 }
-
+//END_APPLY
 

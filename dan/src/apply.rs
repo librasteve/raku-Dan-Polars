@@ -22,7 +22,7 @@ impl ExprC {
 }
 
 
-// START_APPLY - monadic, Real
+//START_APPLY - monadic, Real
 fn do_apply(vals: Series) -> Result<Series> {
     let x = vals
         .i32()

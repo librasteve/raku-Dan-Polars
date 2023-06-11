@@ -523,6 +523,8 @@ class ExprC is repr('CPointer') is export {
 
     sub ap_apply(ExprC)          returns ExprC is native($a-path) { * }
 
+
+
     #iamerejh ... this is vestigal working apply for Plan B "DSL as SO" development
         # 1. get dtype of col
         # 2. get equation Str
@@ -532,8 +534,26 @@ class ExprC is repr('CPointer') is export {
         # 6. apply swap map
         # 7. rustc -L ../target/debug/deps --crate-type cdylib apply.rs
 
+
     method apply( $lambda ) {
-        dd $lambda;
+        say "lambda is $lambda";
+
+        # source: '(Int \a --> Int){a + 1}'
+        # target: .map(|opt: Option<i32>| opt.map(|a: i32| (a + 1) as i32))
+
+        use Grammar::Tracer;
+
+        my grammar Lambda {
+            token TOP       { <signature><body> }
+            token signature { '(Int \a --> Int)' } 
+            token body      { '{a + 1}' }
+        }
+
+        class Lambda-actions {
+            #method data($/) { make $/.split('/') }
+        }
+
+        dd my $match = Lambda.parse($lambda, actions => Lambda-actions.new);
 
         my $apply_lib = '../dan/src/apply.rs'.IO.slurp; 
         say $apply_lib;

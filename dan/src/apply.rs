@@ -2,7 +2,7 @@ extern crate polars;
 
 use polars::prelude::*;//{CsvReader, DataType, DataFrame, Series};
 use polars::lazy::dsl;
-use polars::lazy::dsl::Expr;
+//use polars::lazy::dsl::Expr;
 
 fn check_ptr<'a, T>(ptr: *mut T) -> &'a mut T {
     unsafe {
@@ -21,24 +21,14 @@ impl ExprC {
     }
 }
 
+
 // START_APPLY - monadic, Real
-fn do_deep( a: i32 ) -> i32 {
-    (a + 2) 
-    as i32
-}
-
-fn do_shallow( opt_name: Option<i32> ) -> Option<i32> {
-    opt_name.map( |name| do_deep(name) )
-}
-
 fn do_apply(vals: Series) -> Result<Series> {
     let x = vals
         .i32()
         .unwrap()
         .into_iter()
-        .map(|opt_name| {
-            do_shallow(opt_name)
-        } )
+        .map(|opt: Option<i32>| opt.map(|a: i32| (a + 1) as i32))
         .collect::<Int32Chunked>();
     Ok(x.into_series())
 }

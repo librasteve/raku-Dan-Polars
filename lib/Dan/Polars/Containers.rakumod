@@ -19,8 +19,8 @@ sub carray( $dtype, @items ) {
 
 ### Container Classes (CStruct) that interface to Rust lib.rs ###
 
-# export PSIXSTEVE=1 and manual cargo build for dev
-constant $n-path = ?%*ENV<PSIXSTEVE> ?? '../dan/target/debug/dan' !! %?RESOURCES<libraries/dan>;
+# export DEVMODE=1 and manual cargo build for dev
+constant $n-path = ?%*ENV<DEVMODE> ?? '../dan/target/debug/dan' !! %?RESOURCES<libraries/dan>;
 
 class SeriesC is repr('CPointer') is export {
     sub se_new_bool(Str, CArray[bool], size_t) returns SeriesC is native($n-path) { * }
@@ -376,10 +376,6 @@ class ExprC is repr('CPointer') is export {
     sub ex__div__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
     sub ex__mod__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
     sub ex__floordiv__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
-    #sub ex_apply(ExprC)          returns ExprC is native($n-path) { * }
-
-    constant $a-path = ?%*ENV<PSIXSTEVE> ?? '../dan/src/apply' !! %?RESOURCES<libraries/dan>;
-    sub ap_apply(ExprC)          returns ExprC is native($a-path) { * }
 
     method new {
         ex_new
@@ -521,8 +517,13 @@ class ExprC is repr('CPointer') is export {
         ex__floordiv__(self, rhs)
     }
 
+    ### APPLY ###
+
+    constant $a-path = ?%*ENV<DEVMODE> ?? '../dan/src/apply' !! %?RESOURCES<libraries/dan>;
+
+    sub ap_apply(ExprC)          returns ExprC is native($a-path) { * }
+
     #iamerejh ... this is vestigal working apply for Plan B "DSL as SO" development
-    method apply {
         # 1. get dtype of col
         # 2. get equation Str
         # 3. get arity (monadic or dyadic)
@@ -530,6 +531,16 @@ class ExprC is repr('CPointer') is export {
         # 5. generate swap map ( => 'i32', => 'Int32Chunked', => 'DataType::Int32' )
         # 6. apply swap map
         # 7. rustc -L ../target/debug/deps --crate-type cdylib apply.rs
+
+    method apply( $lambda ) {
+        dd $lambda;
+
+        my $apply_lib = '../dan/src/apply.rs'.IO.slurp; 
+        say $apply_lib;
+
+
+
+
 
         ap_apply(self)
     }

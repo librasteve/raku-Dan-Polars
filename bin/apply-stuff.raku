@@ -14,5 +14,22 @@ my \df = DataFrame.new([
 
 df.select([col("names").unique.count.alias("smith")]).head;
 
-#apply moved to v3
-df.select([col("nrs").apply.alias("jones")]).head;
+#df.select)[pl.col("values").apply(lambda a: (a+1) ).alias("jones"),];
+#.map(|a: i32| (a + 1) as i32)
+
+#my $type = df.column("nrs").dtype;
+#df.select([col("nrs").apply("|a: $type| (a + 1) as $type").alias("jones")]).head;
+
+#rust style (nope)
+#df.select([col("nrs").apply("|a: i32| (a + 1) as i32").alias("jones")]).head;
+
+#or raku style
+df.select([col("nrs").apply('(Int \a --> Int){a + 1}').alias("jones")]).head;
+
+
+
+
+# viz. https://pola-rs.github.io/polars-book/user-guide/expressions/user-defined-functions/#to-map-or-to-apply
+
+
+

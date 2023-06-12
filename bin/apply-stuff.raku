@@ -12,6 +12,8 @@ my \df = DataFrame.new([
     groups => ["A", "A", "B", "C", "B"],
 ]);
 
+# viz. https://pola-rs.github.io/polars-book/user-guide/expressions/user-defined-functions/#to-map-or-to-apply
+
 df.select([col("names").unique.count.alias("smith")]).head;
 
 #df.select)[pl.col("values").apply(lambda a: (a+1) ).alias("jones"),];
@@ -20,17 +22,16 @@ df.select([col("names").unique.count.alias("smith")]).head;
 #my $type = df.column("nrs").dtype;
 #df.select([col("nrs").apply("|a: $type| (a + 1) as $type").alias("jones")]).head;
 
-#rust style (stet)
-df.select([col("nrs").apply("|a: i32| (a + 100) as i32").alias("jones")]).head;
+say df.column("names").dtype;
 
-#or raku style with rust types
-#df.select([col("nrs").apply('(Int \a --> Int){a + 1}').alias("jones")]).head;
-#df.select([col("nrs").apply('(i32 \a --> i32){a + 1}').alias("jones")]).head;
-
+#monadic
+df.select([col("nrs").apply("|a: i32| (a + 1) as i32").alias("jones")]).head;
+#df.select([col("nrs").apply("|a: i32| (a as f32 * 2.01) as f32").alias("jones")]).head;
 
 
 
-# viz. https://pola-rs.github.io/polars-book/user-guide/expressions/user-defined-functions/#to-map-or-to-apply
+
+
 
 
 

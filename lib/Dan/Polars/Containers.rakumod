@@ -521,7 +521,8 @@ class ExprC is repr('CPointer') is export {
 
     constant $a-path = ?%*ENV<DEVMODE> ?? '../dan/src/apply' !! %?RESOURCES<libraries/dan>;
 
-    sub ap_apply(ExprC)          returns ExprC is native($a-path) { * }
+    #sub ap_apply(ExprC)          returns ExprC is native($a-path) { * }
+    sub ap_apply(ExprC)          returns ExprC is native('../dan/src/apply') { * }
 
 
 
@@ -541,14 +542,16 @@ class ExprC is repr('CPointer') is export {
         say "lambda is $lambda";
 
         #viz.https://docs.rs/polars/latest/polars/chunked_array/object/datatypes/index.html#types
-        my @types = <i32>;
+        my @types  = <bool      i32   i64    u32    u64     f32     f64 str>;
+        my @dtypes = <Boolean Int32 Int64 UInt32 UInt64 Float32 Float64 Utf8>; 
+        my %type-map = @types Z=> @dtypes;
 
         use Grammar::Tracer;
 
         my grammar Lambda {
-            rule  TOP       { <signature> <body> 'as' <r-type> }
+            token  TOP       { <signature> <body> ' as ' <r-type> }
             rule  signature { '|a:' <a-type> '|' } 
-            token body      { '(' .*? ')' }
+            token body      { '(' .*? ')' <?before ' as '> }
             token a-type    { @types }
             token r-type    { @types }
         }
@@ -559,14 +562,16 @@ class ExprC is repr('CPointer') is export {
 
         my $match = Lambda.parse($lambda, actions => Lambda-actions.new);
 
-        my %type-map = %( i32 => 'Int32', );
+        my $a-type = $match<signature><a-type>;
+        my $a-from = $a-type eq 'str' ?? 'utf8' !! $a-type;
         my $d-type = %type-map{$match<r-type>}; 
 
         say "building libapply.so...";
 
         my $apply-lib = '../dan/src/apply-template.rs'.IO.slurp; 
 
-        $apply-lib ~~ s:g|'%ATYPE%'|$match<signature><a-type>|;
+        $apply-lib ~~ s:g|'%ATYPE%'|$a-type|;
+        $apply-lib ~~ s:g|'%AFROM%'|$a-from|;
         $apply-lib ~~ s:g|'%BODY%' |$match<body>|;
         $apply-lib ~~ s:g|'%RTYPE%'|$match<r-type>|;
         $apply-lib ~~ s:g|'%DTYPE%'|$d-type|;

@@ -21,7 +21,7 @@ df.select([col("names").unique.count.alias("smith")]).head;
 #df.select([col("nrs").apply("|a: $type| (a + 1) as $type").alias("jones")]).head;
 
 #rust style (stet)
-df.select([col("nrs").apply("|a: i32| (a + 1) as i32").alias("jones")]).head;
+df.select([col("nrs").apply("|a: i32| (a + 100) as i32").alias("jones")]).head;
 
 #or raku style with rust types
 #df.select([col("nrs").apply('(Int \a --> Int){a + 1}').alias("jones")]).head;

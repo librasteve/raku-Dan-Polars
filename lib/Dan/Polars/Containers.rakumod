@@ -526,7 +526,7 @@ class ExprC is repr('CPointer') is export {
 
 
     #iamerejh ... this is vestigal working apply for Plan B "DSL as SO" development
-        # 1. get dtype of col
+        # 1. get dtype of col (need explicitly)
         # 2. get equation Str
         # 3. get arity (monadic or dyadic)
         # 4. parse(?) equation Str to '(a + 1)'
@@ -536,36 +536,48 @@ class ExprC is repr('CPointer') is export {
 
 
     method apply( $lambda ) {
+
+        # monadic-real: '|a: i32| (a + 1) as i32'
         say "lambda is $lambda";
 
-        # source: '(Int \a --> Int){a + 1}'
-        # target: .map(|opt: Option<i32>| opt.map(|a: i32| (a + 1) as i32))
-
+        #viz.https://docs.rs/polars/latest/polars/chunked_array/object/datatypes/index.html#types
         my @types = <i32>;
 
         use Grammar::Tracer;
 
         my grammar Lambda {
-            rule  TOP       { <signature> <body> 'as' <rtn-type> }
+            rule  TOP       { <signature> <body> 'as' <r-type> }
             rule  signature { '|a:' <a-type> '|' } 
-            token body      { '(a + 1)' }
+            token body      { '(' .*? ')' }
             token a-type    { @types }
-            token rtn-type  { @types }
+            token r-type    { @types }
         }
 
         class Lambda-actions {
            # method body($/) { make 'yo' }  ## not needed
         }
 
-        dd my $match = Lambda.parse($lambda, actions => Lambda-actions.new);
-        say $match<body>;
+        my $match = Lambda.parse($lambda, actions => Lambda-actions.new);
 
-        my $apply_lib = '../dan/src/apply.rs'.IO.slurp; 
-        say $apply_lib;
+        my %type-map = %( i32 => 'Int32', );
+        my $d-type = %type-map{$match<r-type>}; 
 
+        say "building libapply.so...";
 
+        my $apply-lib = '../dan/src/apply-template.rs'.IO.slurp; 
 
+        $apply-lib ~~ s:g|'%ATYPE%'|$match<signature><a-type>|;
+        $apply-lib ~~ s:g|'%BODY%' |$match<body>|;
+        $apply-lib ~~ s:g|'%RTYPE%'|$match<r-type>|;
+        $apply-lib ~~ s:g|'%DTYPE%'|$d-type|;
 
+        chdir '../dan/src';
+        spurt 'apply.rs', $apply-lib;
+
+        say qqx`rustc -L ../target/debug/deps --crate-type cdylib apply.rs`;
+        chdir '../../bin';
+
+        #say $apply-lib;
 
         ap_apply(self)
     }

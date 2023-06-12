@@ -44,9 +44,11 @@ fn do_apply(vals: Series) -> Result<Series> {
 pub extern "C" fn ap_apply(ptr: *mut ExprC) -> *mut ExprC {
     let ex_c = check_ptr(ptr);
 
-//    let o = GetOutput::from_type(DataType::Int32);
-    let o = GetOutput::from_type(DataType::%DTYPE%);
-    let new_inn: Expr = ex_c.inner.clone().apply(do_apply, o).into();
+    //seems like GetOutput::default() is fine
+    //let o = GetOutput::from_type(DataType::Int32);
+    //let new_inn: Expr = ex_c.inner.clone().apply(do_apply, o).into();
+
+    let new_inn: Expr = ex_c.inner.clone().apply(do_apply, GetOutput::default()).into();
 
     let ex_n = ExprC::new(new_inn.clone());
     Box::into_raw(Box::new(ex_n))

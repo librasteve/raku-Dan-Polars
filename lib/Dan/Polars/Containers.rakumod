@@ -572,9 +572,9 @@ class ExprC is repr('CPointer') is export {
         $apply-lib ~~ s:g|'%DTYPE%'|$d-type|;
 
         chdir '../dan/src';
-        spurt 'apply.rs', $apply-lib;
+        #spurt 'apply.rs', $apply-lib;
 
-        say qqx`rustc -L ../target/debug/deps --crate-type cdylib apply.rs`;
+        #say qqx`rustc -L ../target/debug/deps --crate-type cdylib apply.rs`;
         chdir '../../bin';
 
         #say $apply-lib;

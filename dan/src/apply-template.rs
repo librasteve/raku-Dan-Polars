@@ -23,7 +23,7 @@ impl ExprC {
 
 
 //START_APPLY - monadic, Real
-fn do_apply(vals: Series) -> Result<Series> {
+fn do_apply_mr(vals: Series) -> Result<Series> {
     let x = vals
 
 //        .i32()
@@ -41,10 +41,10 @@ fn do_apply(vals: Series) -> Result<Series> {
 }
 
 #[no_mangle]
-pub extern "C" fn ap_apply(ptr: *mut ExprC) -> *mut ExprC {
+pub extern "C" fn ap_apply_mr(ptr: *mut ExprC) -> *mut ExprC {
     let ex_c = check_ptr(ptr);
 
-    let new_inn: Expr = ex_c.inner.clone().apply(do_apply, GetOutput::default()).into();
+    let new_inn: Expr = ex_c.inner.clone().apply(do_apply_mr, GetOutput::default()).into();
 
     let ex_n = ExprC::new(new_inn.clone());
     Box::into_raw(Box::new(ex_n))

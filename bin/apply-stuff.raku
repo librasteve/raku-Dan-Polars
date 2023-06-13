@@ -23,10 +23,10 @@ df.select([col("names").unique.count.alias("smith")]).head;
 #df.select([col("nrs").apply("|a: $type| (a + 1) as $type").alias("jones")]).head;
 
 #monadic
-#df.select([col("nrs").apply("|a: i32| (a + 1) as i32").alias("jones")]).head;
+df.select([col("nrs").apply("|a: i32| (a + 1) as i32").alias("jones")]).head;
 #df.select([col("nrs").apply("|a: i32| (a as f32 * 2.01) as f32").alias("jones")]).head;
 
-df.groupby(["groups"]).agg([col("nrs").apply("|a: i32| (a + 1) as i32").alias("jones")]).head;
+#df.groupby(["groups"]).agg([col("nrs").apply("|a: i32| (a + 1) as i32").alias("jones")]).head;
 
 
 

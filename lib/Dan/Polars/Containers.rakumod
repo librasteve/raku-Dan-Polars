@@ -521,21 +521,12 @@ class ExprC is repr('CPointer') is export {
 
     constant $a-path = ?%*ENV<DEVMODE> ?? '../dan/src/apply' !! %?RESOURCES<libraries/dan>;
 
-    sub ap_apply(ExprC) returns ExprC is native($a-path) { * }
-
-    #iamerejh ... this is vestigal working apply for Plan B "DSL as SO" development
-        # 1. get dtype of col (need explicitly)
-        # 2. get equation Str
-        # 3. get arity (monadic or dyadic)
-        # 4. parse(?) equation Str to '(a + 1)'
-        # 5. generate swap map ( => 'i32', => 'Int32Chunked', => 'DataType::Int32' )
-        # 6. apply swap map
-        # 7. rustc -L ../target/debug/deps --crate-type cdylib apply.rs
+    # monadic-real: '|a: i32| (a + 1) as i32'
+    sub ap_apply_mr(ExprC) returns ExprC is native($a-path) { * }
 
 
     method apply( $lambda ) {
 
-        # monadic-real: '|a: i32| (a + 1) as i32'
         say "lambda is $lambda";
 
         #viz.https://docs.rs/polars/latest/polars/chunked_array/object/datatypes/index.html#types
@@ -560,18 +551,20 @@ class ExprC is repr('CPointer') is export {
         my $match = Lambda.parse($lambda, actions => Lambda-actions.new);
 
         my $a-type = $match<signature><a-type>;
-        my $a-from = $a-type eq 'str' ?? 'utf8' !! $a-type;
         my $d-type = %type-map{$match<r-type>};
+
+        my $pattern = 'mr';
 
         say "building libapply.so...";
 
         my $apply-lib = '../dan/src/apply-template.rs'.IO.slurp;
 
         $apply-lib ~~ s:g|'%ATYPE%'|$a-type|;
-        $apply-lib ~~ s:g|'%AFROM%'|$a-from|;
         $apply-lib ~~ s:g|'%BODY%' |$match<body>|;
         $apply-lib ~~ s:g|'%RTYPE%'|$match<r-type>|;
         $apply-lib ~~ s:g|'%DTYPE%'|$d-type|;
+
+        #say $apply-lib;    #debug
 
         chdir '../dan/src';
         spurt 'apply.rs', $apply-lib;
@@ -580,11 +573,14 @@ class ExprC is repr('CPointer') is export {
         say qqx`rustc -L ../target/debug/deps --crate-type cdylib apply.rs`;
 
         chdir '../../bin';
+        sleep 2;            #ubuntu needs to breathe (something to do with so refresh?)
 
-        #say $apply-lib;
+        given $pattern {
+            when 'mr' { 
+                ap_apply_mr(self)
+            }
 
-        sleep 2;
-        ap_apply(self)
+        }
 
     }
 }

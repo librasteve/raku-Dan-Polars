@@ -21,7 +21,6 @@ impl ExprC {
     }
 }
 
-
 //START_APPLY - monadic, Real
 fn do_apply_mr(vals: Series) -> Result<Series> {
     let x = vals
@@ -35,8 +34,8 @@ fn do_apply_mr(vals: Series) -> Result<Series> {
         .i32() 
         .unwrap() 
         .into_iter()
-        .map(|opt: Option<i32>| opt.map(|a: i32| (a as f32 * 2.01) as f32))
-        .collect::<Float32Chunked>();
+        .map(|opt: Option<i32>| opt.map(|a: i32| (a + a + 1) as i32))
+        .collect::<Int32Chunked>();
     Ok(x.into_series())
 }
 
@@ -51,3 +50,31 @@ pub extern "C" fn ap_apply_mr(ptr: *mut ExprC) -> *mut ExprC {
 }
 //END_APPLY
 
+//START_APPLY - dyadic, Real
+fn do_apply_dr(vals: Series) -> Result<Series> {
+    let x = vals
+
+//        .i32()
+//        .unwrap() 
+//        .into_iter()
+//        .map(|opt: Option<i32>| opt.map(|a: i32| (a + 1) as i32))
+//        .collect::<Int32Chunked>();
+
+        .i32() 
+        .unwrap() 
+        .into_iter()
+        .map(|opt: Option<i32>| opt.map(|a: i32| (a + a + 1) as i32))
+        .collect::<Int32Chunked>();
+    Ok(x.into_series())
+}
+
+#[no_mangle]
+pub extern "C" fn ap_apply_dr(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+
+    let new_inn: Expr = ex_c.inner.clone().apply(do_apply_dr, GetOutput::default()).into();
+
+    let ex_n = ExprC::new(new_inn.clone());
+    Box::into_raw(Box::new(ex_n))
+}
+//END_APPLY

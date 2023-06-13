@@ -519,10 +519,34 @@ class ExprC is repr('CPointer') is export {
 
     ### APPLY ###
 
+    # apply() is exported directly into client script and acts on the ExprC made by col()
+    # its argument is a string in the form of a Rust lambda with |signature| (body) as rtn-type
+    # the lambda takes variable 'a: type' if monadic or 'a: type, b: type' if dyadic' 
+    # the body is a valid Rust expression 
+    # the general scheme is like this
+#`[
+dfa.select([col("nrs").apply("|a: i32| (a + 1) as i32").alias("jones")]).head;
+--- ------  ---------- ---------- --------------   ----
+ |     |        |          |           |             -> method head prints top lines of result
+ |     |        |          |           |
+ |     |        |          |           -> method alias returns a new Expr
+ |     |        |          |
+ |     |        |          -> method apply returns a new Expr
+ |     |        |
+ |     |        -> method col(Str \colname) returns a new (empty) Expr
+ |     |
+ |     -> method select(Array \exprs) creates a LazyFrame, calls .select(exprs) then .collect
+ |
+ |
+ -> DataFrame object with attributes of pointers to rust DataFrame and LazyFrame structures
+ #]
+
     constant $a-path = ?%*ENV<DEVMODE> ?? '../dan/src/apply' !! %?RESOURCES<libraries/dan>;
 
     # monadic-real: '|a: i32| (a + 1) as i32'
     sub ap_apply_mr(ExprC) returns ExprC is native($a-path) { * }
+    # dyadic-real: '|a: i32, b: i32| (a + b) as i32'
+    sub ap_apply_dr(ExprC) returns ExprC is native($a-path) { * }
 
 
     method apply( $lambda ) {

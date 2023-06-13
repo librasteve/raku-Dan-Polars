@@ -363,8 +363,8 @@ This will then provide a basis for design Dan::As::Query v0.1 for Dan and Dan::P
 - [ ] pivot / cross-tabluate
 - [ ] apply over [multiple cols](https://stackoverflow.com/questions/72372821/how-to-apply-a-function-to-multiple-columns-of-a-polars-dataframe-in-rust)
 - [ ] ternary if-then-else (Dan::As::Ternary)
-- [ ] str operations (Dan::As::Str)
+- [ ] str operations (Dan::As::Str) (some good [examples](https://towardsdatascience.com/tips-and-tricks-for-working-with-strings-in-polars-ec6bb74aeec2))
 - [ ] chunked transfer
 - [ ] serde
 
-(c) Henley Cloud Consulting Ltd.
+Copyright(c) 2022-2023 Henley Cloud Consulting Ltd.

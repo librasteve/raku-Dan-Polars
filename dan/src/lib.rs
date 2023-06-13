@@ -864,6 +864,11 @@ impl ExprC {
         self.clone().inner.clone().alias(&string).into()
     }
 
+//iamerejh
+    fn as_struct(&self, string: String ) -> ExprC {
+        self.clone().inner.clone().alias(&string).into()
+    }
+
     fn sum(&self) -> ExprC {
         self.clone().inner.clone().sum().into()
     }
@@ -1017,6 +1022,21 @@ pub extern "C" fn ex_lit_str(
 
 #[no_mangle]
 pub extern "C" fn ex_alias(
+    ptr: *mut ExprC,
+    string: *const c_char,
+) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+
+    let colname = unsafe {
+        CStr::from_ptr(string).to_string_lossy().into_owned()
+    };
+
+    Box::into_raw(Box::new(ex_c.alias(colname)))
+}
+
+//iamerejh
+#[no_mangle]
+pub extern "C" fn ex_as_struct(
     ptr: *mut ExprC,
     string: *const c_char,
 ) -> *mut ExprC {

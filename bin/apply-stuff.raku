@@ -22,11 +22,9 @@ df.select([col("names").unique.count.alias("smith")]).head;
 #my $type = df.column("nrs").dtype;
 #df.select([col("nrs").apply("|a: $type| (a + 1) as $type").alias("jones")]).head;
 
-say df.column("names").dtype;
-
 #monadic
-df.select([col("nrs").apply("|a: i32| (a + 1) as i32").alias("jones")]).head;
-#df.select([col("nrs").apply("|a: i32| (a as f32 * 2.01) as f32").alias("jones")]).head;
+#df.select([col("nrs").apply("|a: i32| (a + 8) as i32").alias("jones")]).head;
+df.select([col("nrs").apply("|a: i32| (a as f32 * 2.01) as f32").alias("jones")]).head;
 
 
 

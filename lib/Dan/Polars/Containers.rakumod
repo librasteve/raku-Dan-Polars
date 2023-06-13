@@ -573,42 +573,6 @@ class ExprC is repr('CPointer') is export {
         $apply-lib ~~ s:g|'%RTYPE%'|$match<r-type>|;
         $apply-lib ~~ s:g|'%DTYPE%'|$d-type|;
 
-#`[    
-     # monadic-real: '|a: i32| (a + 1) as i32'
-        say "lambda is $lambda";
-
-        #viz.https://docs.rs/polars/latest/polars/chunked_array/object/datatypes/index.html#types
-        my @types = <i32>;
-
-        use Grammar::Tracer;
-
-        my grammar Lambda {
-            rule  TOP       { <signature> <body> 'as' <r-type> }
-            rule  signature { '|a:' <a-type> '|' }
-            token body      { '(' .*? ')' }
-            token a-type    { @types }
-            token r-type    { @types }
-        }
-
-        class Lambda-actions {
-           # method body($/) { make 'yo' }  ## not needed
-        }
-
-        my $match = Lambda.parse($lambda, actions => Lambda-actions.new);
-
-        my %type-map = %( i32 => 'Int32', );
-        my $d-type = %type-map{$match<r-type>};
-
-        say "building libapply.so...";
-
-        my $apply-lib = '../dan/src/apply-template.rs'.IO.slurp;
-
-        $apply-lib ~~ s:g|'%ATYPE%'|$match<signature><a-type>|;
-        $apply-lib ~~ s:g|'%BODY%' |$match<body>|;
-        $apply-lib ~~ s:g|'%RTYPE%'|$match<r-type>|;
-        $apply-lib ~~ s:g|'%DTYPE%'|$d-type|;
-#]
-
         chdir '../dan/src';
         spurt 'apply.rs', $apply-lib;
 
@@ -622,55 +586,6 @@ class ExprC is repr('CPointer') is export {
         sleep 2;
         ap_apply(self)
 
-#`[
-        # monadic-real: '|a: i32| (a + 1) as i32'
-        say "lambda is $lambda";
-
-        #viz.https://docs.rs/polars/latest/polars/chunked_array/object/datatypes/index.html#types
-        my @types  = <bool      i32   i64    u32    u64     f32     f64 str>;
-        my @dtypes = <Boolean Int32 Int64 UInt32 UInt64 Float32 Float64 Utf8>; 
-        my %type-map = @types Z=> @dtypes;
-
-        use Grammar::Tracer;
-
-        my grammar Lambda {
-            token  TOP       { <signature> <body> ' as ' <r-type> }
-            rule  signature { '|a:' <a-type> '|' } 
-            token body      { '(' .*? ')' <?before ' as '> }
-            token a-type    { @types }
-            token r-type    { @types }
-        }
-
-        class Lambda-actions {
-           # method body($/) { make 'yo' }  ## not needed
-        }
-
-        my $match = Lambda.parse($lambda, actions => Lambda-actions.new);
-
-        my $a-type = $match<signature><a-type>;
-        my $a-from = $a-type eq 'str' ?? 'utf8' !! $a-type;
-        my $d-type = %type-map{$match<r-type>}; 
-
-        say "building libapply.so...";
-
-        my $apply-lib = '../dan/src/apply-template.rs'.IO.slurp; 
-
-        $apply-lib ~~ s:g|'%ATYPE%'|$a-type|;
-        $apply-lib ~~ s:g|'%AFROM%'|$a-from|;
-        $apply-lib ~~ s:g|'%BODY%' |$match<body>|;
-        $apply-lib ~~ s:g|'%RTYPE%'|$match<r-type>|;
-        $apply-lib ~~ s:g|'%DTYPE%'|$d-type|;
-
-        chdir '../dan/src';
-        spurt 'apply.rs', $apply-lib;
-
-        say qqx`rustc -L ../target/debug/deps --crate-type cdylib apply.rs`;
-        chdir '../../bin';
-
-        #say $apply-lib;
-
-        ap_apply(self)
-#]
     }
 }
 

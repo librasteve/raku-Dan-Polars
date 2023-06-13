@@ -35,8 +35,8 @@ fn do_apply(vals: Series) -> Result<Series> {
         .i32() 
         .unwrap() 
         .into_iter()
-        .map(|opt: Option<i32>| opt.map(|a: i32| (a as f32 * 2.01) as f32))
-        .collect::<Float32Chunked>();
+        .map(|opt: Option<i32>| opt.map(|a: i32| (a + 8) as i32))
+        .collect::<Int32Chunked>();
     Ok(x.into_series())
 }
 

@@ -864,9 +864,9 @@ impl ExprC {
         self.clone().inner.clone().alias(&string).into()
     }
 
-//iamerejh
-    fn as_struct(&self, string: String ) -> ExprC {
-        self.clone().inner.clone().alias(&string).into()
+    fn as_struct(exprs: Vec<&ExprC>) -> ExprC {
+        let exprs = exprs.to_exprs();
+        polars::lazy::dsl::as_struct(&exprs).into()
     }
 
     fn sum(&self) -> ExprC {
@@ -1034,7 +1034,14 @@ pub extern "C" fn ex_alias(
     Box::into_raw(Box::new(ex_c.alias(colname)))
 }
 
-//iamerejh
+/*
+    fn as_struct(exprs: Vec<&ExprC>) -> ExprC {
+        let exprs = exprs.to_exprs();
+        polars::lazy::dsl::as_struct(&exprs).into()
+    }
+*/
+//iamerejh - how to pass Vec<&ExprC> ??
+
 #[no_mangle]
 pub extern "C" fn ex_as_struct(
     ptr: *mut ExprC,

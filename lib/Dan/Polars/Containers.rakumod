@@ -355,6 +355,7 @@ class ExprC is repr('CPointer') is export {
     sub ex_lit_f64(num64)        returns ExprC is native($n-path) { * }
     sub ex_lit_str(Str)          returns ExprC is native($n-path) { * }
     sub ex_alias(ExprC,Str)      returns ExprC is native($n-path) { * }
+    ##sub ex_as_struct(ExprC)      returns ExprC is native($n-path) { * }   <-- iamerejh need to seng Array[ExprC] as_struct(&[col("keys"), col("values")])
     sub ex_sum(ExprC)            returns ExprC is native($n-path) { * }
     sub ex_mean(ExprC)           returns ExprC is native($n-path) { * }
     sub ex_min(ExprC)            returns ExprC is native($n-path) { * }
@@ -523,7 +524,7 @@ class ExprC is repr('CPointer') is export {
     # its argument is a string in the form of a Rust lambda with |signature| (body) as rtn-type
     # the lambda takes variable 'a: type' if monadic or 'a: type, b: type' if dyadic' 
     # the body is a valid Rust expression 
-    # the general scheme is like this
+
 #`[
 dfa.select([col("nrs").apply("|a: i32| (a + 1) as i32").alias("jones")]).head;
 --- ------  ---------- ---------- --------------   ----

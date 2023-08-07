@@ -7,7 +7,7 @@ my @lines = q:to/END/;
 cd ~
 zef install Dan
 git clone https://github.com/librasteve/raku-Dan-Polars.git
-export PSIXSTEVE=1
+export DEVMODE=1
 export RAKULIB=~/raku-Dan-Polars/lib
 cd raku-Dan-Polars/dan
 cargo clean

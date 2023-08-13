@@ -86,3 +86,7 @@ todos from https://github.com/p6steve/polars/blob/master/nodejs-polars/src/lazy/
 - align to raku methods https://docs.raku.org/type/Array
 - no numpy ufuncs
 - desire to offer myfunc == rust dsl => rust so lib long term
+- apply only, no map
+  - map is not needed since you can do apply in a select context to get same result
+  - viz. https://pola-rs.github.io/polars-book/user-guide/expressions/user-defined-functions/#to-map-or-to-apply
+  - raku is anyway not as fast as rust+polars ... use that if you need map levels of performance

@@ -6,7 +6,8 @@
 my @lines = q:to/END/;
 cd ~
 zef install Dan
-git clone https://github.com/librasteve/raku-Dan-Polars.git
+#git clone https://github.com/librasteve/raku-Dan-Polars.git
+git clone --single-branch --branch apply https://github.com/librasteve/raku-Dan-Polars.git
 export DEVMODE=1
 export RAKULIB=~/raku-Dan-Polars/lib
 cd raku-Dan-Polars/dan

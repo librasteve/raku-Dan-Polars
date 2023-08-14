@@ -864,21 +864,6 @@ impl ExprC {
         self.clone().inner.clone().alias(&string).into()
     }
 
-/*
-    //fn as_struct(exprs: Vec<&ExprC>) -> ExprC {
-    fn as_struct(&self, colvec: Vec::<String>) -> ExprC {
-        //println!{"{}", "yo"};
-        self.clone().inner.clone().exclude(colvec).into()
-        //let exprs = exprs.to_exprs();
-        //polars::lazy::dsl::as_struct(&exprs).into()
-    }
-*/
-
-    //fn exclude(&self, colvec: Vec::<String>) -> ExprC {
-    //    self.clone().inner.clone().exclude(colvec).into()
-    //}
-
-
     fn sum(&self) -> ExprC {
         self.clone().inner.clone().sum().into()
     }
@@ -976,6 +961,31 @@ pub extern "C" fn ex_col(string: *const c_char) -> *mut ExprC {
 }
 
 #[no_mangle]
+pub extern "C" fn ex_struct(
+    colspec: *const *const c_char,
+    len: size_t,
+) -> *mut ExprC {
+
+    let mut colvec = Vec::<String>::new();
+    unsafe {
+        assert!(!colspec.is_null());
+
+        for item in slice::from_raw_parts(colspec, len as usize) {
+            colvec.push(CStr::from_ptr(*item).to_string_lossy().into_owned());
+        };
+    };
+
+    let mut exprvec: Vec<Expr> = Vec::new();
+    
+    for item in colvec {
+        exprvec.push(ExprC::new(col(&item.clone())).inner);
+    };
+
+    let ex_c = ExprC::new(as_struct(&exprvec));
+    Box::into_raw(Box::new(ex_c))
+}
+
+#[no_mangle]
 pub extern "C" fn ex_lit_bool(val: bool) -> *mut ExprC {
     let ex_c = ExprC::new(lit(val));
     Box::into_raw(Box::new(ex_c))
@@ -1043,50 +1053,6 @@ pub extern "C" fn ex_alias(
 
     Box::into_raw(Box::new(ex_c.alias(colname)))
 }
-
-/*
-    fn as_struct(exprs: Vec<&ExprC>) -> ExprC {
-        let exprs = exprs.to_exprs();
-        polars::lazy::dsl::as_struct(&exprs).into()
-    }
-*/
-//iamerejh - how to pass Vec<&ExprC> ??
-/*
-#[no_mangle]
-pub extern "C" fn ex_as_struct(
-    ptr: *mut ExprC,
-    colspec: *const *const c_char,
-    len: size_t, 
-) -> *mut ExprC {
-    let ex_c = check_ptr(ptr);
-
-    let mut colvec = Vec::<String>::new();
-    unsafe {
-        assert!(!colspec.is_null());
-
-        for item in slice::from_raw_parts(colspec, len as usize) {
-            colvec.push(CStr::from_ptr(*item).to_string_lossy().into_owned());
-        };
-    };
-
-    Box::into_raw(Box::new(ex_c.exclude(colvec)))
-}
-*/
-/*
-#[no_mangle]
-pub extern "C" fn ex_as_struct(
-    ptr: *mut ExprC,
-    string: *const c_char,
-) -> *mut ExprC {
-    let ex_c = check_ptr(ptr);
-
-    let colname = unsafe {
-        CStr::from_ptr(string).to_string_lossy().into_owned()
-    };
-
-    Box::into_raw(Box::new(ex_c.alias(colname)))
-}
-*/
 
 #[no_mangle]
 pub extern "C" fn ex_free(ptr: *mut ExprC) {

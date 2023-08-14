@@ -58,8 +58,10 @@ df.select(
 )
 #]
 
+df.select([(col("ovalues") + col("values")).alias("solution_expr")]).show;  # str and lengths tbd
+
 #iamerejh ... get struct to work
 #df.select([struct(["keys", "values"]).apply(lambda x: len(x["keys"]) + x["values"]).alias("solution_apply")]);
+df.select([struct(["keys", "values", "ovalues"]).alias("struct")]).show;
 
 
-df.select([(col("ovalues") + col("values")).alias("solution_expr")]).show;  # str and lengths tbd

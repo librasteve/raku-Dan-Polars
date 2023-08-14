@@ -354,7 +354,8 @@ class ExprC is repr('CPointer') is export {
     sub ex_lit_f32(num32)        returns ExprC is native($n-path) { * }
     sub ex_lit_f64(num64)        returns ExprC is native($n-path) { * }
     sub ex_lit_str(Str)          returns ExprC is native($n-path) { * }
-    sub ex_as_struct(ExprC,CArray[Str], size_t) returns ExprC is native($n-path) { * }
+    #sub ex_struct(Str)           returns ExprC is native($n-path) { * }
+    sub ex_struct(CArray[Str], size_t) returns ExprC is native($n-path) { * }
     sub ex_alias(ExprC,Str)      returns ExprC is native($n-path) { * }
     sub ex_sum(ExprC)            returns ExprC is native($n-path) { * }
     sub ex_mean(ExprC)           returns ExprC is native($n-path) { * }
@@ -427,9 +428,10 @@ class ExprC is repr('CPointer') is export {
     }
 
     method struct( Array \colspec ) {
-    dd colspec;
+    say colspec;
 #    ^^ iamerejh need to send Array[ExprC] as_struct(&[col("keys"), col("values")])
-        ex_as_struct(self, carray( Str, colspec ), colspec.elems)
+        ex_struct(carray( Str, colspec ), colspec.elems)
+        #ex_struct(colspec.first)
     }
 
     method alias( Str \colname ) {

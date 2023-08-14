@@ -4,7 +4,7 @@ use Dan;
 use Dan::Polars;
 
 #monadic
-#[
+#`[
 my \df = DataFrame.new([
     nrs    => [1, 2, 3, 4, 5],
     nrs2   => [2, 3, 4, 5, 6],
@@ -47,6 +47,6 @@ df2.show;
 
 #df2.select([col("nrs2").apply("|a: i32| (a + a + 1) as i32").alias("jones")]).head;
 df2.select([struct(["values", "ovalues"]).apply("|a: i32, b: i32| (a + b) as i32").alias("jones")]).show;
-#df2.select([struct(["keys", "values"]).apply("|k: str, v: i32| (k.len() + v) as i32").alias("jones")]).show;
+#df2.select([struct(["keys", "values"]).apply("|a: str, b: i32| (a.len() + b) as i32").alias("jones")]).show;
 
 

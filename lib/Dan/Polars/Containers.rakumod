@@ -599,7 +599,7 @@ class ExprC is repr('CPointer') is export {
         my @dtypes = <Boolean Int32 Int64 UInt32 UInt64 Float32 Float64 Utf8>;
         my %type-map = @types Z=> @dtypes;
 
-        #use Grammar::Tracer;
+        use Grammar::Tracer;
 
         my grammar Lambda {
             token  TOP       { <signature> <body> ' as ' <r-type> }

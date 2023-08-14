@@ -38,30 +38,15 @@ my \df = DataFrame.new([
 
 df.show;
 
-df.select([col("*").exclude(["keys"])]).show;
-df.select([col("keys").alias("solution_apply")]).show;
+#df.select([col("*").exclude(["keys"])]).show;
+#df.select([col("keys").alias("solution_apply")]).show;
+#df.select([(col("ovalues") + col("values")).alias("solution_expr")]).show;  # str and lengths tbd
+#df.select([struct(["keys", "values"]).alias("struct")]).show;
 
-#`[
-df.groupby(["keys"]).agg([
-    col("values").alias("shift_map"),
-    col("values").shift().alias("shift_expression"),
-]).show;
+#iamerejh
 
-#]
-
-#`[
-df.select(
-    pl.struct(["keys", "values"])
-    .apply(lambda x: len(x["keys"]) + x["values"])
-    .alias("solution_apply"),
-    (pl.col("keys").str.lengths() + pl.col("values")).alias("solution_expr"),
-)
-#]
-
-df.select([(col("ovalues") + col("values")).alias("solution_expr")]).show;  # str and lengths tbd
-
-#iamerejh ... get struct to work
-#df.select([struct(["keys", "values"]).apply(lambda x: len(x["keys"]) + x["values"]).alias("solution_apply")]);
-df.select([struct(["keys", "values", "ovalues"]).alias("struct")]).show;
+#df.select([col("nrs2").apply("|a: i32| (a + a + 1) as i32").alias("jones")]).head;
+df.select([struct(["values", "ovalues"]).apply("|v: i32, o: i32| (k + v) as i32").alias("jones")]).show;
+#df.select([struct(["keys", "values"]).apply("|k: str, v: i32| (k.len() + v) as i32").alias("jones")]).show;
 
 

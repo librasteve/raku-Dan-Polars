@@ -354,7 +354,6 @@ class ExprC is repr('CPointer') is export {
     sub ex_lit_f32(num32)        returns ExprC is native($n-path) { * }
     sub ex_lit_f64(num64)        returns ExprC is native($n-path) { * }
     sub ex_lit_str(Str)          returns ExprC is native($n-path) { * }
-    #sub ex_struct(Str)           returns ExprC is native($n-path) { * }
     sub ex_struct(CArray[Str], size_t) returns ExprC is native($n-path) { * }
     sub ex_alias(ExprC,Str)      returns ExprC is native($n-path) { * }
     sub ex_sum(ExprC)            returns ExprC is native($n-path) { * }
@@ -428,10 +427,7 @@ class ExprC is repr('CPointer') is export {
     }
 
     method struct( Array \colspec ) {
-    say colspec;
-#    ^^ iamerejh need to send Array[ExprC] as_struct(&[col("keys"), col("values")])
         ex_struct(carray( Str, colspec ), colspec.elems)
-        #ex_struct(colspec.first)
     }
 
     method alias( Str \colname ) {
@@ -527,20 +523,28 @@ class ExprC is repr('CPointer') is export {
     }
 
     ### APPLY ###
+    # Polars .map() function is not implemented ib Dan::Polars
 
+    # Monadic Real
     # apply() is exported directly into client script and acts on the ExprC made by col()
     # its argument is a string in the form of a Rust lambda with |signature| (body) as rtn-type
     # the lambda takes variable 'a: type' if monadic or 'a: type, b: type' if dyadic' 
     # the body is a valid Rust expression 
 
+#df.select([col("nrs").apply("|a: i32| (a + 1) as i32").alias("jones")]).head;
 #`[
-dfa.select([col("nrs").apply("|a: i32| (a + 1) as i32").alias("jones")]).head;
---- ------  ---------- ---------- --------------   ----
- |     |        |          |           |             -> method head prints top lines of result
- |     |        |          |           |
- |     |        |          |           -> method alias returns a new Expr
- |     |        |          |
- |     |        |          -> method apply returns a new Expr
+--- ------  ---------- -----  --------  -----  ------   -----            ----
+ |     |        |        |        |       |      |        |                -> method head prints top lines of result
+ |     |        |        |        |       |      |        |
+ |     |        |        |        |       |      |        -> method alias returns a new Expr
+ |     |        |        |        |       |      |
+ |     |        |        |        |       |      -> lamda return type (Rust)
+ |     |        |        |        |       |
+ |     |        |        |        |       -> lambda expression using varname (Rust) 
+ |     |        |        |        |
+ |     |        |        |        -> lambda signature with varname : type (Rust) 
+ |     |        |        |
+ |     |        |        -> method apply returns a new Expr with the results of the lambda
  |     |        |
  |     |        -> method col(Str \colname) returns a new (empty) Expr
  |     |
@@ -549,6 +553,34 @@ dfa.select([col("nrs").apply("|a: i32| (a + 1) as i32").alias("jones")]).head;
  |
  -> DataFrame object with attributes of pointers to rust DataFrame and LazyFrame structures
  #]
+
+    # Dyadic Real
+    # apply() is exported directly into client script and acts on the ExprC made by struct()
+    # its argument is a string in the form of a Rust lambda with |signature| (body) as rtn-type
+    # the lambda takes variable 'a: type' if monadic or 'a: type, b: type' if dyadic' 
+    # the body is a valid Rust expression 
+
+#df.select([struct(["keys", "values"]).apply("|a: str, b: i32| (a.len() + b) as i32").alias("jones")]).head;
+#`[
+--- ------  -------------------------  -----  ----------------  -----------  -----    ------           ----
+ |     |                 |               |            |                |       |        |                -> method head prints top lines of result
+ |     |                 |               |            |                |       |        |
+ |     |                 |               |            |                |       |        -> method alias returns a new Expr
+ |     |                 |               |            |                |       |
+ |     |                 |               |            |                |       -> lamda return type (Rust)
+ |     |                 |               |            |                |
+ |     |                 |               |            |                -> lambda expression using varnames in order (Rust) 
+ |     |                 |               |            |
+ |     |                 |               |            -> lambda signature with two [varname : type] (Rust) 
+ |     |                 |               |
+ |     |                 |               -> method apply returns a new Expr with the results of the lambda
+ |     |                 |
+ |     |                 -> method struct(Array \colspec) returns a new col Expr with contents as {"a",10} struct
+ |     |
+ |     -> method select(Array \exprs) creates a LazyFrame, calls .select(exprs) then .collect
+ |
+ -> DataFrame object with attributes of pointers to rust DataFrame and LazyFrame structures
+#]
 
     constant $a-path = <DEVMODE> ?? '../dan/src/apply' !! %?RESOURCES<libraries/dan>;
 
@@ -561,7 +593,8 @@ dfa.select([col("nrs").apply("|a: i32| (a + 1) as i32").alias("jones")]).head;
     method apply( $lambda ) {
 
         say "lambda is $lambda";
-
+        return ap_apply_dr(self);
+        
         #viz.https://docs.rs/polars/latest/polars/chunked_array/object/datatypes/index.html#types
         my @types  = <bool      i32   i64    u32    u64     f32     f64 str>;
         my @dtypes = <Boolean Int32 Int64 UInt32 UInt64 Float32 Float64 Utf8>;

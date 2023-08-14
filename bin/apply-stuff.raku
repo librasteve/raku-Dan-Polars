@@ -4,7 +4,7 @@ use Dan;
 use Dan::Polars;
 
 #monadic
-#`[
+#[
 my \df = DataFrame.new([
     nrs    => [1, 2, 3, 4, 5],
     nrs2   => [2, 3, 4, 5, 6],
@@ -15,7 +15,7 @@ my \df = DataFrame.new([
 
 # viz. https://pola-rs.github.io/polars-book/user-guide/expressions/user-defined-functions/#to-map-or-to-apply
 
-df.select([col("names").unique.count.alias("smith")]).head;
+#df.select([col("names").unique.count.alias("smith")]).head;
 
 #df.select([pl.col("values").apply(lambda a: (a+1) ).alias("jones"),];
 #.map(|a: i32| (a + 1) as i32)
@@ -30,23 +30,23 @@ df.groupby(["groups"]).agg([col("nrs").apply("|a: i32| (a + 1) as i32").alias("j
 #]
 
 #dyadic
-my \df = DataFrame.new([
+my \df2 = DataFrame.new([
     keys => ["a", "a", "b"],
     values => [10, 7, 1],
     ovalues => [10, 7, 1],
 ]);
 
-df.show;
+df2.show;
 
-#df.select([col("*").exclude(["keys"])]).show;
-#df.select([col("keys").alias("solution_apply")]).show;
-#df.select([(col("ovalues") + col("values")).alias("solution_expr")]).show;  # str and lengths tbd
-#df.select([struct(["keys", "values"]).alias("struct")]).show;
+#df2.select([col("*").exclude(["keys"])]).show;
+#df2.select([col("keys").alias("solution_apply")]).show;
+#df2.select([(col("ovalues") + col("values")).alias("solution_expr")]).show;  # str and lengths tbd
+#df2.select([struct(["keys", "values"]).alias("struct")]).show;
 
 #iamerejh
 
-#df.select([col("nrs2").apply("|a: i32| (a + a + 1) as i32").alias("jones")]).head;
-df.select([struct(["values", "ovalues"]).apply("|v: i32, o: i32| (k + v) as i32").alias("jones")]).show;
-#df.select([struct(["keys", "values"]).apply("|k: str, v: i32| (k.len() + v) as i32").alias("jones")]).show;
+#df2.select([col("nrs2").apply("|a: i32| (a + a + 1) as i32").alias("jones")]).head;
+df2.select([struct(["values", "ovalues"]).apply("|a: i32, b: i32| (a + b) as i32").alias("jones")]).show;
+#df2.select([struct(["keys", "values"]).apply("|k: str, v: i32| (k.len() + v) as i32").alias("jones")]).show;
 
 

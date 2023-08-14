@@ -593,20 +593,23 @@ class ExprC is repr('CPointer') is export {
     method apply( $lambda ) {
 
         say "lambda is $lambda";
-        return ap_apply_dr(self);
         
         #viz.https://docs.rs/polars/latest/polars/chunked_array/object/datatypes/index.html#types
         my @types  = <bool      i32   i64    u32    u64     f32     f64 str>;
         my @dtypes = <Boolean Int32 Int64 UInt32 UInt64 Float32 Float64 Utf8>;
         my %type-map = @types Z=> @dtypes;
 
-        use Grammar::Tracer;
+        #use Grammar::Tracer;
 
         my grammar Lambda {
             token  TOP       { <signature> <body> ' as ' <r-type> }
-            rule  signature { '|a:' <a-type> '|' }
-            token body      { '(' .*? ')' <?before ' as '> }
+            rule  signature { '|' <a-sig> [',' <b-sig>]? '|' }
+            rule  a-sig     { 'a:' <a-type> }
+            rule  b-sig     { 'b:' <b-type> }
+            token body      { '(' <expr> ')' <?before ' as '> }
+            token expr      { <-[()]>* }
             token a-type    { @types }
+            token b-type    { @types }
             token r-type    { @types }
         }
 
@@ -616,18 +619,24 @@ class ExprC is repr('CPointer') is export {
 
         my $match = Lambda.parse($lambda, actions => Lambda-actions.new);
 
-        my $a-type = $match<signature><a-type>;
-        my $d-type = %type-map{$match<r-type>};
+        my $pattern = $match<signature><b-sig> ?? 'dr' !! 'mr';
 
-        my $pattern = 'mr';
+        my $a-type = $match<signature><a-sig><a-type> // 'i32';
+        my $b-type = $match<signature><b-sig><b-type> // 'i32';
+        my $m-expr = $match<expr> // 'a + 1';
+        my $d-expr = $match<expr> // 'a + b';
+        my $r-type = $match<r-type> // 'i32';
+        my $d-type = %type-map{$r-type} // 'Int32';
 
         say "building libapply.so...";
 
         my $apply-lib = '../dan/src/apply-template.rs'.IO.slurp;
 
         $apply-lib ~~ s:g|'%ATYPE%'|$a-type|;
-        $apply-lib ~~ s:g|'%BODY%' |$match<body>|;
-        $apply-lib ~~ s:g|'%RTYPE%'|$match<r-type>|;
+        $apply-lib ~~ s:g|'%BTYPE%'|$b-type|;
+        $apply-lib ~~ s:g|'%MEXPR%'|$m-expr|;
+        $apply-lib ~~ s:g|'%DEXPR%'|$d-expr|;
+        $apply-lib ~~ s:g|'%RTYPE%'|$r-type|;
         $apply-lib ~~ s:g|'%DTYPE%'|$d-type|;
 
         #say $apply-lib;    #debug
@@ -645,8 +654,11 @@ class ExprC is repr('CPointer') is export {
             when 'mr' { 
                 ap_apply_mr(self)
             }
-
+            when 'dr' {
+                ap_apply_dr(self)
+            }
         }
+
 
     }
 }

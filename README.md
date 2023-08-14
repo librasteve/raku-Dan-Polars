@@ -343,6 +343,7 @@ This will then provide a basis for ...
 - [ ] Dan splice to with_col, col, drop, hstack, vstack, append (need Issue discussion)
 - [ ] non-null, etc.
 - [ ] cast
+- [ ] str basics (eg .len())
 
 This will then provide a basis for design Dan::As::Query v0.1 for Dan and Dan::Pandas and review Dan API slice & concat, immutability, refactor...
 

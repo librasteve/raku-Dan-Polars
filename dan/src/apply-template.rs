@@ -62,11 +62,11 @@ fn do_apply_dr(s: Series) -> Result<Series> {
     let s_b = &ca.fields()[1];
 
     // downcast the `Series` to their known type
-    let ca_a = s_a.%ATYPE%()?;
-    let ca_b = s_b.%BTYPE%()?;
+    let ca_a = s_a.%DATYPE%()?;
+    let ca_b = s_b.%DBTYPE%()?;
 
     // iterate both `ChunkedArrays`
-    let out: %DTYPE%Chunked = ca_a
+    let out: %DDTYPE%Chunked = ca_a
         .into_iter()
         .zip(ca_b)
         .map(|(opt_a, opt_b)| match (opt_a, opt_b) {

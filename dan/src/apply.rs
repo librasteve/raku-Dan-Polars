@@ -24,10 +24,10 @@ impl ExprC {
 //START_APPLY - monadic, Real
 fn do_apply_mr(vals: Series) -> Result<Series> {
     let x = vals
-        .utf8() 
+        .i32() 
         .unwrap() 
         .into_iter()
-        .map(|opt: Option<utf8>| opt.map(|a: utf8| a + 1 as i32))
+        .map(|opt: Option<i32>| opt.map(|a: i32| a + 1 as i32))
         .collect::<Int32Chunked>();
     Ok(x.into_series())
 }
@@ -70,7 +70,7 @@ fn do_apply_dr(s: Series) -> Result<Series> {
         .into_iter()
         .zip(ca_b)
         .map(|(opt_a, opt_b)| match (opt_a, opt_b) {
-            (Some(a), Some(b)) => Some(a + b),
+            (Some(a), Some(b)) => Some(a.len() as i32 + b),
             _ => None,
         })
         .collect();

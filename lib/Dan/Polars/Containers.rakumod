@@ -593,13 +593,14 @@ class ExprC is repr('CPointer') is export {
     method apply( $lambda ) {
 
         say "lambda is $lambda";
+        print "building libapply.so...";
         
         #viz.https://docs.rs/polars/latest/polars/chunked_array/object/datatypes/index.html#types
         my @types  = <bool      i32   i64    u32    u64     f32     f64 str>;
         my @dtypes = <Boolean Int32 Int64 UInt32 UInt64 Float32 Float64 Utf8>;
         my %type-map = @types Z=> @dtypes;
 
-        use Grammar::Tracer;
+        #use Grammar::Tracer;
 
         my grammar Lambda {
             rule  TOP       { <signature> <body> <as-type> }
@@ -621,60 +622,89 @@ class ExprC is repr('CPointer') is export {
         my $match = Lambda.parse($lambda, actions => Lambda-actions.new);
 
         say my $pattern = $match<signature><b-sig> ?? 'dr' !! 'mr';
-        dd $match;
 
         class values {
-            has $.a-type = ~$match<signature><a-sig><a-type> // 'i32';
-            has $.b-type = ~$match<signature><b-sig><b-type> // 'i32';
-            has $.r-type = ~$match<r-type> // 'i32';
+            has $.match;
 
-            method TWEAK {
-                # special case str to utf8 for downcast
-                $!a-type ~~ s/str/utf8/;
-                $!b-type ~~ s/str/utf8/;
+            #| special case str to utf8 for downcast
+            sub str2utf8( $s is rw ) {
+                $s ~~ /str/ ?? 'utf8' !! $s;
+            }
+
+            method a-type {
+                return 'i32' without $!match;
+
+                my $s = ~$!match<signature><a-sig><a-type>;
+                str2utf8( $s );
+            }
+
+            method b-type {
+                return 'i32' without $!match;
+                
+                my $s = ~$!match<signature><b-sig><b-type>;
+                str2utf8( $s );
+            }
+
+            method r-type {
+                return 'i32' without $!match;
+                ~$!match<as-type><r-type> // 'i32';
             }
 
             method d-type {
-                %type-map{$!r-type};
+                %type-map{$.r-type};
+            }
+
+            method Str {
+                [
+                    "a-type: " ~ self.a-type,
+                    "b-type: " ~ self.b-type,
+                    "expr:   " ~ self.expr,
+                    "r-type: " ~ self.r-type,
+                    "d-type: " ~ self.d-type,
+                ].join: "\n"
             }
         }
 
         class mr-values is values {
-            has $.expr = ~$match<body><expr> // 'a + 1';
+            method expr {
+                return 'a + 1' without $.match;
+                ~$.match<body><expr>;
+            }
         }
 
         class dr-values is values {
-            has $.expr = ~$match<body><expr> // 'a + b';
+            method expr  {
+                return 'a + b' without $.match;
+                ~$.match<body><expr>;
+            }
         }
 
-        my $vc;
+        my ( $mro, $dro );
 
         given $pattern {
             when 'mr' {
-                $vc = mr-values.new;
+                $mro = dr-values.new( :$match );
+                $dro = mr-values.new;
+                say ~$mro;
             }
             when 'dr' {
-                $vc = dr-values.new;
+                $mro = mr-values.new;
+                $dro = dr-values.new( :$match );
+                say ~$dro;
             }
-        }
-#iamerejh 
-# use action for last r-typ?e
-
-        dd $vc;
-        die;
-
-
-        #`[   turn off build
-        say "building libapply.so...";
-
+        } 
+        #[   turn off build
         my $apply-lib = '../dan/src/apply-template.rs'.IO.slurp;
 
-        $apply-lib ~~ s:g|'%ATYPE%'|$a-type|;
-        $apply-lib ~~ s:g|'%BTYPE%'|$b-type|;
-        $apply-lib ~~ s:g|'%MEXPR%'|$m-expr|;
-        $apply-lib ~~ s:g|'%DEXPR%'|$d-expr|;
-        $apply-lib ~~ s:g|'%RTYPE%'|$r-type|;
-        $apply-lib ~~ s:g|'%DTYPE%'|$d-type|;
+        $apply-lib ~~ s:g|'%MATYPE%'|{$mro.a-type}|;
+        $apply-lib ~~ s:g|'%MEXPR%' |{$mro.expr}|;
+        $apply-lib ~~ s:g|'%MRTYPE%'|{$mro.r-type}|;
+        $apply-lib ~~ s:g|'%MDTYPE%'|{$mro.d-type}|;
+
+        $apply-lib ~~ s:g|'%DATYPE%'|{$dro.a-type}|;
+        $apply-lib ~~ s:g|'%DBTYPE%'|{$dro.b-type}|;
+        $apply-lib ~~ s:g|'%DEXPR%' |{$dro.expr}|;
+        $apply-lib ~~ s:g|'%DDTYPE%'|{$dro.d-type}|;
 
         #say $apply-lib;    #debug
 
@@ -682,6 +712,7 @@ class ExprC is repr('CPointer') is export {
         spurt 'apply.rs', $apply-lib;
 
         say qqx`rm libapply.so`;
+say 2;
         say qqx`rustc -L ../target/debug/deps --crate-type cdylib apply.rs`;
 
         chdir '../../bin';

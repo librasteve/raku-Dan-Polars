@@ -46,8 +46,8 @@ df2.show;
 
 #iamerejh
 
-#df2.select([col("nrs2").apply("|a: i32| (a + a + 1) as i32").alias("jones")]).head;
+df2.select([col("nrs2").apply("|a: i32| (a + a + 1) as i32").alias("jones")]).head;
 #df2.select([struct(["values", "ovalues"]).apply("|a: i32, b: i32| (a + b) as i32").alias("jones")]).show;
-df2.select([struct(["keys", "values"]).apply("|a: str, b: i32| (a.len() as i32 + b) as i32").alias("jones")]).show;
+#df2.select([struct(["keys", "values"]).apply("|a: str, b: i32| (a.len() as i32 + b) as i32").alias("jones")]).show;
 
 

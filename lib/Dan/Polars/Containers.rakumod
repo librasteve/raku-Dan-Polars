@@ -628,7 +628,7 @@ class ExprC is repr('CPointer') is export {
 
             #| special case str to utf8 for downcast
             sub str2utf8( $s is rw ) {
-                $s ~~ /str/ ?? 'utf8' !! $s;
+                ( $s ~~ /str/ && $pattern ~~ 'dr' )  ?? 'utf8' !! $s;
             }
 
             method a-type {
@@ -712,7 +712,6 @@ class ExprC is repr('CPointer') is export {
         spurt 'apply.rs', $apply-lib;
 
         say qqx`rm libapply.so`;
-say 2;
         say qqx`rustc -L ../target/debug/deps --crate-type cdylib apply.rs`;
 
         chdir '../../bin';

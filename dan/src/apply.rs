@@ -24,10 +24,10 @@ impl ExprC {
 //START_APPLY - monadic, Real
 fn do_apply_mr(vals: Series) -> Result<Series> {
     let x = vals
-        .i32() 
+        .utf8() 
         .unwrap() 
         .into_iter()
-        .map(|opt: Option<i32>| opt.map(|a: i32| a + 1 as i32))
+        .map(|opt: Option<utf8>| opt.map(|a: utf8| a + 1 as i32))
         .collect::<Int32Chunked>();
     Ok(x.into_series())
 }
@@ -62,7 +62,7 @@ fn do_apply_dr(s: Series) -> Result<Series> {
     let s_b = &ca.fields()[1];
 
     // downcast the `Series` to their known type
-    let ca_a = s_a.i32()?;
+    let ca_a = s_a.utf8()?;
     let ca_b = s_b.i32()?;
 
     // iterate both `ChunkedArrays`

@@ -602,12 +602,13 @@ class ExprC is repr('CPointer') is export {
         use Grammar::Tracer;
 
         my grammar Lambda {
-            token  TOP       { <signature> <body> ' as ' <r-type> }
+            rule  TOP       { <signature> <body> <as-type> }
             rule  signature { '|' <a-sig> [',' <b-sig>]? '|' }
             rule  a-sig     { 'a:' <a-type> }
             rule  b-sig     { 'b:' <b-type> }
-            token body      { '(' <expr> ')' <?before ' as '> }
-            token expr      { <-[()]>* }
+            rule  as-type   { 'as' <r-type> }
+            rule  body      { '(' <expr> ')' <?before <as-type>> }
+            rule  expr      { .* <?before ')'> }
             token a-type    { @types }
             token b-type    { @types }
             token r-type    { @types }
@@ -619,15 +620,51 @@ class ExprC is repr('CPointer') is export {
 
         my $match = Lambda.parse($lambda, actions => Lambda-actions.new);
 
-        my $pattern = $match<signature><b-sig> ?? 'dr' !! 'mr';
+        say my $pattern = $match<signature><b-sig> ?? 'dr' !! 'mr';
+        dd $match;
 
-        my $a-type = $match<signature><a-sig><a-type> // 'i32';
-        my $b-type = $match<signature><b-sig><b-type> // 'i32';
-        my $m-expr = $match<expr> // 'a + 1';
-        my $d-expr = $match<expr> // 'a + b';
-        my $r-type = $match<r-type> // 'i32';
-        my $d-type = %type-map{$r-type} // 'Int32';
+        class values {
+            has $.a-type = ~$match<signature><a-sig><a-type> // 'i32';
+            has $.b-type = ~$match<signature><b-sig><b-type> // 'i32';
+            has $.r-type = ~$match<r-type> // 'i32';
 
+            method TWEAK {
+                # special case str to utf8 for downcast
+                $!a-type ~~ s/str/utf8/;
+                $!b-type ~~ s/str/utf8/;
+            }
+
+            method d-type {
+                %type-map{$!r-type};
+            }
+        }
+
+        class mr-values is values {
+            has $.expr = ~$match<body><expr> // 'a + 1';
+        }
+
+        class dr-values is values {
+            has $.expr = ~$match<body><expr> // 'a + b';
+        }
+
+        my $vc;
+
+        given $pattern {
+            when 'mr' {
+                $vc = mr-values.new;
+            }
+            when 'dr' {
+                $vc = dr-values.new;
+            }
+        }
+#iamerejh 
+# use action for last r-typ?e
+
+        dd $vc;
+        die;
+
+
+        #`[   turn off build
         say "building libapply.so...";
 
         my $apply-lib = '../dan/src/apply-template.rs'.IO.slurp;
@@ -649,6 +686,7 @@ class ExprC is repr('CPointer') is export {
 
         chdir '../../bin';
         sleep 2;            #ubuntu needs to breathe (something to do with so refresh?)
+        #]
 
         given $pattern {
             when 'mr' { 

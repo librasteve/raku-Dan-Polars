@@ -24,11 +24,11 @@ impl ExprC {
 //START_APPLY - monadic, Real
 fn do_apply_mr(vals: Series) -> Result<Series> {
     let x = vals
-        .%ATYPE%() 
+        .%MATYPE%() 
         .unwrap() 
         .into_iter()
-        .map(|opt: Option<%ATYPE%>| opt.map(|a: %ATYPE%| %MEXPR% as %RTYPE%))
-        .collect::<%DTYPE%Chunked>();
+        .map(|opt: Option<%MATYPE%>| opt.map(|a: %MATYPE%| %MEXPR% as %MRTYPE%))
+        .collect::<%MDTYPE%Chunked>();
     Ok(x.into_series())
 }
 //END_APPLY

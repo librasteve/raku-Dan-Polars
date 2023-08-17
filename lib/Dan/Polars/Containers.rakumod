@@ -20,7 +20,7 @@ sub carray( $dtype, @items ) {
 ### Container Classes (CStruct) that interface to Rust lib.rs ###
 
 # export DEVMODE=1 and manual cargo build for dev
-constant $n-path = ?%*ENV<DEVMODE> ?? '../dan/target/debug/dan' !! %?RESOURCES<libraries/dan>;
+constant $n-path = ?%*ENV<DEVMODE> ?? '/root/raku-Dan-Polars/dan/target/debug/dan' !! %?RESOURCES<libraries/dan>;
 
 class SeriesC is repr('CPointer') is export {
     sub se_new_bool(Str, CArray[bool], size_t) returns SeriesC is native($n-path) { * }
@@ -582,7 +582,7 @@ class ExprC is repr('CPointer') is export {
  -> DataFrame object with attributes of pointers to rust DataFrame and LazyFrame structures
 #]
 
-    constant $a-path = <DEVMODE> ?? '../dan/src/apply' !! %?RESOURCES<libraries/dan>;
+    constant $a-path = <DEVMODE> ?? '/root/raku-Dan-Polars/dan/src/apply' !! %?RESOURCES<libraries/dan>;
 
     # monadic-real: '|a: i32| (a + 1) as i32'
     sub ap_apply_mr(ExprC) returns ExprC is native($a-path) { * }
@@ -623,6 +623,7 @@ class ExprC is repr('CPointer') is export {
 
         say my $pattern = $match<signature><b-sig> ?? 'dr' !! 'mr';
 
+        #| use class inheritance to set up defaults for both mr and dr styles
         class values {
             has $.match;
 
@@ -641,13 +642,13 @@ class ExprC is repr('CPointer') is export {
             method b-type {
                 return 'i32' without $!match;
                 
-                my $s = ~$!match<signature><b-sig><b-type>;
+                my $s = ($!match<signature><b-sig><b-type> // '').Str;
                 str2utf8( $s );
             }
 
             method r-type {
                 return 'i32' without $!match;
-                ~$!match<as-type><r-type> // 'i32';
+                ~$!match<as-type><r-type>;
             }
 
             method d-type {
@@ -679,22 +680,26 @@ class ExprC is repr('CPointer') is export {
             }
         }
 
+        #| pass match only to the active style (no match => use defaults)
         my ( $mro, $dro );
 
         given $pattern {
             when 'mr' {
-                $mro = dr-values.new( :$match );
-                $dro = mr-values.new;
-                say ~$mro;
+                $mro = mr-values.new( :$match );
+                $dro = dr-values.new;
             }
             when 'dr' {
                 $mro = mr-values.new;
                 $dro = dr-values.new( :$match );
-                say ~$dro;
             }
         } 
-        #[   turn off build
-        my $apply-lib = '../dan/src/apply-template.rs'.IO.slurp;
+
+        # uncomment for debug
+        #say "mro:\n$mro\n";
+        #say "dro:\n$dro\n";
+
+        #[  <= turn off build
+        my $apply-lib = '/root/raku-Dan-Polars/dan/src/apply-template.rs'.IO.slurp;
 
         $apply-lib ~~ s:g|'%MATYPE%'|{$mro.a-type}|;
         $apply-lib ~~ s:g|'%MEXPR%' |{$mro.expr}|;
@@ -708,11 +713,16 @@ class ExprC is repr('CPointer') is export {
 
         #say $apply-lib;    #debug
 
+        #FIXME assumes run from bin (resources...)
         chdir '../dan/src';
+
         spurt 'apply.rs', $apply-lib;
 
-        say qqx`rm libapply.so`;
-        say qqx`rustc -L ../target/debug/deps --crate-type cdylib apply.rs`;
+        $_.unlink if $_.f given 'libapply.so'.IO;
+
+        await start { 
+            run <rustc -L ../target/debug/deps --crate-type cdylib apply.rs>;
+        };
 
         chdir '../../bin';
         sleep 2;            #ubuntu needs to breathe (something to do with so refresh?)

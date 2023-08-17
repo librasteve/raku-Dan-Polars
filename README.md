@@ -339,8 +339,8 @@ This will then provide a basis for ...
 ### v0.2
 - [x] drop col
 - [x] apply (jit DSL style)
-- [ ] [Dan concat (s1) via Rust join](https://github.com/p6steve/raku-Dan-Polars/issues/10)
-- [ ] Dan splice to with_col, col, drop, hstack, vstack, append (need Issue discussion)
+- [x] [Dan concat (s1) via Rust join](https://github.com/p6steve/raku-Dan-Polars/issues/10)
+- [x] Dan splice to with_col, col, drop, hstack, vstack, append (need Issue discussion)
 - [ ] non-null, etc.
 - [ ] cast
 

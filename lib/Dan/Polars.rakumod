@@ -23,6 +23,11 @@ sub lit( \value ) is export {
     ExprC.lit(value)
 }
 
+# bare sub 'struct' creates Expr.new
+sub struct( Array \colspec ) is export {
+    ExprC.struct(colspec)
+}
+
 role Series does Positional does Iterable is export {
 
     ## attrs for construct and push/pull only

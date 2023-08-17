@@ -26,7 +26,7 @@ The following broad capabilities are included:
 - broad datatype support
 - concurrency
 
-The aim is to emulate the examples in the [Polars User Guide](https://pola-rs.github.io/polars-book/user-guide/dsl/expressions.html)
+The aim is to emulate the examples in the [Polars User Guide](https://pola-rs.github.io/polars-book/)
  
 ### Installation
 Based on the Dockerfile chain [(1)](https://github.com/librasteve/raku-Dan-Polars/blob/main/Dockerfile) FROM [(2)](https://github.com/librasteve/raku-Dockerfiles/blob/main/rusty-ma/Dockerfile)
@@ -364,8 +364,8 @@ This will then provide a basis for design Dan::As::Query v0.1 for Dan and Dan::P
 - [ ] pivot / cross-tabluate
 - [ ] apply over [multiple cols](https://stackoverflow.com/questions/72372821/how-to-apply-a-function-to-multiple-columns-of-a-polars-dataframe-in-rust)
 - [ ] ternary if-then-else (Dan::As::Ternary)
-- [ ] str operations (Dan::As::Str)
+- [ ] str operations (Dan::As::Str) (some good [examples](https://towardsdatascience.com/tips-and-tricks-for-working-with-strings-in-polars-ec6bb74aeec2))
 - [ ] chunked transfer
 - [ ] serde
 
-(c) Henley Cloud Consulting Ltd.
+Copyright(c) 2022-2023 Henley Cloud Consulting Ltd.

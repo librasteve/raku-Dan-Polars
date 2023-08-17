@@ -19,8 +19,8 @@ sub carray( $dtype, @items ) {
 
 ### Container Classes (CStruct) that interface to Rust lib.rs ###
 
-# export PSIXSTEVE=1 and manual cargo build for dev
-constant $n-path = ?%*ENV<PSIXSTEVE> ?? '../dan/target/debug/dan' !! %?RESOURCES<libraries/dan>;
+# export DEVMODE=1 and manual cargo build for dev
+constant $n-path = ?%*ENV<DEVMODE> ?? '/root/raku-Dan-Polars/dan/target/debug/dan' !! %?RESOURCES<libraries/dan>;
 
 class SeriesC is repr('CPointer') is export {
     sub se_new_bool(Str, CArray[bool], size_t) returns SeriesC is native($n-path) { * }
@@ -354,6 +354,7 @@ class ExprC is repr('CPointer') is export {
     sub ex_lit_f32(num32)        returns ExprC is native($n-path) { * }
     sub ex_lit_f64(num64)        returns ExprC is native($n-path) { * }
     sub ex_lit_str(Str)          returns ExprC is native($n-path) { * }
+    sub ex_struct(CArray[Str], size_t) returns ExprC is native($n-path) { * }
     sub ex_alias(ExprC,Str)      returns ExprC is native($n-path) { * }
     sub ex_sum(ExprC)            returns ExprC is native($n-path) { * }
     sub ex_mean(ExprC)           returns ExprC is native($n-path) { * }
@@ -376,7 +377,6 @@ class ExprC is repr('CPointer') is export {
     sub ex__div__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
     sub ex__mod__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
     sub ex__floordiv__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
-    sub ex_apply(ExprC)          returns ExprC is native($n-path) { * }
 
     method new {
         ex_new
@@ -424,6 +424,10 @@ class ExprC is repr('CPointer') is export {
                 when    Str { ex_lit_str(value) }
             }
         }
+    }
+
+    method struct( Array \colspec ) {
+        ex_struct(carray( Str, colspec ), colspec.elems)
     }
 
     method alias( Str \colname ) {
@@ -518,9 +522,222 @@ class ExprC is repr('CPointer') is export {
         ex__floordiv__(self, rhs)
     }
 
-    #iamerejh ... this is vestigal working apply for Plan B "DSL as SO" development
-    method apply {
-        ex_apply(self)
+    ### APPLY ###
+    # Polars .map() function is not implemented ib Dan::Polars
+
+    # Monadic Real
+    # apply() is exported directly into client script and acts on the ExprC made by col()
+    # its argument is a string in the form of a Rust lambda with |signature| (body) as rtn-type
+    # the lambda takes variable 'a: type' if monadic or 'a: type, b: type' if dyadic' 
+    # the body is a valid Rust expression 
+
+#df.select([col("nrs").apply("|a: i32| (a + 1) as i32").alias("jones")]).head;
+#`[
+--- ------  ---------- -----  --------  -----  ------   -----            ----
+ |     |        |        |        |       |      |        |                -> method head prints top lines of result
+ |     |        |        |        |       |      |        |
+ |     |        |        |        |       |      |        -> method alias returns a new Expr
+ |     |        |        |        |       |      |
+ |     |        |        |        |       |      -> lamda return type (Rust)
+ |     |        |        |        |       |
+ |     |        |        |        |       -> lambda expression using varname (Rust) 
+ |     |        |        |        |
+ |     |        |        |        -> lambda signature with varname : type (Rust) 
+ |     |        |        |
+ |     |        |        -> method apply returns a new Expr with the results of the lambda
+ |     |        |
+ |     |        -> method col(Str \colname) returns a new (empty) Expr
+ |     |
+ |     -> method select(Array \exprs) creates a LazyFrame, calls .select(exprs) then .collect
+ |
+ |
+ -> DataFrame object with attributes of pointers to rust DataFrame and LazyFrame structures
+ #]
+
+    # Dyadic Real
+    # apply() is exported directly into client script and acts on the ExprC made by struct()
+    # its argument is a string in the form of a Rust lambda with |signature| (body) as rtn-type
+    # the lambda takes variable 'a: type' if monadic or 'a: type, b: type' if dyadic' 
+    # the body is a valid Rust expression 
+
+#df.select([struct(["keys", "values"]).apply("|a: str, b: i32| (a.len() + b) as i32").alias("jones")]).head;
+#`[
+--- ------  -------------------------  -----  ----------------  -----------  -----    ------           ----
+ |     |                 |               |            |                |       |        |                -> method head prints top lines of result
+ |     |                 |               |            |                |       |        |
+ |     |                 |               |            |                |       |        -> method alias returns a new Expr
+ |     |                 |               |            |                |       |
+ |     |                 |               |            |                |       -> lamda return type (Rust)
+ |     |                 |               |            |                |
+ |     |                 |               |            |                -> lambda expression using varnames in order (Rust) 
+ |     |                 |               |            |
+ |     |                 |               |            -> lambda signature with two [varname : type] (Rust) 
+ |     |                 |               |
+ |     |                 |               -> method apply returns a new Expr with the results of the lambda
+ |     |                 |
+ |     |                 -> method struct(Array \colspec) returns a new col Expr with contents as {"a",10} struct
+ |     |
+ |     -> method select(Array \exprs) creates a LazyFrame, calls .select(exprs) then .collect
+ |
+ -> DataFrame object with attributes of pointers to rust DataFrame and LazyFrame structures
+#]
+
+    constant $a-path = <DEVMODE> ?? '/root/raku-Dan-Polars/dan/src/apply' !! %?RESOURCES<libraries/dan>;
+
+    # monadic-real: '|a: i32| (a + 1) as i32'
+    sub ap_apply_mr(ExprC) returns ExprC is native($a-path) { * }
+    # dyadic-real: '|a: i32, b: i32| (a + b) as i32'
+    sub ap_apply_dr(ExprC) returns ExprC is native($a-path) { * }
+
+
+    method apply( $lambda ) {
+
+        say "lambda is $lambda";
+        print "building libapply.so...";
+        
+        #viz.https://docs.rs/polars/latest/polars/chunked_array/object/datatypes/index.html#types
+        my @types  = <bool      i32   i64    u32    u64     f32     f64 str>;
+        my @dtypes = <Boolean Int32 Int64 UInt32 UInt64 Float32 Float64 Utf8>;
+        my %type-map = @types Z=> @dtypes;
+
+        #use Grammar::Tracer;
+
+        my grammar Lambda {
+            rule  TOP       { <signature> <body> <as-type> }
+            rule  signature { '|' <a-sig> [',' <b-sig>]? '|' }
+            rule  a-sig     { 'a:' <a-type> }
+            rule  b-sig     { 'b:' <b-type> }
+            rule  as-type   { 'as' <r-type> }
+            rule  body      { '(' <expr> ')' <?before <as-type>> }
+            rule  expr      { .* <?before ')'> }
+            token a-type    { @types }
+            token b-type    { @types }
+            token r-type    { @types }
+        }
+
+        class Lambda-actions {
+           # method body($/) { make 'yo' }  ## not needed
+        }
+
+        my $match = Lambda.parse($lambda, actions => Lambda-actions.new);
+
+        say my $pattern = $match<signature><b-sig> ?? 'dr' !! 'mr';
+
+        #| use class inheritance to set up defaults for both mr and dr styles
+        class values {
+            has $.match;
+
+            #| special case str to utf8 for downcast
+            sub str2utf8( $s is rw ) {
+                ( $s ~~ /str/ && $pattern ~~ 'dr' )  ?? 'utf8' !! $s;
+            }
+
+            method a-type {
+                return 'i32' without $!match;
+
+                my $s = ~$!match<signature><a-sig><a-type>;
+                str2utf8( $s );
+            }
+
+            method b-type {
+                return 'i32' without $!match;
+                
+                my $s = ($!match<signature><b-sig><b-type> // '').Str;
+                str2utf8( $s );
+            }
+
+            method r-type {
+                return 'i32' without $!match;
+                ~$!match<as-type><r-type>;
+            }
+
+            method d-type {
+                %type-map{$.r-type};
+            }
+
+            method Str {
+                [
+                    "a-type: " ~ self.a-type,
+                    "b-type: " ~ self.b-type,
+                    "expr:   " ~ self.expr,
+                    "r-type: " ~ self.r-type,
+                    "d-type: " ~ self.d-type,
+                ].join: "\n"
+            }
+        }
+
+        class mr-values is values {
+            method expr {
+                return 'a + 1' without $.match;
+                ~$.match<body><expr>;
+            }
+        }
+
+        class dr-values is values {
+            method expr  {
+                return 'a + b' without $.match;
+                ~$.match<body><expr>;
+            }
+        }
+
+        #| pass match only to the active style (no match => use defaults)
+        my ( $mro, $dro );
+
+        given $pattern {
+            when 'mr' {
+                $mro = mr-values.new( :$match );
+                $dro = dr-values.new;
+            }
+            when 'dr' {
+                $mro = mr-values.new;
+                $dro = dr-values.new( :$match );
+            }
+        } 
+
+        # uncomment for debug
+        #say "mro:\n$mro\n";
+        #say "dro:\n$dro\n";
+
+        #[  <= turn off build
+        my $apply-lib = '/root/raku-Dan-Polars/dan/src/apply-template.rs'.IO.slurp;
+
+        $apply-lib ~~ s:g|'%MATYPE%'|{$mro.a-type}|;
+        $apply-lib ~~ s:g|'%MEXPR%' |{$mro.expr}|;
+        $apply-lib ~~ s:g|'%MRTYPE%'|{$mro.r-type}|;
+        $apply-lib ~~ s:g|'%MDTYPE%'|{$mro.d-type}|;
+
+        $apply-lib ~~ s:g|'%DATYPE%'|{$dro.a-type}|;
+        $apply-lib ~~ s:g|'%DBTYPE%'|{$dro.b-type}|;
+        $apply-lib ~~ s:g|'%DEXPR%' |{$dro.expr}|;
+        $apply-lib ~~ s:g|'%DDTYPE%'|{$dro.d-type}|;
+
+        #say $apply-lib;    #debug
+
+        #FIXME assumes run from bin (resources...)
+        chdir '../dan/src';
+
+        spurt 'apply.rs', $apply-lib;
+
+        $_.unlink if $_.f given 'libapply.so'.IO;
+
+        await start { 
+            run <rustc -L ../target/debug/deps --crate-type cdylib apply.rs>;
+        };
+
+        chdir '../../bin';
+        sleep 2;            #ubuntu needs to breathe (something to do with so refresh?)
+        #]
+
+        given $pattern {
+            when 'mr' { 
+                ap_apply_mr(self)
+            }
+            when 'dr' {
+                ap_apply_dr(self)
+            }
+        }
+
+
     }
 }
 

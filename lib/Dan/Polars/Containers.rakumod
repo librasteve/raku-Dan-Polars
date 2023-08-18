@@ -718,7 +718,7 @@ class ExprC is repr('CPointer') is export {
         #chdir '../dan/src';
 
         my $old-dir = $*CWD;
-        chdir "$app-dir/src";
+        chdir $app-dir;
 
         spurt 'apply.rs', $apply-lib;
 

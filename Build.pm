@@ -17,7 +17,7 @@ class Build {
         my $promise = $proc.start;
         await $promise;
 
-        chdir '../target/debug';
+        chdir '../dan/target/debug';
         say '.'.IO.dir;
 
         #`[

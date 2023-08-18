@@ -22,11 +22,12 @@ sub carray( $dtype, @items ) {
 # go export DEVMODE=1 and manual cargo build for dev
 constant $dev-dan-dir = '/root/raku-Dan-Polars/dan';
 
-# path to native call libdan.so 
-constant $n-path = ?%*ENV<DEVMODE> ?? "$dev-dan-dir/target/debug/dan" !! %?RESOURCES<libraries/dan>;
+# n-path to native call libdan.so or equiv 
+constant $n-path  = ?%*ENV<DEVMODE> ?? "$dev-dan-dir/target/debug/dan" !! %?RESOURCES<libraries/dan>;
 
-# path to apply dynamically built libapply.so
-constant $a-path = ?%*ENV<DEVMODE> ?? "$dev-dan-dir/src/apply" !! %?RESOURCES<libraries/dan>;
+# a-path to apply dynamically built libapply.so or equiv
+constant $a-path  = ?%*ENV<DEVMODE> ?? "$dev-dan-dir/src/apply" !! %?RESOURCES<apply/apply>;
+constant $app-dir = ?%*ENV<DEVMODE> ?? "$dev-dan-dir/src"       !! %?RESOURCES<apply>;
 
 class SeriesC is repr('CPointer') is export {
     sub se_new_bool(Str, CArray[bool], size_t) returns SeriesC is native($n-path) { * }
@@ -713,7 +714,10 @@ class ExprC is repr('CPointer') is export {
         #say $apply-lib;    #debug
 
         #FIXME assumes run from bin (resources...)
-        chdir '../dan/src';
+        #chdir '../dan/src';
+
+        my $old-dir = $*CWD;
+        chdir "$app-dir/src";
 
         spurt 'apply.rs', $apply-lib;
 
@@ -723,7 +727,9 @@ class ExprC is repr('CPointer') is export {
             run <rustc -L ../target/debug/deps --crate-type cdylib apply.rs>;
         };
 
-        chdir '../../bin';
+        #chdir '../../bin';
+        chdir $old-dir;
+
         sleep 2;            #ubuntu needs to breathe (something to do with so refresh?)
         #]
 

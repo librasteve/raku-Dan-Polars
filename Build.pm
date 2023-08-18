@@ -15,7 +15,9 @@ class Build {
         move 'dan/target/debug/libdan.so', 'resources/libraries/libdan.so';
 
         mkdir 'resources/apply';
-        move 'dan/src/apply-template.rs', 'resources/apply/apply-template.rs';
+        mkdir 'resources/apply/src';
+        move 'dan/src/apply-template.rs', 'resources/apply/src/apply-template.rs';
+        move 'dan/target/debug/deps/*',   'resources/apply/target/debug/deps/';
         
         warn 'Build successful';
         

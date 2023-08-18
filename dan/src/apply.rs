@@ -21,8 +21,8 @@ impl ExprC {
     }
 }
 
-//START_APPLY - monadic, Real
-fn do_apply_mr(vals: Series) -> Result<Series> {
+//START_APPLY - monadic
+fn do_apply_monadic(vals: Series) -> Result<Series> {
     let x = vals
         .i32() 
         .unwrap() 
@@ -34,10 +34,10 @@ fn do_apply_mr(vals: Series) -> Result<Series> {
 //END_APPLY
 
 #[no_mangle]
-pub extern "C" fn ap_apply_mr(ptr: *mut ExprC) -> *mut ExprC {
+pub extern "C" fn ap_apply_monadic(ptr: *mut ExprC) -> *mut ExprC {
     let ex_c = check_ptr(ptr);
 
-    let new_inn: Expr = ex_c.inner.clone().apply(do_apply_mr, GetOutput::default()).into();
+    let new_inn: Expr = ex_c.inner.clone().apply(do_apply_monadic, GetOutput::default()).into();
 
     let ex_n = ExprC::new(new_inn.clone());
     Box::into_raw(Box::new(ex_n))
@@ -51,8 +51,8 @@ pub extern "C" fn ap_apply_mr(ptr: *mut ExprC) -> *mut ExprC {
         .collect::<Int32Chunked>();
 */
 
-//START_APPLY - dyadic, Real
-fn do_apply_dr(s: Series) -> Result<Series> {
+//START_APPLY - dyadic
+fn do_apply_dyadic(s: Series) -> Result<Series> {
 
     // downcast to struct
     let ca = s.struct_()?;
@@ -82,10 +82,10 @@ fn do_apply_dr(s: Series) -> Result<Series> {
 //END_APPLY
 
 #[no_mangle]
-pub extern "C" fn ap_apply_dr(ptr: *mut ExprC) -> *mut ExprC {
+pub extern "C" fn ap_apply_dyadic(ptr: *mut ExprC) -> *mut ExprC {
     let ex_c = check_ptr(ptr);
 
-    let new_inn: Expr = ex_c.inner.clone().apply(do_apply_dr, GetOutput::default()).into();
+    let new_inn: Expr = ex_c.inner.clone().apply(do_apply_dyadic, GetOutput::default()).into();
 
     let ex_n = ExprC::new(new_inn.clone());
     Box::into_raw(Box::new(ex_n))

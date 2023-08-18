@@ -19,8 +19,14 @@ sub carray( $dtype, @items ) {
 
 ### Container Classes (CStruct) that interface to Rust lib.rs ###
 
-# export DEVMODE=1 and manual cargo build for dev
-constant $n-path = ?%*ENV<DEVMODE> ?? '/root/raku-Dan-Polars/dan/target/debug/dan' !! %?RESOURCES<libraries/dan>;
+# go export DEVMODE=1 and manual cargo build for dev
+constant $dev-dan-dir = '/root/raku-Dan-Polars/dan';
+
+# path to native call libdan.so 
+constant $n-path = ?%*ENV<DEVMODE> ?? "$dev-dan-dir/target/debug/dan" !! %?RESOURCES<libraries/dan>;
+
+# path to apply dynamically built libapply.so
+constant $a-path = ?%*ENV<DEVMODE> ?? "$dev-dan-dir/src/apply" !! %?RESOURCES<libraries/dan>;
 
 class SeriesC is repr('CPointer') is export {
     sub se_new_bool(Str, CArray[bool], size_t) returns SeriesC is native($n-path) { * }
@@ -582,12 +588,10 @@ class ExprC is repr('CPointer') is export {
  -> DataFrame object with attributes of pointers to rust DataFrame and LazyFrame structures
 #]
 
-    constant $a-path = <DEVMODE> ?? '/root/raku-Dan-Polars/dan/src/apply' !! %?RESOURCES<libraries/dan>;
-
     # monadic-real: '|a: i32| (a + 1) as i32'
-    sub ap_apply_mr(ExprC) returns ExprC is native($a-path) { * }
+    sub ap_apply_monadic(ExprC) returns ExprC is native($a-path) { * }
     # dyadic-real: '|a: i32, b: i32| (a + b) as i32'
-    sub ap_apply_dr(ExprC) returns ExprC is native($a-path) { * }
+    sub ap_apply_dyadic(ExprC)  returns ExprC is native($a-path) { * }
 
 
     method apply( $lambda ) {
@@ -614,22 +618,18 @@ class ExprC is repr('CPointer') is export {
             token b-type    { @types }
             token r-type    { @types }
         }
+        my $match = Lambda.parse($lambda);
 
-        class Lambda-actions {
-           # method body($/) { make 'yo' }  ## not needed
-        }
+        my $pattern = $match<signature><b-sig> ?? 'dyadic' !! 'monadic';
+        say "found $pattern pattern";
 
-        my $match = Lambda.parse($lambda, actions => Lambda-actions.new);
-
-        say my $pattern = $match<signature><b-sig> ?? 'dr' !! 'mr';
-
-        #| use class inheritance to set up defaults for both mr and dr styles
+        #| use class inheritance to set up defaults for both monadic and dyadic styles
         class values {
             has $.match;
 
             #| special case str to utf8 for downcast
             sub str2utf8( $s is rw ) {
-                ( $s ~~ /str/ && $pattern ~~ 'dr' )  ?? 'utf8' !! $s;
+                ( $s ~~ /str/ && $pattern ~~ 'dyadic' )  ?? 'utf8' !! $s;
             }
 
             method a-type {
@@ -684,22 +684,21 @@ class ExprC is repr('CPointer') is export {
         my ( $mro, $dro );
 
         given $pattern {
-            when 'mr' {
+            when 'monadic' {
                 $mro = mr-values.new( :$match );
                 $dro = dr-values.new;
             }
-            when 'dr' {
+            when 'dyadic' {
                 $mro = mr-values.new;
                 $dro = dr-values.new( :$match );
             }
         } 
+        #say "monadic:\n$mro\ndyadic:\n$dro\n";   #debug
 
-        # uncomment for debug
-        #say "mro:\n$mro\n";
-        #say "dro:\n$dro\n";
+        #| build libapply.so dynamically
+        #[  <= turn off
 
-        #[  <= turn off build
-        my $apply-lib = '/root/raku-Dan-Polars/dan/src/apply-template.rs'.IO.slurp;
+        my $apply-lib = "$dev-dan-dir/src/apply-template.rs".IO.slurp;
 
         $apply-lib ~~ s:g|'%MATYPE%'|{$mro.a-type}|;
         $apply-lib ~~ s:g|'%MEXPR%' |{$mro.expr}|;
@@ -729,14 +728,13 @@ class ExprC is repr('CPointer') is export {
         #]
 
         given $pattern {
-            when 'mr' { 
-                ap_apply_mr(self)
+            when 'monadic' { 
+                ap_apply_monadic(self)
             }
-            when 'dr' {
-                ap_apply_dr(self)
+            when 'dyadic' {
+                ap_apply_dyadic(self)
             }
         }
-
 
     }
 }

@@ -10,8 +10,12 @@ class Build {
         
         chdir '..';
         mkdir 'resources';
+        
         mkdir 'resources/libraries';
         move 'dan/target/debug/libdan.so', 'resources/libraries/libdan.so';
+
+        mkdir 'resources/apply';
+        move 'dan/src/apply-template.rs', 'resources/apply/apply-template.rs';
         
         warn 'Build successful';
         

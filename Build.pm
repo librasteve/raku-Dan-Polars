@@ -1,10 +1,10 @@
 class Build {
     method build($dist-path) {
         mkdir 'resources';
-        mkdir 'resources/libraries';
-        move 'dan/src/*', 'resources/rust/src';
+        mkdir 'resources/dan';
+        move 'dan/src/*', 'resources/dan/src';
         
-        chdir 'resources/rust/src';        
+        chdir 'resources/dan/src';        
         warn ' Building Rust Polars library (may take a few minutes).';
         my $proc = Proc::Async.new: <cargo build>;
         $proc.bind-stdout($*ERR);

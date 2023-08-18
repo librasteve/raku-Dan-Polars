@@ -1,25 +1,18 @@
 class Build {
     method build($dist-path) {
         #new partial
-        mkdir 'resources';
-        mkdir 'resources/dan';
-        mkdir 'resources/dan/src';
-        move 'dan/Cargo.toml', 'resources/dan/Cargo.toml';
-        move 'dan/src/lib.rs', 'resources/dan/src/lib.rs';
-        move 'dan/src/apply-template.rs', 'resources/dan/src/apply-template.rs';
-
-        mkdir 'resources/dan/target/debug';
-        mkdir 'resources/dan/target/debug/deps';
-        chdir 'resources/dan';        
-        warn ' Building Rust Polars library (may take a few minutes).';
+        #-mv dan/ apply/
+        #--Cargo.toml (adjusted for right names)
+        #--src/apply-template
+        #maje the build in Container.rakumod be
+        #`[
+        chdir resources blah
         my $proc = Proc::Async.new: <cargo build>;
         $proc.bind-stdout($*ERR);
         my $promise = $proc.start;
         await $promise;
-
-        chdir '..';
-        warn qqx`tree`;
-
+        #]
+        
         #`[
         mkdir 'resources/apply';
         mkdir 'resources/apply/src';
@@ -27,7 +20,7 @@ class Build {
         move 'dan/target/debug/deps/*',   'resources/apply/target/debug/deps/';
         #]
 
-        #`[ original - works
+        #[ original - works
         chdir 'dan';        
         warn ' Building Rust Polars library (may take a few minutes).';
         my $proc = Proc::Async.new: <cargo build>;

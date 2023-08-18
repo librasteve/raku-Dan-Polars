@@ -8,6 +8,8 @@ class Build {
         move 'dan/src/lib.rs', 'resources/dan/src/lib.rs';
         move 'dan/src/apply-template.rs', 'resources/dan/src/apply-template.rs';
 
+        mkdir 'resources/dan/target/debug';
+        mkdir 'resources/dan/target/debug/deps';
         chdir 'resources/dan';        
         warn ' Building Rust Polars library (may take a few minutes).';
         my $proc = Proc::Async.new: <cargo build>;

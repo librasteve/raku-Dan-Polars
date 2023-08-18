@@ -3,6 +3,7 @@ class Build {
         #new partial
         mkdir 'resources';
         mkdir 'resources/dan';
+         mkdir 'resources/dan/src';
         move 'dan/Cargo.toml', 'resources/dan/Cargo.toml';
         move 'dan/src/lib.rs', 'resources/dan/src/lib.rs';
         die 2;

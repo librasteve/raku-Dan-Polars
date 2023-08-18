@@ -17,6 +17,9 @@ class Build {
         my $promise = $proc.start;
         await $promise;
 
+        chdir 'resources/dan/target/debug/deps';
+        say '.'.IO.dir;
+
         #`[
         mkdir 'resources/apply';
         mkdir 'resources/apply/src';

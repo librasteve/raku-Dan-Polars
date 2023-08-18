@@ -1,23 +1,11 @@
 class Build {
     method build($dist-path) {
-        #new partial
-        #-mv dan/ apply/
-        #--Cargo.toml (adjusted for right names)
-        #--src/apply-template
-        #maje the build in Container.rakumod be
+        #new partial - cargo build phase to script
         #`[
-        chdir resources blah
-        my $proc = Proc::Async.new: <cargo build>;
-        $proc.bind-stdout($*ERR);
-        my $promise = $proc.start;
-        await $promise;
-        #]
-        
-        #`[
-        mkdir 'resources/apply';
-        mkdir 'resources/apply/src';
-        move 'dan/src/apply-template.rs', 'resources/apply/src/apply-template.rs';
-        move 'dan/target/debug/deps/*',   'resources/apply/target/debug/deps/';
+        mkdir 'resources/dan';
+        mkdir 'resources/dan/src';
+        move 'dan/Cargo.toml', 'resources/dan/Cargo.toml';
+        move 'dan/src/apply-template.rs', 'resources/dan/src/apply-template.rs';
         #]
 
         #[ original - works

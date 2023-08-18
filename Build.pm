@@ -1,6 +1,20 @@
 class Build {
     method build($dist-path) {
-        
+        #`[
+        mkdir 'resources';
+        mkdir 'resources/dan';
+        move 'dan/Cargo.toml', 'resources/dan/Cargo.toml';
+        move 'dan/src/lib.rs', 'resources/dan/src/lib.rs';
+
+        chdir 'resources/dan/src';        
+        warn ' Building Rust Polars library (may take a few minutes).';
+        my $proc = Proc::Async.new: <cargo build>;
+        $proc.bind-stdout($*ERR);
+        my $promise = $proc.start;
+        await $promise;
+        #]
+
+        #[
         chdir 'dan';        
         warn ' Building Rust Polars library (may take a few minutes).';
         my $proc = Proc::Async.new: <cargo build>;
@@ -10,9 +24,9 @@ class Build {
         
         chdir '..';
         mkdir 'resources';
-        
         mkdir 'resources/libraries';
         move 'dan/target/debug/libdan.so', 'resources/libraries/libdan.so';
+        #]
 
         #`[
         mkdir 'resources/apply';
@@ -26,16 +40,16 @@ class Build {
         exit 0
     }
 }
-
-#`[
-mkdir 'resources';
-mkdir 'resources/dan';
-move 'dan/src/*', 'resources/dan/src';
-
-chdir 'resources/dan/src';        
-warn ' Building Rust Polars library (may take a few minutes).';
-my $proc = Proc::Async.new: <cargo build>;
-$proc.bind-stdout($*ERR);
-my $promise = $proc.start;
-await $promise;
-#]
+        
+        #`[
+        mkdir 'resources';
+        mkdir 'resources/dan';
+        move 'dan/src/*', 'resources/dan/src';
+        
+        chdir 'resources/dan/src';        
+        warn ' Building Rust Polars library (may take a few minutes).';
+        my $proc = Proc::Async.new: <cargo build>;
+        $proc.bind-stdout($*ERR);
+        my $promise = $proc.start;
+        await $promise;
+        #]

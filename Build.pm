@@ -3,18 +3,20 @@ class Build {
         #new partial
         mkdir 'resources';
         mkdir 'resources/dan';
-         mkdir 'resources/dan/src';
+        mkdir 'resources/dan/src';
         move 'dan/Cargo.toml', 'resources/dan/Cargo.toml';
         move 'dan/src/lib.rs', 'resources/dan/src/lib.rs';
-        die 2;
+        move 'dan/src/apply-template.rs', 'resources/dan/src/apply-template.rs';
 
-        #`[ new
-        chdir 'resources/dan/src';        
+        #[ new
+        chdir 'resources/dan';        
         warn ' Building Rust Polars library (may take a few minutes).';
         my $proc = Proc::Async.new: <cargo build>;
         $proc.bind-stdout($*ERR);
         my $promise = $proc.start;
         await $promise;
+
+        #say 42; die;
         #]
 
         #`[ original - works

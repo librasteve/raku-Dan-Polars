@@ -23,7 +23,8 @@ sub carray( $dtype, @items ) {
 constant $dev-dan-dir = '/root/raku-Dan-Polars/dan';
 
 # n-path to native call libdan.so or equiv 
-constant $n-path  = ?%*ENV<DEVMODE> ?? "$dev-dan-dir/target/debug/dan" !! %?RESOURCES<libraries/dan>;
+#constant $n-path  = ?%*ENV<DEVMODE> ?? "$dev-dan-dir/target/debug/dan" !! %?RESOURCES<libraries/dan>;
+constant $n-path  = ?%*ENV<DEVMODE> ?? "$dev-dan-dir/target/debug/dan" !! %?RESOURCES<dan/target/debug/dan>;
 
 # a-path to apply dynamically built libapply.so or equiv
 constant $a-path  = ?%*ENV<DEVMODE> ?? "$dev-dan-dir/src/apply" !! %?RESOURCES<apply/apply>;

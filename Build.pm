@@ -3,8 +3,9 @@ class Build {
         #new partial
         mkdir 'resources';
         mkdir 'resources/dan';
+        say 1;
         move 'dan/Cargo.toml', 'resources/dan/Cargo.toml';
-        move 'dan/src/lib.rs', 'resources/dan/src/lib.rs';
+        #move 'dan/src/lib.rs', 'resources/dan/src/lib.rs';
 
         #`[ new
         chdir 'resources/dan/src';        

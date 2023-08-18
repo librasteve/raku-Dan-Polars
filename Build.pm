@@ -18,7 +18,7 @@ class Build {
         await $promise;
 
         chdir '..';
-        qqx`tree`;
+        warn qqx`tree`;
 
         #`[
         mkdir 'resources/apply';

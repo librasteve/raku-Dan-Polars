@@ -29,9 +29,16 @@ The following broad capabilities are included:
 The aim is to emulate the examples in the [Polars User Guide](https://pola-rs.github.io/polars-book/)
  
 ### Installation
+Based on zef
+- install Rust ```curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh``` see [Rust](https://rust-lang.org)
+- install Raku ```curl https://rakubrew.org/install-on-perl.sh | sh``` see [Rakubrew](https://rakubrew.org)
+- ```zef install --verbose Dan::Polars```
+
 Based on the Dockerfile chain [(1)](https://github.com/librasteve/raku-Dan-Polars/blob/main/Dockerfile) FROM [(2)](https://github.com/librasteve/raku-Dockerfiles/blob/main/rusty-ma/Dockerfile)
 - ```docker run -it librasteve/raku-dan:polars-amd64```
-- ```cd ~/raku-Dan-Polars/bin``` (this repo was cloned to load test_data)
+
+Then try
+- ```cd ~/raku-Dan-Polars/bin``` (git clone this repo to load test_data)
 - ```./synopsis-dan-polars.raku``` or ```./nutshell.raku```
 
 (see bin/setup.raku for manual / development install steps)

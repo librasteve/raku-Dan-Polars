@@ -17,7 +17,7 @@ class Build {
         my $promise = $proc.start;
         await $promise;
 
-        chdir 'resources';
+        chdir '..';
         qqx`tree`;
 
         #`[

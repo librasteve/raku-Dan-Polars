@@ -1,11 +1,12 @@
 class Build {
     method build($dist-path) {
-        #`[
+        #new partial
         mkdir 'resources';
         mkdir 'resources/dan';
         move 'dan/Cargo.toml', 'resources/dan/Cargo.toml';
         move 'dan/src/lib.rs', 'resources/dan/src/lib.rs';
 
+        #`[ new
         chdir 'resources/dan/src';        
         warn ' Building Rust Polars library (may take a few minutes).';
         my $proc = Proc::Async.new: <cargo build>;
@@ -14,7 +15,7 @@ class Build {
         await $promise;
         #]
 
-        #[
+        #`[ original - works
         chdir 'dan';        
         warn ' Building Rust Polars library (may take a few minutes).';
         my $proc = Proc::Async.new: <cargo build>;

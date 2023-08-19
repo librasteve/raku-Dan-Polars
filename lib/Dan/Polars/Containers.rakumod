@@ -25,7 +25,7 @@ constant $dev-dan-dir = '/root/raku-Dan-Polars/dan';
 my $x = %?RESOURCES<dan/target/debug>;
 warn qqx`tree $x`;
 
-for $?RESOURCES<dan/target/debug>.dir {
+for %?RESOURCES<dan/target/debug>.dir {
     warn .basename;
 }
 die "yo"; 

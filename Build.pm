@@ -13,6 +13,7 @@ class Build {
         mkdir 'resources/dan/src';
         mkdir 'resources/dan/target';
         mkdir 'resources/dan/target/debug';
+        mkdir 'resources/dan/target/debug/deps';
         move 'dan/Cargo.toml', 'resources/dan/Cargo.toml';
         move 'dan/src/lib.rs', 'resources/dan/src/lib.rs';
         move 'dan/src/apply-template.rs', 'resources/dan/src/apply-template.rs';

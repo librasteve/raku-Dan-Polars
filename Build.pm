@@ -29,6 +29,8 @@ class Build {
         mkdir 'resources/libraries';
         move 'resources/dan/target/debug/libdan.so', 'resources/libraries/libdan.so';
 
+        warn qqx`tree`;
+
         #`[ original - works
         chdir 'dan';
         warn ' Building Rust Polars library (may take a few minutes).';

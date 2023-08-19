@@ -22,8 +22,8 @@ sub carray( $dtype, @items ) {
 # go export DEVMODE=1 and manual cargo build for dev
 constant $dev-dan-dir = '/root/raku-Dan-Polars/dan';
 
-chdir %?RESOURCES<dan/target/debug/dan>;
-warn qqx`tree`;
+my $x = %?RESOURCES<dan/target/debug/dan>;
+warn qqx`tree $x`;
 die "yo"; 
 
 

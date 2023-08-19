@@ -18,7 +18,7 @@
     "Dan::Polars::Containers": "lib/Dan/Polars/Containers.rakumod"
   },
   "resources": [
-    "dan/src",
+    "dan/src/*",
     "dan/target",
     "dan/target/debug",
     "dan/target/debug/deps",

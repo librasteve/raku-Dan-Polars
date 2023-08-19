@@ -22,6 +22,11 @@ sub carray( $dtype, @items ) {
 # go export DEVMODE=1 and manual cargo build for dev
 constant $dev-dan-dir = '/root/raku-Dan-Polars/dan';
 
+chdir %?RESOURCES<dan/target/debug/dan>;
+warn qqx`tree`;
+die "yo"; 
+
+
 # n-path to native call libdan.so or equiv 
 #constant $n-path  = ?%*ENV<DEVMODE> ?? "$dev-dan-dir/target/debug/dan" !! %?RESOURCES<libraries/dan>;
 constant $n-path  = ?%*ENV<DEVMODE> ?? "$dev-dan-dir/target/debug/dan" !! %?RESOURCES<dan/target/debug/dan>;

@@ -25,12 +25,12 @@ class Build {
         my $promise = $proc.start;
         await $promise;
 
-#`[
+`[
         chdir '../..';
         mkdir 'resources/libraries';
         move 'resources/dan/target/debug/libdan.so', 'resources/libraries/libdan.so';
 
-        warn qqx`tree`;
+        #warn qqx`tree`;
 #]
 
         #`[ original - works

@@ -26,7 +26,7 @@ class Build {
         warn qqx`cd resources/libraries && ls -al`;
         #]
 
-        #`[
+        #[ INSPECT THE CU FILESYSTEM AT dan
         chdir 'resources';
         warn qqx`tree`;
         my $cu = CompUnit::Repository::FileSystem.new(prefix => $*CWD.add("dan"));

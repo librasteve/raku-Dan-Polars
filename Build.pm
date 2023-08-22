@@ -30,7 +30,7 @@ class Build {
         chdir 'resources';
         warn qqx`tree`;
         my $cu = CompUnit::Repository::FileSystem.new(prefix => $*CWD.add("dan"));
-        warn (dd $cu);
+        warn $cu;
         warn $cu.distribution.meta<resources>;
         #]
         

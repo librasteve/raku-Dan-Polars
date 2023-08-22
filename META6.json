@@ -18,11 +18,7 @@
     "Dan::Polars::Containers": "lib/Dan/Polars/Containers.rakumod"
   },
   "resources": [
-    "dan/src/*",
-    "dan/target",
-    "dan/target/debug",
-    "dan/target/debug/deps",
-    "libraries/dan"
+    "libraries/resources"
   ],
   "license": "Artistic-2.0",
   "tags": [

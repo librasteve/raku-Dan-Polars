@@ -22,6 +22,7 @@ sub carray( $dtype, @items ) {
 # go export DEVMODE=1 and manual cargo build for dev
 constant $dev-dan-dir = '~/raku-Dan-Polars/dan';
 constant $dev-app-dir = '~/raku-Dan-Polars/apply';
+constant $apply-dir   = "$*HOME/.raku-dan-polars";
 
 # n-path to native call libdan.so or equiv 
 constant $n-path  = ?%*ENV<DEVMODE> ?? "$dev-dan-dir/target/debug/dan" !! %?RESOURCES<libraries/dan>;
@@ -34,16 +35,16 @@ class ApplySession {
         # first run
         say "no1";
         chdir $*HOME;
-        mkdir '.raku-dan-polars';
-        mkdir '.raku-dan-polars/apply';
-        mkdir '.raku-dan-polars/apply/src';
+        mkdir $apply-dir;
+        mkdir "$apply-dir/apply";
+        mkdir "$apply-dir/apply/src";
 
-        copy %?RESOURCES<apply/Cargo.toml>, '.raku-dan-polars/apply/Cargo.toml';
-        copy %?RESOURCES<apply/src/apply.rs>, '.raku-dan-polars/apply/src/apply.rs';
-        copy %?RESOURCES<apply/src/apply-template.rs>, '.raku-dan-polars/apply/src/apply-template.rs';
+        copy %?RESOURCES<apply/Cargo.toml>,            "$apply-dir/apply/Cargo.toml";
+        copy %?RESOURCES<apply/src/apply.rs>,          "$apply-dir/apply/src/apply.rs";
+        copy %?RESOURCES<apply/src/apply-template.rs>, "$apply-dir/apply/src/apply-template.rs";
 
         # a-path to apply dynamically built libapply.so 
-        ?%*ENV<DEVMODE> ?? "$dev-app-dir/src/apply" !! %?RESOURCES<apply/apply>;
+        ?%*ENV<DEVMODE> ?? "$dev-app-dir/target/debug/deps/apply" !! "$apply-dir/target/debug/deps/apply";
     }
 }
 

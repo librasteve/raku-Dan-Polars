@@ -19,9 +19,9 @@
   },
   "resources": [
     "libraries/dan",
-    "dan/Cargo.toml",
-    "dan/src/lib.rs",
-    "dan/src/apply-template.rs"
+    "apply/Cargo.toml",
+    "apply/src/apply.rs",
+    "apply/src/apply-template.rs"
   ],
   "license": "Artistic-2.0",
   "tags": [

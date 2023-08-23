@@ -46,7 +46,7 @@ class ApplySession {
         }
         carbon();
         #]
-        copy %?RESOURCES<apply/Cargo.toml>, '.raku-dan-polars/apply';
+        copy %?RESOURCES<apply/Cargo.toml>, '.raku-dan-polars/apply/Cargo.toml';
     #"apply/Cargo.toml",
     #"apply/src/apply.rs",
     #"apply/src/apply-template.rs"

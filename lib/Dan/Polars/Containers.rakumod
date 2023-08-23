@@ -20,17 +20,40 @@ sub carray( $dtype, @items ) {
 ### Container Classes (CStruct) that interface to Rust lib.rs ###
 
 # go export DEVMODE=1 and manual cargo build for dev
-constant $dev-dan-dir = '/root/raku-Dan-Polars/dan';
-constant $pro-dan-dir = '';
-say "cwd is $*CWD";
+constant $dev-dan-dir = '~/raku-Dan-Polars/dan';
+constant $dev-app-dir = '~/raku-Dan-Polars/apply';
 
 # n-path to native call libdan.so or equiv 
 constant $n-path  = ?%*ENV<DEVMODE> ?? "$dev-dan-dir/target/debug/dan" !! %?RESOURCES<libraries/dan>;
-#constant $n-path  = ?%*ENV<DEVMODE> ?? "$dev-dan-dir/target/debug/dan" !! %?RESOURCES<dan/target/debug/dan>;
 
-# a-path to apply dynamically built libapply.so or equiv
-constant $a-path  = ?%*ENV<DEVMODE> ?? "$dev-dan-dir/src/apply" !! %?RESOURCES<apply/apply>;
-constant $app-dir = ?%*ENV<DEVMODE> ?? "$dev-dan-dir/src"       !! %?RESOURCES<apply>;
+class ApplySession {
+    method a-path {
+        # use ENV<APATH> after first run
+        return $_ with %*ENV<APATH>;
+
+        # first run
+        say "no1";
+        chdir $*HOME;
+        mkdir '.raku-dan-polars';
+        mkdir '.raku-dan-polars/apply';
+        mkdir '.raku-dan-polars/apply/src';
+
+        `[
+        sub carbon {
+        #sub carbon( $name, $dest-dir ) {
+            my $text = slurp %?RESOURCES<apply/Cargo.toml>;
+            say $text;
+        }
+        carbon();
+        #]
+        copy %?RESOURCES<apply/Cargo.toml>, '.raku-dan-polars/apply';
+    #"apply/Cargo.toml",
+    #"apply/src/apply.rs",
+    #"apply/src/apply-template.rs"
+        # a-path to apply dynamically built libapply.so 
+        ?%*ENV<DEVMODE> ?? "$dev-app-dir/src/apply" !! %?RESOURCES<apply/apply>;
+    }
+}
 
 class SeriesC is repr('CPointer') is export {
     sub se_new_bool(Str, CArray[bool], size_t) returns SeriesC is native($n-path) { * }
@@ -593,9 +616,9 @@ class ExprC is repr('CPointer') is export {
 #]
 
     # monadic-real: '|a: i32| (a + 1) as i32'
-    sub ap_apply_monadic(ExprC) returns ExprC is native($a-path) { * }
+    sub ap_apply_monadic(ExprC) returns ExprC is native(ApplySession.new.a-path) { * }
     # dyadic-real: '|a: i32, b: i32| (a + b) as i32'
-    sub ap_apply_dyadic(ExprC)  returns ExprC is native($a-path) { * }
+    sub ap_apply_dyadic(ExprC)  returns ExprC is native(ApplySession.new.a-path) { * }
 
 
     method apply( $lambda ) {
@@ -700,7 +723,7 @@ class ExprC is repr('CPointer') is export {
         #say "monadic:\n$mro\ndyadic:\n$dro\n";   #debug
 
         #| build libapply.so dynamically
-        #[  <= turn off
+        #`[  <= turn off
 
         my $apply-lib = "$dev-dan-dir/src/apply-template.rs".IO.slurp;
 

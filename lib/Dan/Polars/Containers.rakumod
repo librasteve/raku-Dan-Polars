@@ -20,12 +20,11 @@ sub carray( $dtype, @items ) {
 ### Container Classes (CStruct) that interface to Rust lib.rs ###
 
 # go export DEVMODE=1 and manual cargo build for dev
-constant $dev-dan-dir = '~/raku-Dan-Polars/dan';
-constant $dev-app-dir = '~/raku-Dan-Polars/apply';
+constant $devt-dir = '~/raku-Dan-Polars';
 constant $apply-dir   = "$*HOME/.raku-dan-polars";
 
 # n-path to native call libdan.so or equiv 
-constant $n-path  = ?%*ENV<DEVMODE> ?? "$dev-dan-dir/target/debug/dan" !! %?RESOURCES<libraries/dan>;
+constant $n-path  = ?%*ENV<DEVMODE> ?? "$devt-dir/dan/target/debug/dan" !! %?RESOURCES<libraries/dan>;
 
 class ApplySession {
     method a-path {
@@ -726,7 +725,7 @@ class ExprC is repr('CPointer') is export {
         #| build libapply.so dynamically
         #`[  <= turn off
 
-        my $apply-lib = "$dev-dan-dir/src/apply-template.rs".IO.slurp;
+        my $apply-lib = "$devt-dir/apply/src/apply-template.rs".IO.slurp;
 
         $apply-lib ~~ s:g|'%MATYPE%'|{$mro.a-type}|;
         $apply-lib ~~ s:g|'%MEXPR%' |{$mro.expr}|;

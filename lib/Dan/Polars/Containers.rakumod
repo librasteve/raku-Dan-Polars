@@ -38,7 +38,7 @@ class ApplySession {
         mkdir '.raku-dan-polars/apply';
         mkdir '.raku-dan-polars/apply/src';
 
-        `[
+        #`[
         sub carbon {
         #sub carbon( $name, $dest-dir ) {
             my $text = slurp %?RESOURCES<apply/Cargo.toml>;

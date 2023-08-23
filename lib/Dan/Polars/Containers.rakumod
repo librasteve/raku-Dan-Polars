@@ -38,18 +38,10 @@ class ApplySession {
         mkdir '.raku-dan-polars/apply';
         mkdir '.raku-dan-polars/apply/src';
 
-        #`[
-        sub carbon {
-        #sub carbon( $name, $dest-dir ) {
-            my $text = slurp %?RESOURCES<apply/Cargo.toml>;
-            say $text;
-        }
-        carbon();
-        #]
         copy %?RESOURCES<apply/Cargo.toml>, '.raku-dan-polars/apply/Cargo.toml';
-    #"apply/Cargo.toml",
-    #"apply/src/apply.rs",
-    #"apply/src/apply-template.rs"
+        copy %?RESOURCES<apply/src/apply.rs>, '.raku-dan-polars/apply/src/apply.rs';
+        copy %?RESOURCES<apply/src/apply-template.rs>, '.raku-dan-polars/apply/src/apply-template.rs';
+
         # a-path to apply dynamically built libapply.so 
         ?%*ENV<DEVMODE> ?? "$dev-app-dir/src/apply" !! %?RESOURCES<apply/apply>;
     }

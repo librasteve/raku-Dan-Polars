@@ -51,7 +51,7 @@ class ApplySession {
         chdir $old-dir;
 
         # a-path to apply dynamically built libapply.so 
-        ?%*ENV<DEVMODE> ?? "$dev-app-dir/target/debug/apply" !! "$apply-dir/target/debug/apply";
+        ?%*ENV<DEVMODE> ?? "$devt-dir/apply/target/debug/apply" !! "$apply-dir/apply/target/debug/apply";
     }
 }
 

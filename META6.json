@@ -18,6 +18,7 @@
     "Dan::Polars::Containers": "lib/Dan/Polars/Containers.rakumod"
   },
   "resources": [
+    "libraries/dan",
     "dan/Cargo.toml",
     "dan/src/lib.rs",
     "dan/src/apply-template.rs"

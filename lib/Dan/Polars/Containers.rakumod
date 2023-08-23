@@ -34,6 +34,9 @@ class ApplySession {
 
         # first run
         say "no1";
+
+        my $old-dir = $*CWD;
+
         chdir $*HOME;
         mkdir $apply-dir;
         mkdir "$apply-dir/apply";
@@ -43,8 +46,13 @@ class ApplySession {
         copy %?RESOURCES<apply/src/apply.rs>,          "$apply-dir/apply/src/apply.rs";
         copy %?RESOURCES<apply/src/apply-template.rs>, "$apply-dir/apply/src/apply-template.rs";
 
+        chdir "$apply-dir/apply";
+        run <cargo build>;
+
+        chdir $old-dir;
+
         # a-path to apply dynamically built libapply.so 
-        ?%*ENV<DEVMODE> ?? "$dev-app-dir/target/debug/deps/apply" !! "$apply-dir/target/debug/deps/apply";
+        ?%*ENV<DEVMODE> ?? "$dev-app-dir/target/debug/apply" !! "$apply-dir/target/debug/apply";
     }
 }
 

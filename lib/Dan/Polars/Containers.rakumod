@@ -35,7 +35,7 @@ sub a-root {
 
     # first run
     unless "$apply-dir/apply/src/apply-template.rs".IO.f {
-	say "Populating $apply-dir ...first run only";
+	say "populating $apply-dir ...first run only";
 
         my $old-dir = $*CWD;
 

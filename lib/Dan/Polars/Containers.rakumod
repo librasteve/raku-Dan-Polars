@@ -34,9 +34,9 @@ sub a-root {
     return $devt-dir if ?%*ENV<DEVMODE>;
 
     # first run
-    say "Populating $apply-dir, ...first run only";
+    unless "$apply-dir/apply/src/apply-template.rs".IO.f {
+	say "Populating $apply-dir ...first run only";
 
-    unless "$apply-dir/apply/src/apply-template.rs" {
         my $old-dir = $*CWD;
 
         chdir $*HOME;

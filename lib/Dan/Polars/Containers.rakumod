@@ -20,39 +20,43 @@ sub carray( $dtype, @items ) {
 ### Container Classes (CStruct) that interface to Rust lib.rs ###
 
 # go export DEVMODE=1 and manual cargo build for dev
-constant $devt-dir = '~/raku-Dan-Polars';
-constant $apply-dir   = "$*HOME/.raku-dan-polars";
+constant $devt-dir  = "$*HOME/raku-Dan-Polars";
+constant $apply-dir = "$*HOME/.raku-dan-polars";
 
 # n-path to native call libdan.so or equiv 
 constant $n-path  = ?%*ENV<DEVMODE> ?? "$devt-dir/dan/target/debug/dan" !! %?RESOURCES<libraries/dan>;
 
-class ApplySession {
-    method a-path {
-        # use ENV<APATH> after first run
-        return $_ with %*ENV<APATH>;
+sub a-path {
+    # with DEVMODE you build by hand
+    return "$devt-dir/apply/target/debug/apply" with %*ENV<DEVMODE>;
 
-        # first run
-        say "no1";
+    # use ENV<APATH> after first run
+    return $_ with %*ENV<APATH>;
 
-        my $old-dir = $*CWD;
+    # first run
+    say "no1";
 
-        chdir $*HOME;
-        mkdir $apply-dir;
-        mkdir "$apply-dir/apply";
-        mkdir "$apply-dir/apply/src";
+    my $old-dir = $*CWD;
 
-        copy %?RESOURCES<apply/Cargo.toml>,            "$apply-dir/apply/Cargo.toml";
-        copy %?RESOURCES<apply/src/apply.rs>,          "$apply-dir/apply/src/apply.rs";
-        copy %?RESOURCES<apply/src/apply-template.rs>, "$apply-dir/apply/src/apply-template.rs";
+    chdir $*HOME;
+    mkdir $apply-dir;
+    mkdir "$apply-dir/apply";
+    mkdir "$apply-dir/apply/src";
 
-        chdir "$apply-dir/apply";
-        run <cargo build>;
+    copy %?RESOURCES<apply/Cargo.toml>,            "$apply-dir/apply/Cargo.toml";
+    copy %?RESOURCES<apply/src/apply.rs>,          "$apply-dir/apply/src/apply.rs";
+    copy %?RESOURCES<apply/src/apply-template.rs>, "$apply-dir/apply/src/apply-template.rs";
 
-        chdir $old-dir;
+    chdir "$apply-dir/apply";
+    run <cargo build>;
 
-        # a-path to apply dynamically built libapply.so 
-        ?%*ENV<DEVMODE> ?? "$devt-dir/apply/target/debug/apply" !! "$apply-dir/apply/target/debug/apply";
-    }
+    chdir $old-dir;
+
+    # a-path to apply dynamically built libapply.so 
+    my $a-path = "$apply-dir/apply/target/debug/apply";
+
+    %*ENV<APATH> = $a-path;
+    $a-path
 }
 
 class SeriesC is repr('CPointer') is export {
@@ -616,9 +620,9 @@ class ExprC is repr('CPointer') is export {
 #]
 
     # monadic-real: '|a: i32| (a + 1) as i32'
-    sub ap_apply_monadic(ExprC) returns ExprC is native(ApplySession.new.a-path) { * }
+    sub ap_apply_monadic(ExprC) returns ExprC is native(a-path()) { * }
     # dyadic-real: '|a: i32, b: i32| (a + b) as i32'
-    sub ap_apply_dyadic(ExprC)  returns ExprC is native(ApplySession.new.a-path) { * }
+    sub ap_apply_dyadic(ExprC)  returns ExprC is native(a-path()) { * }
 
 
     method apply( $lambda ) {

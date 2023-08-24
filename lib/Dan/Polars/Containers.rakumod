@@ -625,7 +625,7 @@ class ExprC is repr('CPointer') is export {
     method apply( $lambda ) {
 
         say "lambda is $lambda";
-        print "building libapply.so... first pass after install requires a cargo rebuild... ";
+        say "building libapply.so [first pass after install requires a cargo rebuild] ... ";
         
         #viz.https://docs.rs/polars/latest/polars/chunked_array/object/datatypes/index.html#types
         my @types  = <bool      i32   i64    u32    u64     f32     f64 str>;
@@ -649,7 +649,7 @@ class ExprC is repr('CPointer') is export {
         my $match = Lambda.parse($lambda);
 
         my $pattern = $match<signature><b-sig> ?? 'dyadic' !! 'monadic';
-        say "found $pattern pattern";
+        say "found pattern: $pattern ...";
 
         #| use class inheritance to set up defaults for both monadic and dyadic styles
         class values {

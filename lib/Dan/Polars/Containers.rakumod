@@ -33,10 +33,8 @@ sub a-root {
     # with DEVMODE you build by hand
     return $devt-dir if ?%*ENV<DEVMODE>;
 
-    # first run
+    # first run only
     unless "$apply-dir/apply/src/apply-template.rs".IO.f {
-	say "populating $apply-dir ...first run only";
-
         my $old-dir = $*CWD;
 
         chdir $*HOME;
@@ -627,7 +625,7 @@ class ExprC is repr('CPointer') is export {
     method apply( $lambda ) {
 
         say "lambda is $lambda";
-        print "building libapply.so...";
+        print "building libapply.so... first pass after install requires a cargo rebuild... ";
         
         #viz.https://docs.rs/polars/latest/polars/chunked_array/object/datatypes/index.html#types
         my @types  = <bool      i32   i64    u32    u64     f32     f64 str>;
@@ -728,7 +726,7 @@ class ExprC is repr('CPointer') is export {
         #| build libapply.so dynamically
         #[  <= turn off
 
-        say my $app-dir = "{a-root}/apply";
+        my $app-dir = "{a-root}/apply";
         my $app-dir-src = "$app-dir/src";
 
         my $apply-lib = "$app-dir-src/apply-template.rs".IO.slurp;

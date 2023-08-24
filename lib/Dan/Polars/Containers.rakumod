@@ -733,9 +733,13 @@ class ExprC is repr('CPointer') is export {
         #say "monadic:\n$mro\ndyadic:\n$dro\n";   #debug
 
         #| build libapply.so dynamically
-        #`[  <= turn off
+        #[  <= turn off
 
-        my $apply-lib = "$devt-dir/apply/src/apply-template.rs".IO.slurp;
+        say my $app-dir = "{a-root}/apply";
+        my $app-dir-src = "$app-dir/src";
+
+        my $apply-lib = "$app-dir-src/apply-template.rs".IO.slurp;
+        say $apply-lib;    #debug
 
         $apply-lib ~~ s:g|'%MATYPE%'|{$mro.a-type}|;
         $apply-lib ~~ s:g|'%MEXPR%' |{$mro.expr}|;
@@ -747,23 +751,22 @@ class ExprC is repr('CPointer') is export {
         $apply-lib ~~ s:g|'%DEXPR%' |{$dro.expr}|;
         $apply-lib ~~ s:g|'%DDTYPE%'|{$dro.d-type}|;
 
-        #say $apply-lib;    #debug
-
-        #FIXME assumes run from bin (resources...)
-        #chdir '../dan/src';
 
         my $old-dir = $*CWD;
-        chdir $app-dir;
 
+        chdir $app-dir-src;
         spurt 'apply.rs', $apply-lib;
 
-        $_.unlink if $_.f given 'libapply.so'.IO;
+        chdir '..';
+        run <cargo build>;
 
+        #`[[
+        $_.unlink if $_.f given 'libapply.so'.IO;
         await start { 
             run <rustc -L ../target/debug/deps --crate-type cdylib apply.rs>;
         };
+        #]]
 
-        #chdir '../../bin';
         chdir $old-dir;
 
         sleep 2;            #ubuntu needs to breathe (something to do with so refresh?)

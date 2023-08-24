@@ -33,32 +33,25 @@ sub a-root {
     # with DEVMODE you build by hand
     return $devt-dir if ?%*ENV<DEVMODE>;
 
-    # use ENV<AROOT> after first run
-    return $_ if ?%*ENV<AROOT>;
-
     # first run
-    say "Building libapply.so, first run only";
+    say "Populating $apply-dir, ...first run only";
 
-    my $old-dir = $*CWD;
+    unless "$apply-dir/apply/src/apply-template.rs" {
+        my $old-dir = $*CWD;
 
-    chdir $*HOME;
-    mkdir $apply-dir;
-    mkdir "$apply-dir/apply";
-    mkdir "$apply-dir/apply/src";
+        chdir $*HOME;
+        mkdir $apply-dir;
+        mkdir "$apply-dir/apply";
+        mkdir "$apply-dir/apply/src";
 
-    copy %?RESOURCES<apply/Cargo.toml>,            "$apply-dir/apply/Cargo.toml";
-    copy %?RESOURCES<apply/src/apply.rs>,          "$apply-dir/apply/src/apply.rs";
-    copy %?RESOURCES<apply/src/apply-template.rs>, "$apply-dir/apply/src/apply-template.rs";
+        copy %?RESOURCES<apply/Cargo.toml>,            "$apply-dir/apply/Cargo.toml";
+        copy %?RESOURCES<apply/src/apply.rs>,          "$apply-dir/apply/src/apply.rs";
+        copy %?RESOURCES<apply/src/apply-template.rs>, "$apply-dir/apply/src/apply-template.rs";
 
-    chdir "$apply-dir/apply";
-    run <cargo build>;
+        chdir $old-dir;
+    }
 
-    chdir $old-dir;
-
-    my $a-root = $apply-dir;
-
-    %*ENV<AROOT> = $a-root;
-    $a-root
+    $apply-dir
 }
 sub a-path {
     # a-path to apply dynamically built libapply.so 
@@ -739,7 +732,7 @@ class ExprC is repr('CPointer') is export {
         my $app-dir-src = "$app-dir/src";
 
         my $apply-lib = "$app-dir-src/apply-template.rs".IO.slurp;
-        say $apply-lib;    #debug
+        #say $apply-lib;    #debug
 
         $apply-lib ~~ s:g|'%MATYPE%'|{$mro.a-type}|;
         $apply-lib ~~ s:g|'%MEXPR%' |{$mro.expr}|;
@@ -759,13 +752,6 @@ class ExprC is repr('CPointer') is export {
 
         chdir '..';
         run <cargo build>;
-
-        #`[[
-        $_.unlink if $_.f given 'libapply.so'.IO;
-        await start { 
-            run <rustc -L ../target/debug/deps --crate-type cdylib apply.rs>;
-        };
-        #]]
 
         chdir $old-dir;
 

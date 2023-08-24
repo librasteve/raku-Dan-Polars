@@ -24,17 +24,20 @@ constant $devt-dir  = "$*HOME/raku-Dan-Polars";
 constant $apply-dir = "$*HOME/.raku-dan-polars";
 
 # n-path to native call libdan.so or equiv 
+# zef install builds libdan.so from rust dan/src/lib.rs
 constant $n-path  = ?%*ENV<DEVMODE> ?? "$devt-dir/dan/target/debug/dan" !! %?RESOURCES<libraries/dan>;
 
-sub a-path {
+# a-path to native call libapply.so or equiv 
+# apply function (see below) dynamically builds libapply.so from rust apply/src/apply.rs
+sub a-root {
     # with DEVMODE you build by hand
-    return "$devt-dir/apply/target/debug/apply" with %*ENV<DEVMODE>;
+    return $devt-dir if ?%*ENV<DEVMODE>;
 
-    # use ENV<APATH> after first run
-    return $_ with %*ENV<APATH>;
+    # use ENV<AROOT> after first run
+    return $_ if ?%*ENV<AROOT>;
 
     # first run
-    say "no1";
+    say "Building libapply.so, first run only";
 
     my $old-dir = $*CWD;
 
@@ -52,11 +55,14 @@ sub a-path {
 
     chdir $old-dir;
 
-    # a-path to apply dynamically built libapply.so 
-    my $a-path = "$apply-dir/apply/target/debug/apply";
+    my $a-root = $apply-dir;
 
-    %*ENV<APATH> = $a-path;
-    $a-path
+    %*ENV<AROOT> = $a-root;
+    $a-root
+}
+sub a-path {
+    # a-path to apply dynamically built libapply.so 
+    "{a-root}/apply/target/debug/apply";
 }
 
 class SeriesC is repr('CPointer') is export {

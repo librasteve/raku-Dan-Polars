@@ -620,12 +620,6 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
         df
     }
 
-    method filter( Array \exprs ) {         # takes Array of Exprs (unlike Polars native call)
-        $!lc = LazyFrameC.new( $!rc );      # autolazy
-        $!lc.filter( exprs );
-        $.collect
-    }
-
     method groupby( Array \colspec ) {      # autocollect means groupby must always have an agg
         $!lc = LazyFrameC.new( $!rc );      # autolazy
         $!lc.groupby( colspec );
@@ -637,7 +631,14 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
         $.collect
     }
 
-    method sort( &cruton ) {                # &custom-routine-to-use
+    #wont pick up
+    multi method sort( Array @colnames ) {         # takes Array of Exprs (unlike Polars native call)
+        $!rc .= sort( $_ ) for @colnames;
+        self
+    }
+
+    #iamerejh replace this and go back to nutshell
+    multi method sort( &cruton ) {                # &custom-routine-to-use
         self.flood;
 
         my $i;
@@ -655,6 +656,13 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
         DataFrame.new( :%!index, :%!columns, :@!data )
     }
 
+    method filter( Array \exprs ) {         # takes Array of Exprs (unlike Polars native call)
+        $!lc = LazyFrameC.new( $!rc );      # autolazy
+        $!lc.filter( exprs );
+        $.collect
+    }
+
+    #FIXME - use filter - or drop it - or rename filter to grep
     method grep( &cruton ) {                # &custom-routine-to-use
         self.flood;
 
@@ -888,16 +896,7 @@ multi infix:<div>( ExprC:D $left, ExprC:D $right ) is export {
 }
 
 ### Infix operators for ExprCs - Logical
-#`[
-gt >
-lt <
-ge >=
-le <=
-eq ==
-ne !=
-and &&
-or  ||
-#]
+#(gt >, lt <, ge >=, le <=, eq ==, ne !=, and &&, or ||)
 
 multi infix:<\>>( ExprC:D $left, Real:D $right ) is export {
     $left.__gt__: lit($right) 

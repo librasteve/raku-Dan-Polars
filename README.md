@@ -349,8 +349,8 @@ This will then provide a basis for ...
 - [x] Dan splice to with_col, col, drop, hstack, vstack, append (need Issue discussion)
 - [x] apply (jit DSL style)
 - [x] logical operators (gt >, lt <, ge >=, le <=, eq ==, ne !=, and &&, or ||)
-- [x] filter (aka grep)  \  see Query_TODOs
-- [ ] sort               /
+- [x] filter  \  see Query_TODOs  (aka grep)
+- [ ] sort    /
 - [ ] non-null, etc. [boolean](https://pola-rs.github.io/polars/py-polars/html/reference/expressions/boolean.html)
 - [ ] cast
 - [ ] general tidy up / refactor (esp.lib.rs)

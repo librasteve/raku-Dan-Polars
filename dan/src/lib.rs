@@ -951,6 +951,34 @@ impl ExprC {
     fn __gt__(&self, other: &ExprC) -> ExprC {
         self.clone().inner.clone().gt(other.inner.clone()).into()
     }
+
+    fn __lt__(&self, other: &ExprC) -> ExprC {
+        self.clone().inner.clone().lt(other.inner.clone()).into()
+    }
+
+    fn __ge__(&self, other: &ExprC) -> ExprC {
+        self.clone().inner.clone().gt_eq(other.inner.clone()).into()
+    }
+
+    fn __le__(&self, other: &ExprC) -> ExprC {
+        self.clone().inner.clone().lt_eq(other.inner.clone()).into()
+    }
+
+    fn __eq__(&self, other: &ExprC) -> ExprC {
+        self.clone().inner.clone().eq(other.inner.clone()).into()
+    }
+
+    fn __ne__(&self, other: &ExprC) -> ExprC {
+        self.clone().inner.clone().neq(other.inner.clone()).into()
+    }
+
+    fn __and__(&self, other: &ExprC) -> ExprC {
+        self.clone().inner.clone().and(other.inner.clone()).into()
+    }
+
+    fn __or__(&self, other: &ExprC) -> ExprC {
+        self.clone().inner.clone().or(other.inner.clone()).into()
+    }
 }
 
 //col() is the extern for new()
@@ -1226,6 +1254,61 @@ pub extern "C" fn ex__gt__(ptr: *mut ExprC, rhs: *mut ExprC) -> *mut ExprC {
     let ex_r = check_ptr(rhs);
 
     Box::into_raw(Box::new(ex_c.__gt__(ex_r)))
+}
+
+#[no_mangle]
+pub extern "C" fn ex__lt__(ptr: *mut ExprC, rhs: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    let ex_r = check_ptr(rhs);
+
+    Box::into_raw(Box::new(ex_c.__lt__(ex_r)))
+}
+
+#[no_mangle]
+pub extern "C" fn ex__ge__(ptr: *mut ExprC, rhs: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    let ex_r = check_ptr(rhs);
+
+    Box::into_raw(Box::new(ex_c.__ge__(ex_r)))
+}
+
+#[no_mangle]
+pub extern "C" fn ex__le__(ptr: *mut ExprC, rhs: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    let ex_r = check_ptr(rhs);
+
+    Box::into_raw(Box::new(ex_c.__le__(ex_r)))
+}
+
+#[no_mangle]
+pub extern "C" fn ex__eq__(ptr: *mut ExprC, rhs: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    let ex_r = check_ptr(rhs);
+
+    Box::into_raw(Box::new(ex_c.__eq__(ex_r)))
+}
+#[no_mangle]
+pub extern "C" fn ex__ne__(ptr: *mut ExprC, rhs: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    let ex_r = check_ptr(rhs);
+
+    Box::into_raw(Box::new(ex_c.__ne__(ex_r)))
+}
+
+#[no_mangle]
+pub extern "C" fn ex__and__(ptr: *mut ExprC, rhs: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    let ex_r = check_ptr(rhs);
+
+    Box::into_raw(Box::new(ex_c.__and__(ex_r)))
+}
+
+#[no_mangle]
+pub extern "C" fn ex__or__(ptr: *mut ExprC, rhs: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    let ex_r = check_ptr(rhs);
+
+    Box::into_raw(Box::new(ex_c.__or__(ex_r)))
 }
 
 

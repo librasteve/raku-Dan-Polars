@@ -412,6 +412,13 @@ class ExprC is repr('CPointer') is export {
     sub ex__mod__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
     sub ex__floordiv__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
     sub ex__gt__(ExprC, ExprC)   returns ExprC is native($n-path) { * }
+    sub ex__lt__(ExprC, ExprC)   returns ExprC is native($n-path) { * }
+    sub ex__ge__(ExprC, ExprC)   returns ExprC is native($n-path) { * }
+    sub ex__le__(ExprC, ExprC)   returns ExprC is native($n-path) { * }
+    sub ex__eq__(ExprC, ExprC)   returns ExprC is native($n-path) { * }
+    sub ex__ne__(ExprC, ExprC)   returns ExprC is native($n-path) { * }
+    sub ex__and__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
+    sub ex__or__(ExprC, ExprC)   returns ExprC is native($n-path) { * }
 
     method new {
         ex_new
@@ -559,6 +566,34 @@ class ExprC is repr('CPointer') is export {
 
     method __gt__( ExprC \rhs ) {
         ex__gt__(self, rhs)
+    }
+
+    method __lt__( ExprC \rhs ) {
+        ex__lt__(self, rhs)
+    }
+
+    method __ge__( ExprC \rhs ) {
+        ex__ge__(self, rhs)
+    }
+
+    method __le__( ExprC \rhs ) {
+        ex__le__(self, rhs)
+    }
+
+    method __eq__( ExprC \rhs ) {
+        ex__eq__(self, rhs)
+    }
+
+    method __ne__( ExprC \rhs ) {
+        ex__ne__(self, rhs)
+    }
+
+    method __and__( ExprC \rhs ) {
+        ex__and__(self, rhs)
+    }
+
+    method __or__( ExprC \rhs ) {
+        ex__or__(self, rhs)
     }
 
     ### APPLY ###

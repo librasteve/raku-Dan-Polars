@@ -887,7 +887,7 @@ multi infix:<div>( ExprC:D $left, ExprC:D $right ) is export {
     $left.__floordiv__: $right 
 }
 
-### Infix operators for ExprCs - Comparison 
+### Infix operators for ExprCs - Logical
 #`[
 gt >
 lt <
@@ -895,18 +895,88 @@ ge >=
 le <=
 eq ==
 ne !=
-and &
-or  |
+and &&
+or  ||
 #]
 
 multi infix:<\>>( ExprC:D $left, Real:D $right ) is export {
-    $left.__gt__: lit($right) 
+    $left.__ge__: lit($right) 
 }
 multi infix:<\>>( Real:D $left, ExprC:D $right ) is export {
-    lit($left).__gt__: $right 
+    lit($left).__ge__: $right 
 }
 multi infix:<\>>( ExprC:D $left, ExprC:D $right ) is export {
-    $left.__gt__: $right 
+    $left.__ge__: $right 
+}
+
+multi infix:<\<>( ExprC:D $left, Real:D $right ) is export {
+    $left.__lt__: lit($right) 
+}
+multi infix:<\<>( Real:D $left, ExprC:D $right ) is export {
+    lit($left).__lt__: $right 
+}
+multi infix:<\<>( ExprC:D $left, ExprC:D $right ) is export {
+    $left.__lt__: $right 
+}
+
+multi infix:<\>=>( ExprC:D $left, Real:D $right ) is export {
+    $left.__ge__: lit($right) 
+}
+multi infix:<\>=>( Real:D $left, ExprC:D $right ) is export {
+    lit($left).__ge__: $right 
+}
+multi infix:<\>=>( ExprC:D $left, ExprC:D $right ) is export {
+    $left.__ge__: $right 
+}
+
+multi infix:<\<=>( ExprC:D $left, Real:D $right ) is export {
+    $left.__le__: lit($right) 
+}
+multi infix:<\<=>( Real:D $left, ExprC:D $right ) is export {
+    lit($left).__le__: $right 
+}
+multi infix:<\<=>( ExprC:D $left, ExprC:D $right ) is export {
+    $left.__le__: $right 
+}
+
+multi infix:<==>( ExprC:D $left, Real:D $right ) is export {
+    $left.__eq__: lit($right) 
+}
+multi infix:<==>( Real:D $left, ExprC:D $right ) is export {
+    lit($left).__eq__: $right 
+}
+multi infix:<==>( ExprC:D $left, ExprC:D $right ) is export {
+    $left.__eq__: $right 
+}
+
+multi infix:<!=>( ExprC:D $left, Real:D $right ) is export {
+    $left.__ne__: lit($right) 
+}
+multi infix:<!=>( Real:D $left, ExprC:D $right ) is export {
+    lit($left).__ne__: $right 
+}
+multi infix:<!=>( ExprC:D $left, ExprC:D $right ) is export {
+    $left.__ne__: $right 
+}
+
+multi infix:<&&>( ExprC:D $left, Real:D $right ) is export {
+    $left.__and__: lit($right) 
+}
+multi infix:<&&>( Real:D $left, ExprC:D $right ) is export {
+    lit($left).__and__: $right 
+}
+multi infix:<&&>( ExprC:D $left, ExprC:D $right ) is export {
+    $left.__and__: $right 
+}
+
+multi infix:<||>( ExprC:D $left, Real:D $right ) is export {
+    $left.__or__: lit($right) 
+}
+multi infix:<||>( Real:D $left, ExprC:D $right ) is export {
+    lit($left).__or__: $right 
+}
+multi infix:<||>( ExprC:D $left, ExprC:D $right ) is export {
+    $left.__or__: $right 
 }
 
 

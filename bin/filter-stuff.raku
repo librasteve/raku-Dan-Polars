@@ -15,10 +15,18 @@ my \df = DataFrame.new([
 ]);
 df.show;
 
-df.select([(col("nrs") + 2).alias("jones")]).head;
+#df.select([(col("nrs") > 2).alias("jones")]).head;
+#df.select([(col("nrs") >= 2).alias("jones")]).head;
+#df.select([(col("nrs") < 2).alias("jones")]).head;
+#df.select([(col("nrs") <= 2).alias("jones")]).head;
+df.select([(col("nrs") == 2).alias("jones")]).head;
+df.select([(col("nrs") != 2).alias("jones")]).head;
+df.select([((col("nrs") >= 2) && (col("nrs2") == 5)) .alias("jones")]).head;
+df.select([((col("nrs") >= 2) || (col("nrs2") == 5)) .alias("jones")]).head;
 
 
-df.select([(col("nrs") > 2).alias("jones")]).head;
+
+
 #df.filter([(col("nrs") > 2).alias("jones")]).head;
 
 #`[ cmp operators
@@ -28,6 +36,6 @@ ge >=
 le <=
 eq ==
 ne !=
-and &
-or  |
+and &&
+or  ||
 #]

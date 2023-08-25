@@ -345,12 +345,13 @@ This will then provide a basis for ...
 
 ### v0.2
 - [x] drop col
-- [x] apply (jit DSL style)
 - [x] [Dan concat (s1) via Rust join](https://github.com/p6steve/raku-Dan-Polars/issues/10)
 - [x] Dan splice to with_col, col, drop, hstack, vstack, append (need Issue discussion)
+- [x] apply (jit DSL style)
+- [x] logical operators (gt >, lt <, ge >=, le <=, eq ==, ne !=, and &&, or ||)
 - [x] filter (aka grep)  \  see Query_TODOs
 - [ ] sort               /
-- [ ] non-null, etc. https://pola-rs.github.io/polars/py-polars/html/reference/expressions/boolean.html
+- [ ] non-null, etc. [boolean](https://pola-rs.github.io/polars/py-polars/html/reference/expressions/boolean.html)
 - [ ] cast
 - [ ] general tidy up / refactor (esp.lib.rs)
 

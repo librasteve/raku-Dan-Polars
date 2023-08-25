@@ -620,7 +620,7 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
         df
     }
 
-    method filter( Array \exprs ) {
+    method filter( Array \exprs ) {         # takes Array of Exprs (unlike Polars native call)
         $!lc = LazyFrameC.new( $!rc );      # autolazy
         $!lc.filter( exprs );
         $.collect
@@ -900,13 +900,13 @@ or  ||
 #]
 
 multi infix:<\>>( ExprC:D $left, Real:D $right ) is export {
-    $left.__ge__: lit($right) 
+    $left.__gt__: lit($right) 
 }
 multi infix:<\>>( Real:D $left, ExprC:D $right ) is export {
-    lit($left).__ge__: $right 
+    lit($left).__gt__: $right 
 }
 multi infix:<\>>( ExprC:D $left, ExprC:D $right ) is export {
-    $left.__ge__: $right 
+    $left.__gt__: $right 
 }
 
 multi infix:<\<>( ExprC:D $left, Real:D $right ) is export {

@@ -15,27 +15,16 @@ my \df = DataFrame.new([
 ]);
 df.show;
 
+#(gt >, lt <, ge >=, le <=, eq ==, ne !=, and &&, or ||)=
 #df.select([(col("nrs") > 2).alias("jones")]).head;
 #df.select([(col("nrs") >= 2).alias("jones")]).head;
 #df.select([(col("nrs") < 2).alias("jones")]).head;
 #df.select([(col("nrs") <= 2).alias("jones")]).head;
-df.select([(col("nrs") == 2).alias("jones")]).head;
-df.select([(col("nrs") != 2).alias("jones")]).head;
-df.select([((col("nrs") >= 2) && (col("nrs2") == 5)) .alias("jones")]).head;
-df.select([((col("nrs") >= 2) || (col("nrs2") == 5)) .alias("jones")]).head;
+#df.select([(col("nrs") == 2).alias("jones")]).head;
+#df.select([(col("nrs") != 2).alias("jones")]).head;
+#df.select([((col("nrs") >= 2) && (col("nrs2") == 5)) .alias("jones")]).head;
+#df.select([((col("nrs") >= 2) || (col("nrs2") == 5)) .alias("jones")]).head;
 
 
+df.filter([(col("nrs") != 4).alias("jones")]).head;
 
-
-#df.filter([(col("nrs") > 2).alias("jones")]).head;
-
-#`[ cmp operators
-gt >
-lt <
-ge >=
-le <=
-eq ==
-ne !=
-and &&
-or  ||
-#]

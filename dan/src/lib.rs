@@ -648,6 +648,10 @@ impl LazyFrameC {
         self.lf = self.lf.clone().with_columns(exprvec);
     }
 
+    fn filter(&mut self, exprvec: Vec::<Expr>) {
+        self.lf = self.lf.clone().filter(exprvec[0].clone());
+    }
+
     fn groupby(&mut self, colvec: Vec::<String>) {
         let colrefs: Vec<&str> = colvec.iter().map(AsRef::as_ref).collect();
         self.gb = Some(self.lf.clone().groupby(colrefs));
@@ -748,6 +752,24 @@ pub extern "C" fn lf_with_columns(
     };
 
     lf_c.with_columns(exprvec.to_exprs());
+}
+
+#[no_mangle]
+pub extern "C" fn lf_filter(
+    ptr: *mut LazyFrameC,
+    exprarr: *const &ExprC,
+    len: size_t, 
+) {
+    let lf_c = check_ptr(ptr);
+
+    let mut exprvec = Vec::<&ExprC>::new();
+    unsafe {
+        for item in slice::from_raw_parts(exprarr, len as usize) {
+            exprvec.push(item);
+        };
+    };
+
+    lf_c.filter(exprvec.to_exprs());
 }
 
 #[no_mangle]

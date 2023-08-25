@@ -336,6 +336,7 @@ class LazyFrameC is repr('CPointer') is export {
     sub lf_free(LazyFrameC)                            is native($n-path) { * }
     sub lf_select(LazyFrameC, CArray[Pointer], size_t) is native($n-path) { * }
     sub lf_with_columns(LazyFrameC, CArray[Pointer], size_t) is native($n-path) { * }
+    sub lf_filter(LazyFrameC, CArray[Pointer], size_t) is native($n-path) { * }
     sub lf_groupby(LazyFrameC, CArray[Str], size_t)    is native($n-path) { * }
     sub lf_agg(LazyFrameC, CArray[Pointer], size_t)    is native($n-path) { * }
     sub lf_collect(LazyFrameC)     returns DataFrameC  is native($n-path) { * }
@@ -356,6 +357,10 @@ class LazyFrameC is repr('CPointer') is export {
 
     method with_columns( Array \exprvec ) {
         lf_with_columns(self, carray( Pointer, exprvec ), exprvec.elems)
+    }
+
+    method filter( Array \exprvec ) {
+        lf_filter(self, carray( Pointer, exprvec ), exprvec.elems)
     }
 
     method groupby( Array \colspec ) {

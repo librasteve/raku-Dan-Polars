@@ -947,6 +947,10 @@ impl ExprC {
     fn __floordiv__(&self, rhs: &ExprC) -> ExprC {
         dsl::binary_expr(self.inner.clone(), Operator::Divide, rhs.inner.clone()).into()
     }
+
+    fn __gt__(&self, other: &ExprC) -> ExprC {
+        self.clone().inner.clone().gt(other.inner.clone()).into()
+    }
 }
 
 //col() is the extern for new()
@@ -1214,6 +1218,14 @@ pub extern "C" fn ex__floordiv__(ptr: *mut ExprC, rhs: *mut ExprC) -> *mut ExprC
     let ex_r = check_ptr(rhs);
 
     Box::into_raw(Box::new(ex_c.__floordiv__(ex_r)))
+}
+
+#[no_mangle]
+pub extern "C" fn ex__gt__(ptr: *mut ExprC, rhs: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    let ex_r = check_ptr(rhs);
+
+    Box::into_raw(Box::new(ex_c.__gt__(ex_r)))
 }
 
 

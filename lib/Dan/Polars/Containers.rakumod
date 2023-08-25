@@ -411,6 +411,7 @@ class ExprC is repr('CPointer') is export {
     sub ex__div__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
     sub ex__mod__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
     sub ex__floordiv__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
+    sub ex__gt__(ExprC, ExprC)   returns ExprC is native($n-path) { * }
 
     method new {
         ex_new
@@ -554,6 +555,10 @@ class ExprC is repr('CPointer') is export {
 
     method __floordiv__( ExprC \rhs ) {
         ex__floordiv__(self, rhs)
+    }
+
+    method __gt__( ExprC \rhs ) {
+        ex__gt__(self, rhs)
     }
 
     ### APPLY ###

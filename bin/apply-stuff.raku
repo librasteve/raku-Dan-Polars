@@ -4,7 +4,7 @@ use Dan;
 use Dan::Polars;
 
 #monadic
-#`[
+#[
 my \df = DataFrame.new([
     nrs    => [1, 2, 3, 4, 5],
     nrs2   => [2, 3, 4, 5, 6],

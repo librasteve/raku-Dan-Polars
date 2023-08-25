@@ -620,6 +620,12 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
         df
     }
 
+    method filter( Array \exprs ) {
+        $!lc = LazyFrameC.new( $!rc );      # autolazy
+        $!lc.filter( exprs );
+        $.collect
+    }
+
     method groupby( Array \colspec ) {      # autocollect means groupby must always have an agg
         $!lc = LazyFrameC.new( $!rc );      # autolazy
         $!lc.groupby( colspec );
@@ -820,7 +826,7 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
     }
 }
 
-### Infix operators for ExprCs 
+### Infix operators for ExprCs - Numerical
 multi infix:<+>( ExprC:D $left, Real:D $right ) is export {
     $left.__add__: lit($right) 
 }
@@ -880,6 +886,30 @@ multi infix:<div>( Real:D $left, ExprC:D $right ) is export {
 multi infix:<div>( ExprC:D $left, ExprC:D $right ) is export {
     $left.__floordiv__: $right 
 }
+
+### Infix operators for ExprCs - Comparison 
+#`[
+gt >
+lt <
+ge >=
+le <=
+eq ==
+ne !=
+and &
+or  |
+#]
+
+multi infix:<\>>( ExprC:D $left, Real:D $right ) is export {
+    $left.__gt__: lit($right) 
+}
+multi infix:<\>>( Real:D $left, ExprC:D $right ) is export {
+    lit($left).__gt__: $right 
+}
+multi infix:<\>>( ExprC:D $left, ExprC:D $right ) is export {
+    $left.__gt__: $right 
+}
+
+
 
 ### Postfix '^' as explicit subscript chain terminator
 

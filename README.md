@@ -350,11 +350,9 @@ This will then provide a basis for ...
 - [x] Dan splice to with_col, col, drop, hstack, vstack, append (need Issue discussion)
 - [ ] filter (aka grep)  \  see Query_TODOs
 - [ ] sort               /
-
-### interlude [#rapi]
-- [ ] [#rapi] is the raku equivant of the node.js [#napi] lib
 - [ ] non-null, etc.
 - [ ] cast
+- [ ] general tidy up / refactor (esp.lib.rs)
 
 This will then provide a basis for design Dan::As::Query v0.1 for Dan and Dan::Pandas and review Dan API slice & concat, immutability, refactor...
 

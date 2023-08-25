@@ -350,7 +350,7 @@ This will then provide a basis for ...
 - [x] Dan splice to with_col, col, drop, hstack, vstack, append (need Issue discussion)
 - [ ] filter (aka grep)  \  see Query_TODOs
 - [ ] sort               /
-- [ ] non-null, etc.
+- [ ] non-null, etc. https://pola-rs.github.io/polars/py-polars/html/reference/expressions/boolean.html
 - [ ] cast
 - [ ] general tidy up / refactor (esp.lib.rs)
 

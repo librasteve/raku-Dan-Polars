@@ -348,7 +348,7 @@ This will then provide a basis for ...
 - [x] apply (jit DSL style)
 - [x] [Dan concat (s1) via Rust join](https://github.com/p6steve/raku-Dan-Polars/issues/10)
 - [x] Dan splice to with_col, col, drop, hstack, vstack, append (need Issue discussion)
-- [ ] filter (aka grep)  \  see Query_TODOs
+- [x] filter (aka grep)  \  see Query_TODOs
 - [ ] sort               /
 - [ ] non-null, etc. https://pola-rs.github.io/polars/py-polars/html/reference/expressions/boolean.html
 - [ ] cast

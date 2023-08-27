@@ -24,8 +24,14 @@ df.show;
 #df.select([((col("nrs") >= 2) || (col("nrs2") == 5)) .alias("jones")]).head;
 
 #viz. https://pola-rs.github.io/polars-book/user-guide/concepts/contexts/#filter
-df.filter([(col("nrs") != 4).alias("jones")]).head;
+#df.filter([(col("nrs") != 4)]).show;
 
-#viz. https://pola-rs.github.io/polars-book/user-guide/expressions/aggregation/#conditionals
-df.groupby(["groups"]).agg([col("nrs")]).sort(["groups"]).head;
-#df.filter([(col("nrs") != 4).alias("jones")]).head;
+#plan A is to have best of both
+# - filter vs. grep [polars vs. raku]
+
+#viz. https://pola-rs.github.io/polars/py-polars/html/reference/expressions/api/polars.Expr.sort.html#polars.Expr.sort
+#df.select([(col("names").alias("jones").sort),col("groups").alias("smith").sort,col("nrs").reverse]).head;
+
+df.groupby(["groups"]).agg([col("nrs").sum]).head;
+df.groupby(["groups"]).agg([col("nrs").sort]).head;
+df.groupby(["groups"]).agg([col("nrs").reverse]).head;

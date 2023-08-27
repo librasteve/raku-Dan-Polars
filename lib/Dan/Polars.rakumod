@@ -631,14 +631,12 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
         $.collect
     }
 
-    #wont pick up
-    multi method sort( Array @colnames ) {         # takes Array of Exprs (unlike Polars native call)
+    method orderby( @colnames ) {           # takes Array of colnames (unlike Polars native call)
         $!rc .= sort( $_ ) for @colnames;
         self
     }
 
-    #iamerejh replace this and go back to nutshell
-    multi method sort( &cruton ) {                # &custom-routine-to-use
+    method sort( &cruton ) {                # &custom-routine-to-use
         self.flood;
 
         my $i;
@@ -662,7 +660,6 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
         $.collect
     }
 
-    #FIXME - use filter - or drop it - or rename filter to grep
     method grep( &cruton ) {                # &custom-routine-to-use
         self.flood;
 

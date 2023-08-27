@@ -242,21 +242,21 @@ class SeriesC is repr('CPointer') is export {
 
 
 class DataFrameC is repr('CPointer') is export {
-    sub df_new() returns DataFrameC  is native($n-path) { * }
-    sub df_free(DataFrameC)          is native($n-path) { * }
-    sub df_read_csv(DataFrameC, Str) is native($n-path) { * }
-    sub df_show(DataFrameC)          is native($n-path) { * }
-    sub df_head(DataFrameC)          is native($n-path) { * }
-    sub df_height(DataFrameC) returns uint32 is native($n-path) { * }
-    sub df_width(DataFrameC) returns uint32 is native($n-path) { * }
-    sub df_dtypes(DataFrameC, &callback (Str)) is native($n-path) { * }
-    sub df_get_column_names(DataFrameC, &callback (Str)) is native($n-path) { * }
-    sub df_rename(DataFrameC, Str, Str)     returns DataFrameC is native($n-path) { * }
-    sub df_column(DataFrameC, Str) returns SeriesC is native($n-path) { * }
+    sub df_new() returns DataFrameC                             is native($n-path) { * }
+    sub df_free(DataFrameC)                                     is native($n-path) { * }
+    sub df_read_csv(DataFrameC, Str)                            is native($n-path) { * }
+    sub df_show(DataFrameC)                                     is native($n-path) { * }
+    sub df_head(DataFrameC)                                     is native($n-path) { * }
+    sub df_height(DataFrameC)               returns uint32      is native($n-path) { * }
+    sub df_width(DataFrameC)                returns uint32      is native($n-path) { * }
+    sub df_dtypes(DataFrameC, &callback (Str))                  is native($n-path) { * }
+    sub df_get_column_names(DataFrameC, &callback (Str))        is native($n-path) { * }
+    sub df_rename(DataFrameC, Str, Str)     returns DataFrameC  is native($n-path) { * }
+    sub df_column(DataFrameC, Str)          returns SeriesC     is native($n-path) { * }
     sub df_select(DataFrameC, CArray[Str], size_t) returns DataFrameC is native($n-path) { * }
-    sub df_with_column(DataFrameC, SeriesC) returns DataFrameC is native($n-path) { * }
-    sub df_drop(DataFrameC, Str) returns DataFrameC is native($n-path) { * }
-    sub df_vstack(DataFrameC, DataFrameC) returns DataFrameC is native($n-path) { * }
+    sub df_with_column(DataFrameC, SeriesC) returns DataFrameC  is native($n-path) { * }
+    sub df_drop(DataFrameC, Str)            returns DataFrameC  is native($n-path) { * }
+    sub df_vstack(DataFrameC, DataFrameC)   returns DataFrameC  is native($n-path) { * }
 
     method new {
         df_new
@@ -525,12 +525,12 @@ class ExprC is repr('CPointer') is export {
         ex_backward_fill(self)
     }
 
-    method reverse {
-        ex_reverse(self)
-    }
-
     method sort {
         ex_sort(self)
+    }
+
+    method reverse {
+        ex_reverse(self)
     }
 
     method std {

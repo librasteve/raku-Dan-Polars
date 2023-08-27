@@ -350,7 +350,7 @@ This will then provide a basis for ...
 - [x] apply (jit DSL style)
 - [x] logical operators (gt >, lt <, ge >=, le <=, eq ==, ne !=, and &&, or ||)
 - [x] filter  \  see Query_TODOs  (aka grep)
-- [ ] sort    /
+- [x] sort    /
 - [ ] non-null, etc. [boolean](https://pola-rs.github.io/polars/py-polars/html/reference/expressions/boolean.html)
 - [ ] cast
 - [ ] general tidy up / refactor (esp.lib.rs)

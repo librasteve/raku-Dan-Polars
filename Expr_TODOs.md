@@ -1,4 +1,4 @@
-Here is the set of Polars Exprs yet to be implement in Dan::Polars:
+Here is the set of Polars Exprs to be considered for Dan::Polars:
 
 todos from https://github.com/p6steve/polars/blob/master/nodejs-polars/src/lazy/dsl.rs
 

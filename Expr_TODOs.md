@@ -18,7 +18,7 @@ done:
 - [x] drop
       
 next up:
-- [ ] is, is_not, is_null, is_not_null, is_infinite, is_finite, is_nan, is_not_nan
+- [ ] is_not, is_null, is_not_null, is_infinite, is_finite, is_nan, is_not_nan
 - [ ] cast                         - arity
 
 then - analytics:

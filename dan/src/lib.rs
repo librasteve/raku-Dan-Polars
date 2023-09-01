@@ -1028,6 +1028,10 @@ impl ExprC {
     fn __or__(&self, other: &ExprC) -> ExprC {
         self.clone().inner.clone().or(other.inner.clone()).into()
     }
+
+    fn is_not(&self) -> ExprC {
+        self.clone().inner.clone().not().into()
+    }
 }
 
 //col() is the extern for new()
@@ -1358,6 +1362,12 @@ pub extern "C" fn ex__or__(ptr: *mut ExprC, rhs: *mut ExprC) -> *mut ExprC {
     let ex_r = check_ptr(rhs);
 
     Box::into_raw(Box::new(ex_c.__or__(ex_r)))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_is_not(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.is_not()))
 }
 
 

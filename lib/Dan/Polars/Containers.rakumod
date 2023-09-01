@@ -424,6 +424,7 @@ class ExprC is repr('CPointer') is export {
     sub ex__ne__(ExprC, ExprC)   returns ExprC is native($n-path) { * }
     sub ex__and__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
     sub ex__or__(ExprC, ExprC)   returns ExprC is native($n-path) { * }
+    sub ex_is_not(ExprC)         returns ExprC is native($n-path) { * }
 
     method new {
         ex_new
@@ -599,6 +600,10 @@ class ExprC is repr('CPointer') is export {
 
     method __or__( ExprC \rhs ) {
         ex__or__(self, rhs)
+    }
+
+    method is_not {
+        ex_is_not(self)
     }
 
     ### APPLY ###

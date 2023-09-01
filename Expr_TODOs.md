@@ -21,6 +21,20 @@ next up:
 - [ ] is_not, is_null, is_not_null, is_infinite, is_finite, is_nan, is_not_nan
 - [ ] cast                         - arity
 
+```
+fn main() {
+    // Create a data array (Vec) and a validity bitmap (Option<Bitmap>)
+    let data_array: Vec<Option<i64>> = vec![Some(1), Some(2), None, Some(4), None];
+    let validity_bitmap: Option<Bitmap> = Some(Bitmap::from_slice(&[true, true, false, true, false]));
+
+    // Create a new Series with the data array, data type, and validity bitmap
+    let series = Series::new("my_series", data_array, DataType::Int64, validity_bitmap);
+
+    // Print the Series
+    println!("{:?}", series);
+}
+```
+
 then - analytics:
 - [ ] quantile                     - arity
 - [ ] clip                         - arity

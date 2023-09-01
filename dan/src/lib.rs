@@ -1032,6 +1032,30 @@ impl ExprC {
     fn is_not(&self) -> ExprC {
         self.clone().inner.clone().not().into()
     }
+
+    fn is_null(&self) -> ExprC {
+        self.clone().inner.clone().is_null().into()
+    }
+
+    fn is_not_null(&self) -> ExprC {
+        self.clone().inner.clone().is_not_null().into()
+    }
+
+    fn is_infinite(&self) -> ExprC {
+        self.clone().inner.clone().is_infinite().into()
+    }
+
+    fn is_finite(&self) -> ExprC {
+        self.clone().inner.clone().is_finite().into()
+    }
+
+    fn is_nan(&self) -> ExprC {
+        self.clone().inner.clone().is_nan().into()
+    }
+
+    fn is_not_nan(&self) -> ExprC {
+        self.clone().inner.clone().is_not_nan().into()
+    }
 }
 
 //col() is the extern for new()
@@ -1370,5 +1394,37 @@ pub extern "C" fn ex_is_not(ptr: *mut ExprC) -> *mut ExprC {
     Box::into_raw(Box::new(ex_c.is_not()))
 }
 
+#[no_mangle]
+pub extern "C" fn ex_is_null(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.is_null()))
+}
+#[no_mangle]
+pub extern "C" fn ex_is_not_null(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.is_not_null()))
+}
 
+#[no_mangle]
+pub extern "C" fn ex_is_infinite(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.is_infinite()))
+}
 
+#[no_mangle]
+pub extern "C" fn ex_is_finite(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.is_finite()))
+
+}
+#[no_mangle]
+pub extern "C" fn ex_is_nan(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.is_nan()))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_is_not_nan(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.is_not()))
+}

@@ -12,6 +12,7 @@ my regex number {
 sub carray( $dtype, @items ) {
     my $output := CArray[$dtype].new();
     loop ( my $i = 0; $i < @items; $i++ ) {
+    say $++;
         $output[$i] = @items[$i]
     }
     $output
@@ -57,6 +58,7 @@ sub a-path {
 }
 
 class SeriesC is repr('CPointer') is export {
+    ##sub se_new_xxx(Str, CArray[bool], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_bool(Str, CArray[bool], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_i32(Str, CArray[int32], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_i64(Str, CArray[int64], size_t) returns SeriesC is native($n-path) { * }
@@ -83,9 +85,16 @@ class SeriesC is repr('CPointer') is export {
     sub se_str_lengths(SeriesC)                returns uint32 is native($n-path) { * }
     sub se_append(SeriesC, SeriesC)            returns SeriesC is native($n-path) { * }
 
+    #`[ iamerejh - dummy for validity bitmap test
+    method xxx( $name, @data, :$dtype ) {
+        se_new_xxx($name, carray( bool, @data), @data.elems) }
+    }
+    #]
+
     method new( $name, @data, :$dtype ) {
 
         if $dtype {
+            @data.map({ $_ .= Num if $_ ~~ Rat});                                               #Coerce stray Rats to Num
 
             @data.map({ $_ .= Num if $_ ~~ Rat});                                               #Coerce stray Rats to Num
             @data.map({ $_ .= Num if $_ ~~ Int}) if $dtype eq <f32 f64 num32 num64 Num>.any;    #Coerce stray Ints to Num
@@ -425,6 +434,12 @@ class ExprC is repr('CPointer') is export {
     sub ex__and__(ExprC, ExprC)  returns ExprC is native($n-path) { * }
     sub ex__or__(ExprC, ExprC)   returns ExprC is native($n-path) { * }
     sub ex_is_not(ExprC)         returns ExprC is native($n-path) { * }
+    sub ex_is_null(ExprC)        returns ExprC is native($n-path) { * }
+    sub ex_is_not_null(ExprC)    returns ExprC is native($n-path) { * }
+    sub ex_is_infinite(ExprC)    returns ExprC is native($n-path) { * }
+    sub ex_is_finite(ExprC)      returns ExprC is native($n-path) { * }
+    sub ex_is_nan(ExprC)         returns ExprC is native($n-path) { * }
+    sub ex_is_not_nan(ExprC)     returns ExprC is native($n-path) { * }
 
     method new {
         ex_new
@@ -604,6 +619,30 @@ class ExprC is repr('CPointer') is export {
 
     method is_not {
         ex_is_not(self)
+    }
+
+    method is_null {
+        ex_is_null(self)
+    }
+
+    method is_not_null {
+        ex_is_not_null(self)
+    }
+
+    method is_infinite {
+        ex_is_infinite(self)
+    }
+
+    method is_finite {
+        ex_is_finite(self)
+    }
+
+    method is_nan {
+        ex_is_nan(self)
+    }
+
+    method is_not_nan {
+        ex_is_not_nan(self)
     }
 
     ### APPLY ###

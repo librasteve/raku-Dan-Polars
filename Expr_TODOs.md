@@ -29,6 +29,17 @@ then - analytics:
 - [ ] entropy                      - think
 - [ ] rolling_sum,min,max,mean,std,var,median,quantile,skew - think
 
+then - datetime:
+- [ ] str_parse_date, str_parse_datetime - think
+- [ ] strftime, year, month, week, weekday, day, ordinal_day, hour, minute, second, nanosecond - think
+- [ ] duration_days, hours, seconds, nanoseconds, millisecondsi - think
+- [ ] timestamp, dt_epoch_seconds  - think
+- [ ] interpolate                  - think
+- [ ] arange, range                - think
+
+then - ternary:
+- [ ] whenthenthen (ternary)       - think
+
 then - str:
 - [ ] str_strip,str_rstrip,str_lstrip - think
 - [ ] str_to_uppercase, str_to_lowercase - think
@@ -40,17 +51,6 @@ then - str:
 - [ ] str_json_path_match          - think
 - [ ] str_split, str_split_inclusive, str_split_exact, str_split_exact_inclusive - think
 - [ ] str_concat                   - think
-
-then - datetime:
-- [ ] str_parse_date, str_parse_datetime - think
-- [ ] strftime, year, month, week, weekday, day, ordinal_day, hour, minute, second, nanosecond - think
-- [ ] duration_days, hours, seconds, nanoseconds, millisecondsi - think
-- [ ] timestamp, dt_epoch_seconds  - think
-- [ ] interpolate                  - think
-- [ ] arange, range                - think
-
-then - ternary:
-- [ ] whenthenthen (ternary)       - think
 
 think:
 - [ ] n-unique, arg_unique, unique_stable - think

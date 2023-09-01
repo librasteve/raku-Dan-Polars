@@ -18,15 +18,39 @@ done:
 - [x] drop
       
 next up:
-- [ ] is, is_not, is_null, is_not_null, is_infinite, is_finite, is_nan, is_not_nan -think
+- [ ] is, is_not, is_null, is_not_null, is_infinite, is_finite, is_nan, is_not_nan
 - [ ] cast                         - arity
 
-later:
+then - analytics:
 - [ ] quantile                     - arity
 - [ ] clip                         - arity
 - [ ] rank, diff, pct_change, skew, kurtosis - arity
 - [ ] pearson, spearman_rank_corr  - arity
 - [ ] entropy                      - think
+- [ ] rolling_sum,min,max,mean,std,var,median,quantile,skew - think
+
+then - str:
+- [ ] str_strip,str_rstrip,str_lstrip - think
+- [ ] str_to_uppercase, str_to_lowercase - think
+- [ ] str_slice,str_lengths        - think
+- [ ] str_contains, str_extract    - think
+- [ ] str_replace, str_replace_all - think
+- [ ] str_hex_decode,str_hex_encode - think
+- [ ] str_base64_encode, str_base64_decode - think
+- [ ] str_json_path_match          - think
+- [ ] str_split, str_split_inclusive, str_split_exact, str_split_exact_inclusive - think
+- [ ] str_concat                   - think
+
+then - datetime:
+- [ ] str_parse_date, str_parse_datetime - think
+- [ ] strftime, year, month, week, weekday, day, ordinal_day, hour, minute, second, nanosecond - think
+- [ ] duration_days, hours, seconds, nanoseconds, millisecondsi - think
+- [ ] timestamp, dt_epoch_seconds  - think
+- [ ] interpolate                  - think
+- [ ] arange, range                - think
+
+then - ternary:
+- [ ] whenthenthen (ternary)       - think
 
 think:
 - [ ] n-unique, arg_unique, unique_stable - think
@@ -37,26 +61,6 @@ think:
 - [ ] is_first, is_unique          - think
 - [ ] slice                        - think
 - [ ] is_dupe,not,_xor             - think
-- [ ] str_parse_date, str_parse_datetime - think
-- [ ] str_strip,str_rstrip,str_lstrip - think
-- [ ] str_to_uppercase, str_to_lowercase - think
-- [ ] str_slice,str_lengths        - think
-- [ ] str_contains, str_extract    - think
-- [ ] str_replace, str_replace_all - think
-- [ ] str_hex_decode,str_hex_encode - think
-- [ ] str_base64_encode, str_base64_decode - think
-- [ ] str_json_path_match          - think
-- [ ] str_split, str_split_inclusive, str_split_exact, str_split_exact_inclusive - think
-- [ ] strftime, year, month, week, weekday, day, ordinal_day, hour, minute, second, nanosecond - think
-- [ ] duration_days, hours, seconds, nanoseconds, millisecondsi - think
-- [ ] timestamp, dt_epoch_seconds  - think
-- [ ] reinterpret (Int64/UInt64)   - think
-- [ ] exclude_dtype                - think
-- [ ] interpolate                  - think
-- [ ] rolling_sum,min,max,mean,std,var,median,quantile,skew - think
-- [ ] arange, range                - think
-- [ ] whenthenthen (ternary)       - think
-- [ ] str_concat                   - think
 - [ ] cat_set_ordering             - think
 - [ ] reshape, shuffle             - think
 - [ ] cumcount                     - think

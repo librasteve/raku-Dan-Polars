@@ -12,7 +12,6 @@ my regex number {
 sub carray( $dtype, @items ) {
     my $output := CArray[$dtype].new();
     loop ( my $i = 0; $i < @items; $i++ ) {
-    say $++;
         $output[$i] = @items[$i]
     }
     $output
@@ -86,8 +85,10 @@ class SeriesC is repr('CPointer') is export {
     sub se_append(SeriesC, SeriesC)            returns SeriesC is native($n-path) { * }
 
     #[ iamerejh - dummy for validity bitmap test
-    method xxx( $name, @data, :$dtype ) {
-        se_new_xxx($name, carray( bool, @data), @data.elems) }
+    method xxx() {
+        my @data = (^2).roll xx 7;
+        dd @data;
+        se_new_xxx('xxx', carray( bool, @data), @data.elems) }
     #]
 
     method new( $name, @data, :$dtype ) {

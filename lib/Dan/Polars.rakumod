@@ -121,6 +121,9 @@ role Series does Positional does Iterable is export {
     }
 
     #### Info Methods #####
+    method xxx {
+	    $!rc.xxx
+    }
 
     method show {
 	    $!rc.show

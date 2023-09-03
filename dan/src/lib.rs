@@ -186,6 +186,43 @@ impl SeriesC {
     }
 }
 
+enum Value<T> {
+    Valid(T),
+    Null,
+}
+
+fn xxx() {
+    // Create a data array
+    //let data_array: Int64Array = Int64Array::from_slice(&[Some(1), Some(2), None, Some(4), None]);
+
+    // Create a Vec<Value<i64>> with mixed valid and null values
+    let data: Vec<Value<i64>> = vec![Value::Valid(1), Value::Valid(2), Value::Null, Value::Valid(4), Value::Null];
+
+    // Process the data as needed
+    for val in data {
+        match val {
+            Value::Valid(v) => {
+                println!("Valid value: {}", v);
+                // Handle valid value
+            }
+            Value::Null => {
+                println!("Null value");
+                // Handle null value
+            }
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn se_new_xxx( 
+    name: *const c_char, 
+    ptr: *const i32, 
+    len: size_t, 
+) -> *mut SeriesC { 
+    se_new_vec(name, ptr, len) 
+}
+
+
 fn se_new_vec<T>(
     name: *const c_char,
     ptr: *const T,

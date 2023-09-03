@@ -3,6 +3,7 @@
 use Dan;
 use Dan::Polars;
 
+#`[[
 my \df = DataFrame.new([
     nrs    => [1, 2, 3, 4, 5],
     nrs2   => [2, NaN, 4, Inf, 6],
@@ -25,5 +26,10 @@ df.select([(col("nrs2").is_finite)]).head;
 df.select([(col("nrs2").is_null)]).head;
 df.select([(col("nrs2").is_not_null)]).head;
 #]
+#]]
 
+my \s = Series.new( [b=>1, a=>0, c=>2] );
+s.show;
 
+my \t = s.xxx;
+t.show;

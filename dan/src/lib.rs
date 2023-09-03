@@ -191,14 +191,30 @@ enum Value<T> {
     Null,
 }
 
-fn xxx() {
-    // Create a data array
-    //let data_array: Int64Array = Int64Array::from_slice(&[Some(1), Some(2), None, Some(4), None]);
+fn xxx<T>(
+    name: *const c_char,
+    ptr: *const T,
+    len: size_t, 
+) -> *mut SeriesC 
+        where Series: NamedFrom<Vec<T>, [T]>, T: Clone
+{
+    let se_name;
+    let mut se_data = Vec::new();
+    unsafe {
+        assert!(!ptr.is_null());
+        se_name = CStr::from_ptr(name).to_string_lossy().into_owned();
+        se_data.extend_from_slice(slice::from_raw_parts(ptr, len as usize));
+    };
+
 
     // Create a Vec<Value<i64>> with mixed valid and null values
     let data: Vec<Value<i64>> = vec![Value::Valid(1), Value::Valid(2), Value::Null, Value::Valid(4), Value::Null];
+    //se_data = vec![Value::Valid(1), Value::Valid(2), Value::Null, Value::Valid(4), Value::Null];
+    //let mut data: Vec<T> = vec![true,false];
+    //iamerejh
 
     // Process the data as needed
+    /*
     for val in data {
         match val {
             Value::Valid(v) => {
@@ -211,15 +227,20 @@ fn xxx() {
             }
         }
     }
+    */
+    println!("ho");
+
+    //Box::into_raw(Box::new(SeriesC::new(se_name, data)))
+    Box::into_raw(Box::new(SeriesC::new(se_name, se_data)))
 }
 
 #[no_mangle]
 pub extern "C" fn se_new_xxx( 
     name: *const c_char, 
-    ptr: *const i32, 
+    ptr: *const bool, 
     len: size_t, 
 ) -> *mut SeriesC { 
-    se_new_vec(name, ptr, len) 
+    xxx(name, ptr, len) 
 }
 
 
@@ -229,7 +250,7 @@ fn se_new_vec<T>(
     len: size_t, 
 ) -> *mut SeriesC 
         where Series: NamedFrom<Vec<T>, [T]>, T: Clone
-    {
+{
 
     let se_name;
     let mut se_data = Vec::new();

@@ -58,7 +58,7 @@ sub a-path {
 }
 
 class SeriesC is repr('CPointer') is export {
-    ##sub se_new_xxx(Str, CArray[bool], size_t) returns SeriesC is native($n-path) { * }
+    sub se_new_xxx(Str, CArray[bool], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_bool(Str, CArray[bool], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_i32(Str, CArray[int32], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_i64(Str, CArray[int64], size_t) returns SeriesC is native($n-path) { * }
@@ -85,10 +85,9 @@ class SeriesC is repr('CPointer') is export {
     sub se_str_lengths(SeriesC)                returns uint32 is native($n-path) { * }
     sub se_append(SeriesC, SeriesC)            returns SeriesC is native($n-path) { * }
 
-    #`[ iamerejh - dummy for validity bitmap test
+    #[ iamerejh - dummy for validity bitmap test
     method xxx( $name, @data, :$dtype ) {
         se_new_xxx($name, carray( bool, @data), @data.elems) }
-    }
     #]
 
     method new( $name, @data, :$dtype ) {

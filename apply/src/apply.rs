@@ -62,7 +62,7 @@ fn do_apply_dyadic(s: Series) -> Result<Series> {
     let s_b = &ca.fields()[1];
 
     // downcast the `Series` to their known type
-    let ca_a = s_a.i32()?;
+    let ca_a = s_a.utf8()?;
     let ca_b = s_b.i32()?;
 
     // iterate both `ChunkedArrays`
@@ -70,7 +70,7 @@ fn do_apply_dyadic(s: Series) -> Result<Series> {
         .into_iter()
         .zip(ca_b)
         .map(|(opt_a, opt_b)| match (opt_a, opt_b) {
-            (Some(a), Some(b)) => Some(a + b),
+            (Some(a), Some(b)) => Some(a.len() as i32 + b),
             _ => None,
         })
         .collect();

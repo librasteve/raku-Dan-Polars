@@ -1426,5 +1426,5 @@ pub extern "C" fn ex_is_nan(ptr: *mut ExprC) -> *mut ExprC {
 #[no_mangle]
 pub extern "C" fn ex_is_not_nan(ptr: *mut ExprC) -> *mut ExprC {
     let ex_c = check_ptr(ptr);
-    Box::into_raw(Box::new(ex_c.is_not()))
+    Box::into_raw(Box::new(ex_c.is_not_nan()))
 }

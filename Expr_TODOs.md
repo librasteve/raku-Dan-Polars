@@ -22,6 +22,7 @@ next up:
 - [ ] cast                         - arity
 
 ```
+#viz.https://arrow.apache.org/docs/format/Columnar.html#validity-bitmaps
 fn main() {
     // Create a data array (Vec) and a validity bitmap (Option<Bitmap>)
     let data_array: Vec<Option<i64>> = vec![Some(1), Some(2), None, Some(4), None];

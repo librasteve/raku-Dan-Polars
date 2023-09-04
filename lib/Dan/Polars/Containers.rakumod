@@ -87,7 +87,7 @@ class SeriesC is repr('CPointer') is export {
     #[ iamerejh - dummy for validity bitmap test
     method xxx() {
         dd my @null = (^2).roll xx 7;
-        dd my @data = ^7;
+        dd my @data = (^7).reverse;
         se_new_xxx('xxx', carray(bool, @null), @null.elems, carray(int32, @data), @data.elems)  
     }
     #]

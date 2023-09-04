@@ -193,22 +193,48 @@ enum Value<T> {
 
 fn xxx<T>(
     name: *const c_char,
-    ptr: *const T,
-    len: size_t, 
+    v_ptr: *const bool,
+    v_len: size_t, 
+    d_ptr: *const T,
+    d_len: size_t, 
 ) -> *mut SeriesC 
-        where Series: NamedFrom<Vec<T>, [T]>, T: Clone
+        where Series: NamedFrom<Vec<T>, [T]>, T: Clone + std::fmt::Debug
 {
     let se_name;
+    let mut se_null = Vec::new();
     let mut se_data = Vec::new();
     unsafe {
-        assert!(!ptr.is_null());
+        assert!(!v_ptr.is_null());
         se_name = CStr::from_ptr(name).to_string_lossy().into_owned();
-        se_data.extend_from_slice(slice::from_raw_parts(ptr, len as usize));
+        se_null.extend_from_slice(slice::from_raw_parts(v_ptr, v_len as usize));
+        se_data.extend_from_slice(slice::from_raw_parts(d_ptr, d_len as usize));
     };
 
+    println!{"{}", se_name};
+
+    for element in &se_null {
+        println!("{:?}", element);
+    }
+    for element in &se_data {
+        println!("{:?}", element);
+    }
+
+    /*
+    let mut se_vals = Vec::new();
+
+    for i in 0..d_len {
+        println!{"{:?}",se_data[i]};
+        //se_vals.push(se_data[i].clone());
+        se_vals.push(NULL);
+    }
+
+    for element in &se_vals {
+        println!("{:?}", element);
+    }
+    */
 
     // Create a Vec<Value<i64>> with mixed valid and null values
-    let data: Vec<Value<i64>> = vec![Value::Valid(1), Value::Valid(2), Value::Null, Value::Valid(4), Value::Null];
+    //let data: Vec<Value<i64>> = vec![Value::Valid(1), Value::Valid(2), Value::Null, Value::Valid(4), Value::Null];
     //se_data = vec![Value::Valid(1), Value::Valid(2), Value::Null, Value::Valid(4), Value::Null];
     //let mut data: Vec<T> = vec![true,false];
     //iamerejh
@@ -230,6 +256,9 @@ fn xxx<T>(
     */
     println!("ho");
 
+    //let s = Series::new("a", [1, 2, 3, 4, 5]);
+    //println!("{:?}", s);
+
     //Box::into_raw(Box::new(SeriesC::new(se_name, data)))
     Box::into_raw(Box::new(SeriesC::new(se_name, se_data)))
 }
@@ -242,7 +271,7 @@ pub extern "C" fn se_new_xxx(
     d_ptr: *const i32, 
     d_len: size_t, 
 ) -> *mut SeriesC { 
-    xxx(name, v_ptr, v_len) 
+    xxx(name, v_ptr, v_len, d_ptr, d_len) 
 }
 
 
@@ -252,266 +281,266 @@ fn se_new_vec<T>(
     len: size_t, 
 ) -> *mut SeriesC 
         where Series: NamedFrom<Vec<T>, [T]>, T: Clone
-{
+    {
 
-    let se_name;
-    let mut se_data = Vec::new();
-    unsafe {
-        assert!(!ptr.is_null());
-        se_name = CStr::from_ptr(name).to_string_lossy().into_owned();
-        se_data.extend_from_slice(slice::from_raw_parts(ptr, len as usize));
-    };
-
-    Box::into_raw(Box::new(SeriesC::new(se_name, se_data)))
-}
-
-#[no_mangle]
-pub extern "C" fn se_new_i32( name: *const c_char, ptr: *const i32, len: size_t, )
-    -> *mut SeriesC { se_new_vec(name, ptr, len) }
-
-#[no_mangle]
-pub extern "C" fn se_new_i64( name: *const c_char, ptr: *const i64, len: size_t, ) 
-    -> *mut SeriesC { se_new_vec(name, ptr, len) }
-
-#[no_mangle]
-pub extern "C" fn se_new_u32( name: *const c_char, ptr: *const u32, len: size_t, ) 
-    -> *mut SeriesC { se_new_vec(name, ptr, len) }
-
-#[no_mangle]
-pub extern "C" fn se_new_u64( name: *const c_char, ptr: *const u64, len: size_t, ) 
-    -> *mut SeriesC { se_new_vec(name, ptr, len) }
-
-#[no_mangle]
-pub extern "C" fn se_new_f32( name: *const c_char, ptr: *const f32, len: size_t, ) 
-    -> *mut SeriesC { se_new_vec(name, ptr, len) }
-
-#[no_mangle]
-pub extern "C" fn se_new_f64( name: *const c_char, ptr: *const f64, len: size_t, ) 
-    -> *mut SeriesC { se_new_vec(name, ptr, len) }
-
-#[no_mangle]
-pub extern "C" fn se_new_bool( name: *const c_char, ptr: *const bool, len: size_t, ) 
-    -> *mut SeriesC { se_new_vec(name, ptr, len) }
-
-#[no_mangle]
-pub extern "C" fn se_new_str( name: *const c_char, ptr: *const *const c_char, len: size_t, ) 
-    -> *mut SeriesC { 
-
-    let se_name;
-    let mut se_data = Vec::<String>::new();
-    unsafe {
-        assert!(!ptr.is_null());
-        se_name = CStr::from_ptr(name).to_string_lossy().into_owned();
-
-        for item in slice::from_raw_parts(ptr, len as usize) {
-            se_data.push(CStr::from_ptr(*item).to_string_lossy().into_owned());
+        let se_name;
+        let mut se_data = Vec::new();
+        unsafe {
+            assert!(!ptr.is_null());
+            se_name = CStr::from_ptr(name).to_string_lossy().into_owned();
+            se_data.extend_from_slice(slice::from_raw_parts(ptr, len as usize));
         };
-    };
 
-    Box::into_raw(Box::new(SeriesC::new(se_name, se_data)))
-}
-
-#[no_mangle]
-pub extern "C" fn se_free(ptr: *mut SeriesC) {
-    if ptr.is_null() {
-        return;
+        Box::into_raw(Box::new(SeriesC::new(se_name, se_data)))
     }
-    unsafe {
-        Box::from_raw(ptr);
+
+    #[no_mangle]
+    pub extern "C" fn se_new_i32( name: *const c_char, ptr: *const i32, len: size_t, )
+        -> *mut SeriesC { se_new_vec(name, ptr, len) }
+
+    #[no_mangle]
+    pub extern "C" fn se_new_i64( name: *const c_char, ptr: *const i64, len: size_t, ) 
+        -> *mut SeriesC { se_new_vec(name, ptr, len) }
+
+    #[no_mangle]
+    pub extern "C" fn se_new_u32( name: *const c_char, ptr: *const u32, len: size_t, ) 
+        -> *mut SeriesC { se_new_vec(name, ptr, len) }
+
+    #[no_mangle]
+    pub extern "C" fn se_new_u64( name: *const c_char, ptr: *const u64, len: size_t, ) 
+        -> *mut SeriesC { se_new_vec(name, ptr, len) }
+
+    #[no_mangle]
+    pub extern "C" fn se_new_f32( name: *const c_char, ptr: *const f32, len: size_t, ) 
+        -> *mut SeriesC { se_new_vec(name, ptr, len) }
+
+    #[no_mangle]
+    pub extern "C" fn se_new_f64( name: *const c_char, ptr: *const f64, len: size_t, ) 
+        -> *mut SeriesC { se_new_vec(name, ptr, len) }
+
+    #[no_mangle]
+    pub extern "C" fn se_new_bool( name: *const c_char, ptr: *const bool, len: size_t, ) 
+        -> *mut SeriesC { se_new_vec(name, ptr, len) }
+
+    #[no_mangle]
+    pub extern "C" fn se_new_str( name: *const c_char, ptr: *const *const c_char, len: size_t, ) 
+        -> *mut SeriesC { 
+
+        let se_name;
+        let mut se_data = Vec::<String>::new();
+        unsafe {
+            assert!(!ptr.is_null());
+            se_name = CStr::from_ptr(name).to_string_lossy().into_owned();
+
+            for item in slice::from_raw_parts(ptr, len as usize) {
+                se_data.push(CStr::from_ptr(*item).to_string_lossy().into_owned());
+            };
+        };
+
+        Box::into_raw(Box::new(SeriesC::new(se_name, se_data)))
     }
-}
 
-#[no_mangle]
-pub extern "C" fn se_show(ptr: *mut SeriesC) {
-    let se_c = check_ptr(ptr);
-    se_c.show();
-}
-
-#[no_mangle]
-pub extern "C" fn se_head(ptr: *mut SeriesC) {
-    let se_c = check_ptr(ptr);
-    se_c.head();
-}
-
-#[no_mangle]
-pub extern "C" fn se_dtype(ptr: *mut SeriesC, retline: RetLine) {
-    let se_c = check_ptr(ptr);
-    se_c.dtype(retline);
-}
-
-#[no_mangle]
-pub extern "C" fn se_name(ptr: *mut SeriesC, retline: RetLine) {
-    let se_c = check_ptr(ptr);
-    se_c.name(retline);
-}
-
-#[no_mangle]
-pub extern "C" fn se_rename(
-    ptr: *mut SeriesC,
-    name: *const c_char,
-) -> *mut SeriesC { 
-    let se_c = check_ptr(ptr);
-
-    let name = unsafe {
-        CStr::from_ptr(name).to_string_lossy().into_owned()
-    };
-
-    se_c.rename(name);
-    se_c
-}
-
-#[no_mangle]
-pub extern "C" fn se_len(ptr: *mut SeriesC) -> u32 {
-    let se_c = check_ptr(ptr);
-    se_c.len()
-}
-
-#[no_mangle]
-pub extern "C" fn se_get_bool(ptr: *mut SeriesC, res: *mut bool, len: size_t ) {
-    let se_c = check_ptr(ptr);
-    se_c.get_bool(res, len)
-}
-#[no_mangle]
-pub extern "C" fn se_get_i32(ptr: *mut SeriesC, res: *mut i32, len: size_t ) {
-    let se_c = check_ptr(ptr);
-    se_c.get_i32(res, len)
-}
-#[no_mangle]
-pub extern "C" fn se_get_i64(ptr: *mut SeriesC, res: *mut i64, len: size_t ) {
-    let se_c = check_ptr(ptr);
-    se_c.get_i64(res, len)
-}
-#[no_mangle]
-pub extern "C" fn se_get_u32(ptr: *mut SeriesC, res: *mut u32, len: size_t ) {
-    let se_c = check_ptr(ptr);
-    se_c.get_u32(res, len)
-}
-#[no_mangle]
-pub extern "C" fn se_get_u64(ptr: *mut SeriesC, res: *mut u64, len: size_t ) {
-    let se_c = check_ptr(ptr);
-    se_c.get_u64(res, len)
-}
-#[no_mangle]
-pub extern "C" fn se_get_f32(ptr: *mut SeriesC, res: *mut f32, len: size_t ) {
-    let se_c = check_ptr(ptr);
-    se_c.get_f32(res, len)
-}
-#[no_mangle]
-pub extern "C" fn se_get_f64(ptr: *mut SeriesC, res: *mut f64, len: size_t ) {
-    let se_c = check_ptr(ptr);
-    se_c.get_f64(res, len)
-}
-
-#[no_mangle]
-pub extern "C" fn se_get_u8(ptr: *mut SeriesC, res: *mut u8, len: size_t ) {
-    let se_c = check_ptr(ptr);
-    se_c.get_u8(res, len)
-}
-
-#[no_mangle]
-pub extern "C" fn se_str_lengths(ptr: *mut SeriesC) -> u32 {
-    let se_c = check_ptr(ptr);
-    se_c.str_lengths()
-}
-
-#[no_mangle]
-pub extern "C" fn se_append(
-    l_ptr: *mut SeriesC,
-    r_ptr: *mut SeriesC,
-) -> *mut SeriesC { 
-    let l_se_c = check_ptr(l_ptr);
-    let r_se_c = check_ptr(r_ptr);
-
-    l_se_c.se = l_se_c.append(r_se_c);
-    l_se_c
-}
-
-// DataFrame Container
-
-pub fn df_load_csv(spath: &str) -> PolarResult<DataFrame> {
-    let fpath = Path::new(spath);
-    let file = File::open(fpath).expect("Cannot open file.");
-
-    CsvReader::new(file)
-    .has_header(true)
-    .finish()
-}
-
-#[repr(C)]
-pub struct DataFrameC {
-    df: DataFrame,
-}
-
-impl DataFrameC {
-    fn new() -> DataFrameC {
-        DataFrameC {
-            df: DataFrame::default(),
+    #[no_mangle]
+    pub extern "C" fn se_free(ptr: *mut SeriesC) {
+        if ptr.is_null() {
+            return;
+        }
+        unsafe {
+            Box::from_raw(ptr);
         }
     }
 
-    fn read_csv(&mut self, path: String) {
-        self.df = df_load_csv(&path).unwrap(); 
+    #[no_mangle]
+    pub extern "C" fn se_show(ptr: *mut SeriesC) {
+        let se_c = check_ptr(ptr);
+        se_c.show();
     }
 
-    fn show(&self) {
-        println!{"{}", self.df};
+    #[no_mangle]
+    pub extern "C" fn se_head(ptr: *mut SeriesC) {
+        let se_c = check_ptr(ptr);
+        se_c.head();
     }
 
-    fn head(&self) {
-        println!{"{}", self.df.head(Some(5))};
+    #[no_mangle]
+    pub extern "C" fn se_dtype(ptr: *mut SeriesC, retline: RetLine) {
+        let se_c = check_ptr(ptr);
+        se_c.dtype(retline);
     }
 
-    fn height(&self) -> u32 {
-        self.df.height().try_into().unwrap()
+    #[no_mangle]
+    pub extern "C" fn se_name(ptr: *mut SeriesC, retline: RetLine) {
+        let se_c = check_ptr(ptr);
+        se_c.name(retline);
     }
 
-    fn width(&self) -> u32 {
-        self.df.width().try_into().unwrap()
+    #[no_mangle]
+    pub extern "C" fn se_rename(
+        ptr: *mut SeriesC,
+        name: *const c_char,
+    ) -> *mut SeriesC { 
+        let se_c = check_ptr(ptr);
+
+        let name = unsafe {
+            CStr::from_ptr(name).to_string_lossy().into_owned()
+        };
+
+        se_c.rename(name);
+        se_c
     }
 
-    fn dtypes(&self, retline: RetLine) {
-        let dtypes = self.df.dtypes();
+    #[no_mangle]
+    pub extern "C" fn se_len(ptr: *mut SeriesC) -> u32 {
+        let se_c = check_ptr(ptr);
+        se_c.len()
+    }
 
-        for dtype in dtypes.iter() {
-            let dtype = CString::new(dtype.to_string()).unwrap();
-            retline(dtype);
+    #[no_mangle]
+    pub extern "C" fn se_get_bool(ptr: *mut SeriesC, res: *mut bool, len: size_t ) {
+        let se_c = check_ptr(ptr);
+        se_c.get_bool(res, len)
+    }
+    #[no_mangle]
+    pub extern "C" fn se_get_i32(ptr: *mut SeriesC, res: *mut i32, len: size_t ) {
+        let se_c = check_ptr(ptr);
+        se_c.get_i32(res, len)
+    }
+    #[no_mangle]
+    pub extern "C" fn se_get_i64(ptr: *mut SeriesC, res: *mut i64, len: size_t ) {
+        let se_c = check_ptr(ptr);
+        se_c.get_i64(res, len)
+    }
+    #[no_mangle]
+    pub extern "C" fn se_get_u32(ptr: *mut SeriesC, res: *mut u32, len: size_t ) {
+        let se_c = check_ptr(ptr);
+        se_c.get_u32(res, len)
+    }
+    #[no_mangle]
+    pub extern "C" fn se_get_u64(ptr: *mut SeriesC, res: *mut u64, len: size_t ) {
+        let se_c = check_ptr(ptr);
+        se_c.get_u64(res, len)
+    }
+    #[no_mangle]
+    pub extern "C" fn se_get_f32(ptr: *mut SeriesC, res: *mut f32, len: size_t ) {
+        let se_c = check_ptr(ptr);
+        se_c.get_f32(res, len)
+    }
+    #[no_mangle]
+    pub extern "C" fn se_get_f64(ptr: *mut SeriesC, res: *mut f64, len: size_t ) {
+        let se_c = check_ptr(ptr);
+        se_c.get_f64(res, len)
+    }
+
+    #[no_mangle]
+    pub extern "C" fn se_get_u8(ptr: *mut SeriesC, res: *mut u8, len: size_t ) {
+        let se_c = check_ptr(ptr);
+        se_c.get_u8(res, len)
+    }
+
+    #[no_mangle]
+    pub extern "C" fn se_str_lengths(ptr: *mut SeriesC) -> u32 {
+        let se_c = check_ptr(ptr);
+        se_c.str_lengths()
+    }
+
+    #[no_mangle]
+    pub extern "C" fn se_append(
+        l_ptr: *mut SeriesC,
+        r_ptr: *mut SeriesC,
+    ) -> *mut SeriesC { 
+        let l_se_c = check_ptr(l_ptr);
+        let r_se_c = check_ptr(r_ptr);
+
+        l_se_c.se = l_se_c.append(r_se_c);
+        l_se_c
+    }
+
+    // DataFrame Container
+
+    pub fn df_load_csv(spath: &str) -> PolarResult<DataFrame> {
+        let fpath = Path::new(spath);
+        let file = File::open(fpath).expect("Cannot open file.");
+
+        CsvReader::new(file)
+        .has_header(true)
+        .finish()
+    }
+
+    #[repr(C)]
+    pub struct DataFrameC {
+        df: DataFrame,
+    }
+
+    impl DataFrameC {
+        fn new() -> DataFrameC {
+            DataFrameC {
+                df: DataFrame::default(),
+            }
         }
-    }
 
-    fn get_column_names(&self, retline: RetLine) {
-        let names = self.df.get_column_names();
-
-        for name in names.iter() {
-            let name = CString::new(*name).unwrap();
-            retline(name);
+        fn read_csv(&mut self, path: String) {
+            self.df = df_load_csv(&path).unwrap(); 
         }
-    }
 
-    fn rename(&mut self, old_name: String, new_name: String) -> DataFrame {
-        self.df.rename(&old_name, &new_name).unwrap().clone()
-    }
+        fn show(&self) {
+            println!{"{}", self.df};
+        }
 
-    fn column(&self, string: String) -> Series {
-        self.df.column(&string).unwrap().clone()
-    }
+        fn head(&self) {
+            println!{"{}", self.df.head(Some(5))};
+        }
 
-    fn select(&self, colvec: Vec::<String>) -> DataFrame {
-        self.df.select(&colvec).unwrap().clone()
-    }
+        fn height(&self) -> u32 {
+            self.df.height().try_into().unwrap()
+        }
 
-    fn with_column(&mut self, series: Series) -> DataFrame {
-        self.df.with_column(series).unwrap().clone()
-    }
+        fn width(&self) -> u32 {
+            self.df.width().try_into().unwrap()
+        }
 
-    fn drop(&self, string: String) -> DataFrame {
-        self.df.drop(&string).unwrap().clone()
-    }
+        fn dtypes(&self, retline: RetLine) {
+            let dtypes = self.df.dtypes();
 
-    fn vstack(&self, df_c: &DataFrameC) -> DataFrame {
-        self.df.vstack(&df_c.df).unwrap().clone()
-    }
+            for dtype in dtypes.iter() {
+                let dtype = CString::new(dtype.to_string()).unwrap();
+                retline(dtype);
+            }
+        }
 
-    fn sort(&self, colvec: Vec::<String>) -> DataFrame {
+        fn get_column_names(&self, retline: RetLine) {
+            let names = self.df.get_column_names();
+
+            for name in names.iter() {
+                let name = CString::new(*name).unwrap();
+                retline(name);
+            }
+        }
+
+        fn rename(&mut self, old_name: String, new_name: String) -> DataFrame {
+            self.df.rename(&old_name, &new_name).unwrap().clone()
+        }
+
+        fn column(&self, string: String) -> Series {
+            self.df.column(&string).unwrap().clone()
+        }
+
+        fn select(&self, colvec: Vec::<String>) -> DataFrame {
+            self.df.select(&colvec).unwrap().clone()
+        }
+
+        fn with_column(&mut self, series: Series) -> DataFrame {
+            self.df.with_column(series).unwrap().clone()
+        }
+
+        fn drop(&self, string: String) -> DataFrame {
+            self.df.drop(&string).unwrap().clone()
+        }
+
+        fn vstack(&self, df_c: &DataFrameC) -> DataFrame {
+            self.df.vstack(&df_c.df).unwrap().clone()
+        }
+
+        fn sort(&self, colvec: Vec::<String>) -> DataFrame {
         self.df.sort(&colvec, true).unwrap().clone()
     }
 }

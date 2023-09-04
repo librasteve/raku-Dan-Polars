@@ -237,10 +237,12 @@ fn xxx<T>(
 #[no_mangle]
 pub extern "C" fn se_new_xxx( 
     name: *const c_char, 
-    ptr: *const bool, 
-    len: size_t, 
+    v_ptr: *const bool, 
+    v_len: size_t, 
+    d_ptr: *const i32, 
+    d_len: size_t, 
 ) -> *mut SeriesC { 
-    xxx(name, ptr, len) 
+    xxx(name, v_ptr, v_len) 
 }
 
 

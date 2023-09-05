@@ -9,6 +9,12 @@ my regex number {
 	<?{ +"$/" ~~ Real }>    #assert coerces via '+' to Real
 }
 
+sub null-val( $dtype ) {
+    return 0 unless $dtype eq Str;
+    ''
+}
+
+#| make a CArray for NativeCall data
 sub carray( $dtype, @items ) {
     my $output := CArray[$dtype].new();
     loop ( my $i = 0; $i < @items; $i++ ) {
@@ -17,7 +23,27 @@ sub carray( $dtype, @items ) {
     $output
 }
 
-### Container Classes (CStruct) that interface to Rust lib.rs ###
+#| a variant on the helper carray that preps data where null validate array is needed
+#iamerejh
+sub cnulls( $dtype, @items ) {
+    my $size = +@items ;
+    my $nulls  := CArray[bool].new();
+    my $output := CArray[$dtype].new();
+
+    for ^$size -> $i {
+        with @items[$i] {
+            $nulls[$i]  = False;
+            $output[$i] = @items[$i];
+        } else {
+            $nulls[$i]  = True;
+            $output[$i] = null-val($dtype);
+        }
+    }
+    say $size;
+    [$nulls, $size, $output, $size]
+}
+
+### Setup of interface to Rust lib.rs and libapply.rs ###
 
 # go export DEVMODE=1 and manual cargo build for dev
 constant $devt-dir  = "$*HOME/raku-Dan-Polars";
@@ -56,10 +82,12 @@ sub a-path {
     "{a-root}/apply/target/debug/apply";
 }
 
+### Container Classes (CStruct) that interface to Rust lib.rs ###
+
 class SeriesC is repr('CPointer') is export {
-    sub se_new_xxx(Str, CArray[bool], size_t, CArray[int32], size_t) returns SeriesC is native($n-path) { * }
+    sub se_new_i32(Str, CArray[bool], size_t, CArray[int32], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_bool(Str, CArray[bool], size_t) returns SeriesC is native($n-path) { * }
-    sub se_new_i32(Str, CArray[int32], size_t) returns SeriesC is native($n-path) { * }
+    #sub se_new_i32(Str, CArray[int32], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_i64(Str, CArray[int64], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_u32(Str, CArray[uint32],size_t) returns SeriesC is native($n-path) { * }
     sub se_new_u64(Str, CArray[uint64],size_t) returns SeriesC is native($n-path) { * }
@@ -84,15 +112,21 @@ class SeriesC is repr('CPointer') is export {
     sub se_str_lengths(SeriesC)                returns uint32 is native($n-path) { * }
     sub se_append(SeriesC, SeriesC)            returns SeriesC is native($n-path) { * }
 
+
     #[ iamerejh - dummy for validity bitmap test
     method xxx() {
-        dd my @null = (^2).roll xx 7;
-        dd my @data = (^7).reverse;
-        se_new_xxx('xxx', carray(bool, @null), @null.elems, carray(int32, @data), @data.elems)  
+        my @null = (^2).roll xx 7;
+        my @data = (^7).reverse;
+        dd my ( $n, $s1, $o, $s2 ) = carray(int32, @data);
+        
+        se_new_i32( 'xxx', $n, $s1, $o, $s2 )  
+        #se_new_i32( 'xxx', carray(int32, @data) )  
+        #se_new_i32('xxx', carray(bool, @null), @null.elems, carray(int32, @data), @data.elems)  
     }
     #]
 
     method new( $name, @data, :$dtype ) {
+        my @null = (^2).roll xx +@data;
 
         if $dtype {
             @data.map({ $_ .= Num if $_ ~~ Rat});                                               #Coerce stray Rats to Num
@@ -101,7 +135,8 @@ class SeriesC is repr('CPointer') is export {
             @data.map({ $_ .= Num if $_ ~~ Int}) if $dtype eq <f32 f64 num32 num64 Num>.any;    #Coerce stray Ints to Num
 
             given $dtype {
-                when    'i32' { se_new_i32($name, carray( int32, @data), @data.elems) }
+                #when    'i32' { se_new_i32($name, carray( int32, @data), @data.elems) }
+                when    'i32' { se_new_i32('xxx', carray(bool, @null), @null.elems, carray(int32, @data), @data.elems) }
                 when    'u32' { se_new_u32($name, carray(uint32, @data), @data.elems) }
                 when    'i64' { se_new_i64($name, carray( int64, @data), @data.elems) }
                 when    'u64' { se_new_u64($name, carray(uint64, @data), @data.elems) }
@@ -131,7 +166,8 @@ class SeriesC is repr('CPointer') is export {
                 }
                 when Int {
                     given @data.min, @data.max {
-                        when * > -2**31, * < 2**31-1 { se_new_i32($name, carray( int32, @data), @data.elems) }
+                        #when * > -2**31, * < 2**31-1 { se_new_i32($name, carray2( int32, @data) ) }
+                        when * > -2**31, * < 2**31-1 { se_new_i32('xxx', carray(bool, @null), @null.elems, carray(int32, @data), @data.elems) }
                         when * >      0, * < 2**32-1 { se_new_u32($name, carray(uint32, @data), @data.elems) }
                         when * > -2**63, * < 2**63-1 { se_new_i64($name, carray( int64, @data), @data.elems) }
                         when * >      0, * < 2**64-1 { se_new_u64($name, carray(uint64, @data), @data.elems) }

@@ -187,20 +187,19 @@ impl SeriesC {
 }
 
 
-//adjust se_new_vec
-fn xxx<T>(
+fn se_new_opt<T>(
     name: *const c_char,
     v_ptr: *const bool,
     v_len: size_t, 
     d_ptr: *const T,
     d_len: size_t, 
 ) -> *mut SeriesC 
-        //where Series: NamedFrom<Vec<T>, [T]>, T: Clone
-        where Series: NamedFrom<Vec<Option<T>>, [Option<T>]>, Option<T>: Clone, T: Clone + std::fmt::Debug
+        where Series: NamedFrom<Vec<Option<T>>, [Option<T>]>, Option<T>: Clone, T: Clone
 {
     let se_name;
     let mut se_null = Vec::new();
     let mut se_data = Vec::new();
+
     unsafe {
         assert!(!v_ptr.is_null());
         se_name = CStr::from_ptr(name).to_string_lossy().into_owned();
@@ -208,13 +207,9 @@ fn xxx<T>(
         se_data.extend_from_slice(slice::from_raw_parts(d_ptr, d_len as usize));
     };
 
-    println!{"{}", se_name};
-
-    //let mut se_vals: Option<T>  = Vec::new();
     let mut se_vals = Vec::<Option<T>>::new();
 
     for i in 0..d_len {
-        println!{"{:?}",se_data[i]};
         if se_null[i] {
             se_vals.push(None);
         } else {
@@ -222,26 +217,7 @@ fn xxx<T>(
         }
     }
 
-    for element in &se_vals {
-        println!("{:?}", element);
-    }
-
-    println!("ho");
-
-    //Box::into_raw(Box::new(SeriesC::new(se_name, data)))
     Box::into_raw(Box::new(SeriesC::new(se_name, se_vals)))
-}
-
-// adjust se_new_i32
-#[no_mangle]
-pub extern "C" fn se_new_xxx( 
-    name: *const c_char, 
-    v_ptr: *const bool, 
-    v_len: size_t, 
-    d_ptr: *const i32, 
-    d_len: size_t, 
-) -> *mut SeriesC { 
-    xxx(name, v_ptr, v_len, d_ptr, d_len) 
 }
 
 
@@ -264,10 +240,23 @@ fn se_new_vec<T>(
     Box::into_raw(Box::new(SeriesC::new(se_name, se_data)))
 }
 
+// adjust se_new_i32
+#[no_mangle]
+pub extern "C" fn se_new_i32( 
+    name: *const c_char, 
+    v_ptr: *const bool, 
+    v_len: size_t, 
+    d_ptr: *const i32, 
+    d_len: size_t, 
+) -> *mut SeriesC { 
+    se_new_opt(name, v_ptr, v_len, d_ptr, d_len) 
+}
+
+/*
 #[no_mangle]
 pub extern "C" fn se_new_i32( name: *const c_char, ptr: *const i32, len: size_t, )
     -> *mut SeriesC { se_new_vec(name, ptr, len) }
-
+*/
 #[no_mangle]
 pub extern "C" fn se_new_i64( name: *const c_char, ptr: *const i64, len: size_t, ) 
     -> *mut SeriesC { se_new_vec(name, ptr, len) }

@@ -10,37 +10,36 @@ my regex number {
 }
 
 sub null-val( $dtype ) {
-    return 0 unless $dtype eq Str;
+    return 0 unless $dtype ~~ Str;
     ''
 }
 
 #| make a CArray for NativeCall data
 sub carray( $dtype, @items ) {
-    my $output := CArray[$dtype].new();
-    loop ( my $i = 0; $i < @items; $i++ ) {
-        $output[$i] = @items[$i]
-    }
-    $output
-}
+    my $data := CArray[$dtype].new();
 
-#| a variant on the helper carray that preps data where null validate array is needed
-#iamerejh
-sub cnulls( $dtype, @items ) {
-    my $size = +@items ;
-    my $nulls  := CArray[bool].new();
-    my $output := CArray[$dtype].new();
-
-    for ^$size -> $i {
+    for ^@items -> $i {
         with @items[$i] {
-            $nulls[$i]  = False;
-            $output[$i] = @items[$i];
+            $data[$i] = @items[$i];
         } else {
-            $nulls[$i]  = True;
-            $output[$i] = null-val($dtype);
+            $data[$i] = null-val($dtype);
         }
     }
-    say $size;
-    [$nulls, $size, $output, $size]
+    $data
+}
+
+#| make a null mask array 
+sub cnulls(  @items ) {
+    my $nulls  := CArray[bool].new();
+
+    for ^@items -> $i {
+        with @items[$i] {
+            $nulls[$i]  = False;
+        } else {
+            $nulls[$i]  = True;
+        }
+    }
+    $nulls
 }
 
 ### Setup of interface to Rust lib.rs and libapply.rs ###
@@ -85,15 +84,24 @@ sub a-path {
 ### Container Classes (CStruct) that interface to Rust lib.rs ###
 
 class SeriesC is repr('CPointer') is export {
-    sub se_new_i32(Str, CArray[bool], size_t, CArray[int32], size_t) returns SeriesC is native($n-path) { * }
+    sub se_new_bool(Str, CArray[bool], CArray[bool], size_t) returns SeriesC is native($n-path) { * }
+    sub se_new_i32(Str, CArray[bool], CArray[int32], size_t) returns SeriesC is native($n-path) { * }
+    sub se_new_i64(Str, CArray[bool], CArray[int64], size_t) returns SeriesC is native($n-path) { * }
+    sub se_new_u32(Str, CArray[bool], CArray[uint32],size_t) returns SeriesC is native($n-path) { * }
+    sub se_new_u64(Str, CArray[bool], CArray[uint64],size_t) returns SeriesC is native($n-path) { * }
+    sub se_new_f32(Str, CArray[bool], CArray[num32], size_t) returns SeriesC is native($n-path) { * }
+    sub se_new_f64(Str, CArray[bool], CArray[num64], size_t) returns SeriesC is native($n-path) { * }
+    #`[
     sub se_new_bool(Str, CArray[bool], size_t) returns SeriesC is native($n-path) { * }
-    #sub se_new_i32(Str, CArray[int32], size_t) returns SeriesC is native($n-path) { * }
+    sub se_new_i32(Str, CArray[int32], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_i64(Str, CArray[int64], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_u32(Str, CArray[uint32],size_t) returns SeriesC is native($n-path) { * }
     sub se_new_u64(Str, CArray[uint64],size_t) returns SeriesC is native($n-path) { * }
     sub se_new_f32(Str, CArray[num32], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_f64(Str, CArray[num64], size_t) returns SeriesC is native($n-path) { * }
+    #]
     sub se_new_str(Str, CArray[Str],   size_t) returns SeriesC is native($n-path) { * }
+    ##sub se_new_str(Str, CArray[bool], CArray[Str],   size_t) returns SeriesC is native($n-path) { * }
     sub se_free(SeriesC)   is native($n-path) { * }
     sub se_show(SeriesC)   is native($n-path) { * }
     sub se_head(SeriesC)   is native($n-path) { * }
@@ -113,20 +121,7 @@ class SeriesC is repr('CPointer') is export {
     sub se_append(SeriesC, SeriesC)            returns SeriesC is native($n-path) { * }
 
 
-    #[ iamerejh - dummy for validity bitmap test
-    method xxx() {
-        my @null = (^2).roll xx 7;
-        my @data = (^7).reverse;
-        dd my ( $n, $s1, $o, $s2 ) = carray(int32, @data);
-        
-        se_new_i32( 'xxx', $n, $s1, $o, $s2 )  
-        #se_new_i32( 'xxx', carray(int32, @data) )  
-        #se_new_i32('xxx', carray(bool, @null), @null.elems, carray(int32, @data), @data.elems)  
-    }
-    #]
-
     method new( $name, @data, :$dtype ) {
-        my @null = (^2).roll xx +@data;
 
         if $dtype {
             @data.map({ $_ .= Num if $_ ~~ Rat});                                               #Coerce stray Rats to Num
@@ -135,8 +130,27 @@ class SeriesC is repr('CPointer') is export {
             @data.map({ $_ .= Num if $_ ~~ Int}) if $dtype eq <f32 f64 num32 num64 Num>.any;    #Coerce stray Ints to Num
 
             given $dtype {
-                #when    'i32' { se_new_i32($name, carray( int32, @data), @data.elems) }
-                when    'i32' { se_new_i32('xxx', carray(bool, @null), @null.elems, carray(int32, @data), @data.elems) }
+                when    'i32' { se_new_i32($name, cnulls(@data), carray(int32, @data), @data.elems) }
+
+                when    'u32' { se_new_u32($name, cnulls(@data), carray(uint32, @data), @data.elems) }
+                when    'i64' { se_new_i64($name, cnulls(@data), carray( int64, @data), @data.elems) }
+                when    'u64' { se_new_u64($name, cnulls(@data), carray(uint64, @data), @data.elems) }
+                when    'f32' { se_new_f32($name, cnulls(@data), carray( num32, @data), @data.elems) }
+                when    'f64' { se_new_f64($name, cnulls(@data), carray( num64, @data), @data.elems) }
+                when  'int32' { se_new_i32($name, cnulls(@data), carray( int32, @data), @data.elems) }
+                when 'uint32' { se_new_u32($name, cnulls(@data), carray(uint32, @data), @data.elems) }
+                when  'int64' { se_new_i64($name, cnulls(@data), carray( int64, @data), @data.elems) }
+                when 'uint64' { se_new_u64($name, cnulls(@data), carray(uint64, @data), @data.elems) }
+                when  'num32' { se_new_f32($name, cnulls(@data), carray( num32, @data), @data.elems) }
+                when  'num64' { se_new_f64($name, cnulls(@data), carray( num64, @data), @data.elems) }
+                when   'bool' { se_new_bool($name, cnulls(@data), carray( bool, @data), @data.elems) }
+                when   'Bool' { se_new_bool($name, cnulls(@data), carray( bool, @data), @data.elems) }
+                when    'Int' { se_new_i64($name, cnulls(@data), carray( int64, @data), @data.elems) }
+                when    'Num' { se_new_f64($name, cnulls(@data), carray( num64, @data), @data.elems) }
+                #`[
+                when    'str' { se_new_str($name, carray(   Str, @data), @data.elems) }
+                when    'Str' { se_new_str($name, carray(   Str, @data), @data.elems) }
+                when    'i32' { se_new_i32($name, carray( int32, @data), @data.elems) }
                 when    'u32' { se_new_u32($name, carray(uint32, @data), @data.elems) }
                 when    'i64' { se_new_i64($name, carray( int64, @data), @data.elems) }
                 when    'u64' { se_new_u64($name, carray(uint64, @data), @data.elems) }
@@ -148,12 +162,13 @@ class SeriesC is repr('CPointer') is export {
                 when 'uint64' { se_new_u64($name, carray(uint64, @data), @data.elems) }
                 when  'num32' { se_new_f32($name, carray( num32, @data), @data.elems) }
                 when  'num64' { se_new_f64($name, carray( num64, @data), @data.elems) }
-                when    'str' { se_new_str($name, carray(   Str, @data), @data.elems) }
-                when    'Str' { se_new_str($name, carray(   Str, @data), @data.elems) }
                 when   'bool' { se_new_bool($name, carray( bool, @data), @data.elems) }
                 when   'Bool' { se_new_bool($name, carray( bool, @data), @data.elems) }
                 when    'Int' { se_new_i64($name, carray( int64, @data), @data.elems) }
                 when    'Num' { se_new_f64($name, carray( num64, @data), @data.elems) }
+                #]
+                when    'str' { se_new_str($name, carray(   Str, @data), @data.elems) }
+                when    'Str' { se_new_str($name, carray(   Str, @data), @data.elems) }
                 when    'Rat' { die "Rats are not implemented by Polars" }
                 when   'Real' { die "Rats are not implemented by Polars" }
             }
@@ -166,20 +181,27 @@ class SeriesC is repr('CPointer') is export {
                 }
                 when Int {
                     given @data.min, @data.max {
-                        #when * > -2**31, * < 2**31-1 { se_new_i32($name, carray2( int32, @data) ) }
-                        when * > -2**31, * < 2**31-1 { se_new_i32('xxx', carray(bool, @null), @null.elems, carray(int32, @data), @data.elems) }
+                        when * > -2**31, * < 2**31-1 { se_new_i32($name, cnulls(@data), carray( int32, @data), @data.elems) }
+                        when * >      0, * < 2**32-1 { se_new_u32($name, cnulls(@data), carray(uint32, @data), @data.elems) }
+                        when * > -2**63, * < 2**63-1 { se_new_i64($name, cnulls(@data), carray( int64, @data), @data.elems) }
+                        when * >      0, * < 2**64-1 { se_new_u64($name, cnulls(@data), carray(uint64, @data), @data.elems) }
+                        #`[
+                        when * > -2**31, * < 2**31-1 { se_new_i32($name, carray( int32, @data), @data.elems) }
                         when * >      0, * < 2**32-1 { se_new_u32($name, carray(uint32, @data), @data.elems) }
                         when * > -2**63, * < 2**63-1 { se_new_i64($name, carray( int64, @data), @data.elems) }
                         when * >      0, * < 2**64-1 { se_new_u64($name, carray(uint64, @data), @data.elems) }
+                        #]
                         default { die "Int larger than 2**64 are not implemented by Polars" }
                     }
                 }
                 when Real {   
                     @data.map({ $_.=Num }) if @data.are ~~ Real;     #Coerce stray Rats & Ints to Num
-                    se_new_f64($name, carray(num64, @data), @data.elems );
+                    se_new_f64($name, cnulls(@data), carray(num64, @data), @data.elems );
                 }
                 when Str {   
                     se_new_str($name, carray(Str, @data), @data.elems );
+                    #iamerejh
+                    ##se_new_str($name, carray(Str, @data), @data.elems );
                 }
             }
         }

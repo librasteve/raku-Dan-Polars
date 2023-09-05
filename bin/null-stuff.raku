@@ -28,8 +28,13 @@ df.select([(col("nrs2").is_not_null)]).head;
 #]
 #]]
 
-my \s = Series.new( [b=>1, a=>0, c=>2] );
+my \s = Series.new( [b=>1, a=>Int, c=>2] );
 s.show;
 
-my \t = s.xxx;
-t.show;
+# todos
+# - memory allocation of 1501208859245568 bytes failed
+# - this is_null
+# - round trip some nulls
+# - str
+# - Nil OK?
+# - test

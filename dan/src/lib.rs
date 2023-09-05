@@ -190,7 +190,6 @@ impl SeriesC {
 fn se_new_opt<T>(
     name: *const c_char,
     v_ptr: *const bool,
-    v_len: size_t, 
     d_ptr: *const T,
     d_len: size_t, 
 ) -> *mut SeriesC 
@@ -203,7 +202,7 @@ fn se_new_opt<T>(
     unsafe {
         assert!(!v_ptr.is_null());
         se_name = CStr::from_ptr(name).to_string_lossy().into_owned();
-        se_null.extend_from_slice(slice::from_raw_parts(v_ptr, v_len as usize));
+        se_null.extend_from_slice(slice::from_raw_parts(v_ptr, d_len as usize));
         se_data.extend_from_slice(slice::from_raw_parts(d_ptr, d_len as usize));
     };
 
@@ -245,11 +244,10 @@ fn se_new_vec<T>(
 pub extern "C" fn se_new_i32( 
     name: *const c_char, 
     v_ptr: *const bool, 
-    v_len: size_t, 
     d_ptr: *const i32, 
     d_len: size_t, 
 ) -> *mut SeriesC { 
-    se_new_opt(name, v_ptr, v_len, d_ptr, d_len) 
+    se_new_opt(name, v_ptr, d_ptr, d_len) 
 }
 
 /*

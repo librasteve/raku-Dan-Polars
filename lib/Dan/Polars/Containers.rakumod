@@ -232,17 +232,21 @@ class SeriesC is repr('CPointer') is export {
 
     # viz. https://docs.raku.org/language/nativecall#Arrays
     method get-data {
+    say 1;
         my $elems = self.len;
 
         given self.dtype {
             when 'bool' {
                 my $array := CArray[bool].allocate($elems); 
                 se_get_bool(self, $array, $elems);
+                say $array.list;
                 $array.list
             }
             when 'i32' {
+            say 2;
                 my $array := CArray[int32].allocate($elems);
                 se_get_i32(self, $array, $elems);
+                say $array.list;
                 $array.list
             }
             when 'i64' {
@@ -266,14 +270,19 @@ class SeriesC is repr('CPointer') is export {
                 $array.list
             }
             when 'f64' {
+            say 3;
                 my $array := CArray[num64].allocate($elems);
                 se_get_f64(self, $array, $elems);
+                say $array.list;
+                say $elems;
                 $array.list
             }
             when 'str' {
+            say 4;
                 my $chars = self.str-lengths;
                    $chars += ($elems-1) * 3;  #pad for join '","' 
                 my $array := CArray[uint8].allocate($chars);
+                say $array.list;
 
                 se_get_u8(self, $array, $chars);
                 

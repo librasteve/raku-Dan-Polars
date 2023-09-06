@@ -155,7 +155,15 @@ impl SeriesC {
         self.get_data(buffer, len, asvec);
     }
     fn get_f64(&self, buffer: *mut f64, len: size_t) {
+    //fn get_f64(&self, valids: *mut bool, buffer: *mut f64, len: size_t) {
+    //iamerejh
+        println!("yo");
+        println!("{:?}",self.se);
+        println!("{:?}",self.se.f64());
+        println!("{:?}",self.se.f64().into_iter().collect::<Vec<_>>());
+        println!("{:?}",self.se.f64().into_iter().flatten().collect::<Vec<_>>());
         let asvec = self.se.f64().into_iter().flatten().flatten().collect();
+        println!("{:?}", asvec);
         self.get_data(buffer, len, asvec);
     }
     fn get_u8(&self, buffer: *mut u8, len: size_t) {

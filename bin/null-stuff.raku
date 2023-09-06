@@ -5,12 +5,17 @@ use Dan::Polars;
 
 my \df = DataFrame.new([
     nrs    => [1, 2, 3, 4, 5],
-    nrs2   => [2, NaN, 4, Inf, Num],
+    nrs2   => [Num, NaN, 4, Inf, 8.3],
     names  => ["foo", Str, "spam", "egg", ""],
     random => [1.rand xx 5],
     groups => ["A", "A", "B", "C", "B"],
 ]);
 df.show;
+
+#iamerejh
+my \ddf := df.Dan-DataFrame;
+say ~ddf;
+say ddf.shape;
 
 #`[
 df.select([(col("nrs") > 2)]).head;

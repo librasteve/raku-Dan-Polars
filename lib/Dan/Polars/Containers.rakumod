@@ -10,8 +10,24 @@ my regex number {
 }
 
 sub null-val( $dtype ) {
-    return 0 unless $dtype ~~ Str;
-    ''
+    given $dtype {
+        when    'i32' { 0 }
+        when    'u32' { 0 }
+        when    'i64' { 0 }
+        when    'u64' { 0 }
+        when    'f32' { 0e0 }
+        when    'f64' { 0e0 } 
+        when    int32 { 0 }
+        when   uint32 { 0 }
+        when    int64 { 0 }
+        when   uint64 { 0 }
+        when    num32 { 0e0 }
+        when    num64 { 0e0 }
+        when     bool { False }
+        when     Bool { False }
+        when      Int { 0 }
+        when      Num { 0e0 }
+    }
 }
 
 #| make a CArray for NativeCall data
@@ -124,14 +140,12 @@ class SeriesC is repr('CPointer') is export {
     method new( $name, @data, :$dtype ) {
 
         if $dtype {
-            @data.map({ $_ .= Num if $_ ~~ Rat});                                               #Coerce stray Rats to Num
 
             @data.map({ $_ .= Num if $_ ~~ Rat});                                               #Coerce stray Rats to Num
             @data.map({ $_ .= Num if $_ ~~ Int}) if $dtype eq <f32 f64 num32 num64 Num>.any;    #Coerce stray Ints to Num
 
             given $dtype {
-                when    'i32' { se_new_i32($name, cnulls(@data), carray(int32, @data), @data.elems) }
-
+                when    'i32' { se_new_i32($name, cnulls(@data), carray( int32, @data), @data.elems) }
                 when    'u32' { se_new_u32($name, cnulls(@data), carray(uint32, @data), @data.elems) }
                 when    'i64' { se_new_i64($name, cnulls(@data), carray( int64, @data), @data.elems) }
                 when    'u64' { se_new_u64($name, cnulls(@data), carray(uint64, @data), @data.elems) }
@@ -177,7 +191,8 @@ class SeriesC is repr('CPointer') is export {
 
             given @data.are {
                 when Bool {   
-                    se_new_bool($name, carray(bool, @data), @data.elems );
+                    ##se_new_bool($name, carray(bool, @data), @data.elems );
+                    se_new_bool($name, cnulls(@data), carray(bool, @data), @data.elems );
                 }
                 when Int {
                     given @data.min, @data.max {
@@ -195,13 +210,14 @@ class SeriesC is repr('CPointer') is export {
                     }
                 }
                 when Real {   
-                    @data.map({ $_.=Num }) if @data.are ~~ Real;     #Coerce stray Rats & Ints to Num
+                dd @data;
+                    @data.map({ $_.=Num });                          #Coerce stray Rats & Ints to Num
                     se_new_f64($name, cnulls(@data), carray(num64, @data), @data.elems );
                 }
                 when Str {   
                     se_new_str($name, carray(Str, @data), @data.elems );
                     #iamerejh
-                    ##se_new_str($name, carray(Str, @data), @data.elems );
+                    ##se_new_f64($name, cnulls(@data), carray(num64, @data), @data.elems );
                 }
             }
         }

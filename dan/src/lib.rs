@@ -219,7 +219,7 @@ fn se_new_opt<T>(
     Box::into_raw(Box::new(SeriesC::new(se_name, se_vals)))
 }
 
-
+// FIXME rm
 fn se_new_vec<T>(
     name: *const c_char,
     ptr: *const T,
@@ -241,20 +241,37 @@ fn se_new_vec<T>(
 
 // adjust se_new_i32
 #[no_mangle]
-pub extern "C" fn se_new_i32( 
-    name: *const c_char, 
-    v_ptr: *const bool, 
-    d_ptr: *const i32, 
-    d_len: size_t, 
-) -> *mut SeriesC { 
-    se_new_opt(name, v_ptr, d_ptr, d_len) 
-}
+pub extern "C" fn se_new_i32(name: *const c_char, v_ptr: *const bool, d_ptr: *const i32, d_len: size_t)
+    -> *mut SeriesC { se_new_opt(name, v_ptr, d_ptr, d_len) }
 
+#[no_mangle]
+pub extern "C" fn se_new_i64(name: *const c_char, v_ptr: *const bool, d_ptr: *const i64, d_len: size_t)
+    -> *mut SeriesC { se_new_opt(name, v_ptr, d_ptr, d_len) }
+
+#[no_mangle]
+pub extern "C" fn se_new_u32(name: *const c_char, v_ptr: *const bool, d_ptr: *const u32, d_len: size_t)
+    -> *mut SeriesC { se_new_opt(name, v_ptr, d_ptr, d_len) }
+
+#[no_mangle]
+pub extern "C" fn se_new_u64(name: *const c_char, v_ptr: *const bool, d_ptr: *const u64, d_len: size_t)
+    -> *mut SeriesC { se_new_opt(name, v_ptr, d_ptr, d_len) }
+
+#[no_mangle]
+pub extern "C" fn se_new_f32(name: *const c_char, v_ptr: *const bool, d_ptr: *const f32, d_len: size_t)
+    -> *mut SeriesC { se_new_opt(name, v_ptr, d_ptr, d_len) }
+
+#[no_mangle]
+pub extern "C" fn se_new_f64(name: *const c_char, v_ptr: *const bool, d_ptr: *const f64, d_len: size_t)
+    -> *mut SeriesC { se_new_opt(name, v_ptr, d_ptr, d_len) }
+
+#[no_mangle]
+pub extern "C" fn se_new_bool(name: *const c_char, v_ptr: *const bool, d_ptr: *const bool, d_len: size_t)
+    -> *mut SeriesC { se_new_opt(name, v_ptr, d_ptr, d_len) }
 /*
 #[no_mangle]
 pub extern "C" fn se_new_i32( name: *const c_char, ptr: *const i32, len: size_t, )
     -> *mut SeriesC { se_new_vec(name, ptr, len) }
-*/
+
 #[no_mangle]
 pub extern "C" fn se_new_i64( name: *const c_char, ptr: *const i64, len: size_t, ) 
     -> *mut SeriesC { se_new_vec(name, ptr, len) }
@@ -278,7 +295,7 @@ pub extern "C" fn se_new_f64( name: *const c_char, ptr: *const f64, len: size_t,
 #[no_mangle]
 pub extern "C" fn se_new_bool( name: *const c_char, ptr: *const bool, len: size_t, ) 
     -> *mut SeriesC { se_new_vec(name, ptr, len) }
-
+*/
 #[no_mangle]
 pub extern "C" fn se_new_str( name: *const c_char, ptr: *const *const c_char, len: size_t, ) 
     -> *mut SeriesC { 

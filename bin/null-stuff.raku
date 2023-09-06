@@ -3,14 +3,17 @@
 use Dan;
 use Dan::Polars;
 
+my \u = Series.new( data => [1, 2, Num, 4, 5] );
+u.show;
+
+
 #`[[
 my \df = DataFrame.new([
     nrs    => [1, 2, 3, 4, 5],
-    nrs2   => [2, NaN, 4, Inf, 6],
-    #nrs2   => [2, NaN, 4, Inf, Nil],
-    names  => ["foo", "ham", "spam", "egg", ""],
+    nrs2   => [2, NaN, 4, Inf, Num],
+    #names  => ["foo", "ham", "spam", "egg", ""],
     random => [1.rand xx 5],
-    groups => ["A", "A", "B", "C", "B"],
+    #groups => ["A", "A", "B", "C", "B"],
 ]);
 df.show;
 

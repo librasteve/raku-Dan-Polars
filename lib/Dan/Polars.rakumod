@@ -33,7 +33,7 @@ role Series does Positional does Iterable is export {
     ## attrs for construct and push/pull only
     ## not synched to Rust shadow 
     has Str	    $.name;
-    has Any     @.data;
+    has         @.data;
     has Int     %.index;
     has         $!dtype;
 
@@ -75,8 +75,8 @@ role Series does Positional does Iterable is export {
     }
 
     submethod BUILD( :$name, :@data, :$index, :$dtype ) {
-        $!name = $name // 'anon';
-        @!data = @data;
+        $!name  = $name // 'anon';
+        @!data  = @data;
         $!dtype = $dtype; 
 
 	    if $index {
@@ -91,7 +91,6 @@ role Series does Positional does Iterable is export {
     method TWEAK {
 
         # handle data => Array of Pairs 
-
         if @!data.first ~~ Pair {
 
             die "index not permitted if data is Array of Pairs" if %!index;

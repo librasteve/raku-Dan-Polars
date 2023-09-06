@@ -17,16 +17,18 @@ sub null-val( $dtype ) {
         when    'u64' { 0 }
         when    'f32' { 0e0 }
         when    'f64' { 0e0 } 
-        when    int32 { 0 }
-        when   uint32 { 0 }
-        when    int64 { 0 }
-        when   uint64 { 0 }
-        when    num32 { 0e0 }
-        when    num64 { 0e0 }
-        when     bool { False }
-        when     Bool { False }
-        when      Int { 0 }
-        when      Num { 0e0 }
+        when   int32  { 0 }
+        when  uint32  { 0 }
+        when   int64  { 0 }
+        when  uint64  { 0 }
+        when   num32  { 0e0 }
+        when   num64  { 0e0 }
+        when    bool  { False }
+        when     str  { '' }
+        when    Bool  { False }
+        when     Int  { 0 }
+        when     Num  { 0e0 }
+        when     Str  { '' } 
     }
 }
 
@@ -107,17 +109,8 @@ class SeriesC is repr('CPointer') is export {
     sub se_new_u64(Str, CArray[bool], CArray[uint64],size_t) returns SeriesC is native($n-path) { * }
     sub se_new_f32(Str, CArray[bool], CArray[num32], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_f64(Str, CArray[bool], CArray[num64], size_t) returns SeriesC is native($n-path) { * }
-    #`[
-    sub se_new_bool(Str, CArray[bool], size_t) returns SeriesC is native($n-path) { * }
-    sub se_new_i32(Str, CArray[int32], size_t) returns SeriesC is native($n-path) { * }
-    sub se_new_i64(Str, CArray[int64], size_t) returns SeriesC is native($n-path) { * }
-    sub se_new_u32(Str, CArray[uint32],size_t) returns SeriesC is native($n-path) { * }
-    sub se_new_u64(Str, CArray[uint64],size_t) returns SeriesC is native($n-path) { * }
-    sub se_new_f32(Str, CArray[num32], size_t) returns SeriesC is native($n-path) { * }
-    sub se_new_f64(Str, CArray[num64], size_t) returns SeriesC is native($n-path) { * }
-    #]
-    sub se_new_str(Str, CArray[Str],   size_t) returns SeriesC is native($n-path) { * }
-    ##sub se_new_str(Str, CArray[bool], CArray[Str],   size_t) returns SeriesC is native($n-path) { * }
+    ##sub se_new_str(Str, CArray[Str],   size_t) returns SeriesC is native($n-path) { * }
+    sub se_new_str(Str, CArray[bool], CArray[Str],   size_t) returns SeriesC is native($n-path) { * }
     sub se_free(SeriesC)   is native($n-path) { * }
     sub se_show(SeriesC)   is native($n-path) { * }
     sub se_head(SeriesC)   is native($n-path) { * }
@@ -161,28 +154,8 @@ class SeriesC is repr('CPointer') is export {
                 when   'Bool' { se_new_bool($name, cnulls(@data), carray( bool, @data), @data.elems) }
                 when    'Int' { se_new_i64($name, cnulls(@data), carray( int64, @data), @data.elems) }
                 when    'Num' { se_new_f64($name, cnulls(@data), carray( num64, @data), @data.elems) }
-                #`[
-                when    'str' { se_new_str($name, carray(   Str, @data), @data.elems) }
-                when    'Str' { se_new_str($name, carray(   Str, @data), @data.elems) }
-                when    'i32' { se_new_i32($name, carray( int32, @data), @data.elems) }
-                when    'u32' { se_new_u32($name, carray(uint32, @data), @data.elems) }
-                when    'i64' { se_new_i64($name, carray( int64, @data), @data.elems) }
-                when    'u64' { se_new_u64($name, carray(uint64, @data), @data.elems) }
-                when    'f32' { se_new_f32($name, carray( num32, @data), @data.elems) }
-                when    'f64' { se_new_f64($name, carray( num64, @data), @data.elems) }
-                when  'int32' { se_new_i32($name, carray( int32, @data), @data.elems) }
-                when 'uint32' { se_new_u32($name, carray(uint32, @data), @data.elems) }
-                when  'int64' { se_new_i64($name, carray( int64, @data), @data.elems) }
-                when 'uint64' { se_new_u64($name, carray(uint64, @data), @data.elems) }
-                when  'num32' { se_new_f32($name, carray( num32, @data), @data.elems) }
-                when  'num64' { se_new_f64($name, carray( num64, @data), @data.elems) }
-                when   'bool' { se_new_bool($name, carray( bool, @data), @data.elems) }
-                when   'Bool' { se_new_bool($name, carray( bool, @data), @data.elems) }
-                when    'Int' { se_new_i64($name, carray( int64, @data), @data.elems) }
-                when    'Num' { se_new_f64($name, carray( num64, @data), @data.elems) }
-                #]
-                when    'str' { se_new_str($name, carray(   Str, @data), @data.elems) }
-                when    'Str' { se_new_str($name, carray(   Str, @data), @data.elems) }
+                when    'str' { se_new_str($name, cnulls(@data), carray(Str, @data), @data.elems) }
+                when    'Str' { se_new_str($name, cnulls(@data), carray(Str, @data), @data.elems) }
                 when    'Rat' { die "Rats are not implemented by Polars" }
                 when   'Real' { die "Rats are not implemented by Polars" }
             }
@@ -191,7 +164,6 @@ class SeriesC is repr('CPointer') is export {
 
             given @data.are {
                 when Bool {   
-                    ##se_new_bool($name, carray(bool, @data), @data.elems );
                     se_new_bool($name, cnulls(@data), carray(bool, @data), @data.elems );
                 }
                 when Int {
@@ -200,24 +172,15 @@ class SeriesC is repr('CPointer') is export {
                         when * >      0, * < 2**32-1 { se_new_u32($name, cnulls(@data), carray(uint32, @data), @data.elems) }
                         when * > -2**63, * < 2**63-1 { se_new_i64($name, cnulls(@data), carray( int64, @data), @data.elems) }
                         when * >      0, * < 2**64-1 { se_new_u64($name, cnulls(@data), carray(uint64, @data), @data.elems) }
-                        #`[
-                        when * > -2**31, * < 2**31-1 { se_new_i32($name, carray( int32, @data), @data.elems) }
-                        when * >      0, * < 2**32-1 { se_new_u32($name, carray(uint32, @data), @data.elems) }
-                        when * > -2**63, * < 2**63-1 { se_new_i64($name, carray( int64, @data), @data.elems) }
-                        when * >      0, * < 2**64-1 { se_new_u64($name, carray(uint64, @data), @data.elems) }
-                        #]
                         default { die "Int larger than 2**64 are not implemented by Polars" }
                     }
                 }
                 when Real {   
-                dd @data;
                     @data.map({ $_.=Num });                          #Coerce stray Rats & Ints to Num
                     se_new_f64($name, cnulls(@data), carray(num64, @data), @data.elems );
                 }
                 when Str {   
-                    se_new_str($name, carray(Str, @data), @data.elems );
-                    #iamerejh
-                    ##se_new_f64($name, cnulls(@data), carray(num64, @data), @data.elems );
+                    se_new_str($name, cnulls(@data), carray(Str, @data), @data.elems);
                 }
             }
         }

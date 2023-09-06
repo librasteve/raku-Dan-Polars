@@ -219,27 +219,6 @@ fn se_new_opt<T>(
     Box::into_raw(Box::new(SeriesC::new(se_name, se_vals)))
 }
 
-// FIXME rm
-fn se_new_vec<T>(
-    name: *const c_char,
-    ptr: *const T,
-    len: size_t, 
-) -> *mut SeriesC 
-    where Series: NamedFrom<Vec<T>, [T]>, T: Clone
-{
-
-    let se_name;
-    let mut se_data = Vec::new();
-    unsafe {
-        assert!(!ptr.is_null());
-        se_name = CStr::from_ptr(name).to_string_lossy().into_owned();
-        se_data.extend_from_slice(slice::from_raw_parts(ptr, len as usize));
-    };
-
-    Box::into_raw(Box::new(SeriesC::new(se_name, se_data)))
-}
-
-// adjust se_new_i32
 #[no_mangle]
 pub extern "C" fn se_new_i32(name: *const c_char, v_ptr: *const bool, d_ptr: *const i32, d_len: size_t)
     -> *mut SeriesC { se_new_opt(name, v_ptr, d_ptr, d_len) }
@@ -267,51 +246,39 @@ pub extern "C" fn se_new_f64(name: *const c_char, v_ptr: *const bool, d_ptr: *co
 #[no_mangle]
 pub extern "C" fn se_new_bool(name: *const c_char, v_ptr: *const bool, d_ptr: *const bool, d_len: size_t)
     -> *mut SeriesC { se_new_opt(name, v_ptr, d_ptr, d_len) }
-/*
-#[no_mangle]
-pub extern "C" fn se_new_i32( name: *const c_char, ptr: *const i32, len: size_t, )
-    -> *mut SeriesC { se_new_vec(name, ptr, len) }
 
 #[no_mangle]
-pub extern "C" fn se_new_i64( name: *const c_char, ptr: *const i64, len: size_t, ) 
-    -> *mut SeriesC { se_new_vec(name, ptr, len) }
-
-#[no_mangle]
-pub extern "C" fn se_new_u32( name: *const c_char, ptr: *const u32, len: size_t, ) 
-    -> *mut SeriesC { se_new_vec(name, ptr, len) }
-
-#[no_mangle]
-pub extern "C" fn se_new_u64( name: *const c_char, ptr: *const u64, len: size_t, ) 
-    -> *mut SeriesC { se_new_vec(name, ptr, len) }
-
-#[no_mangle]
-pub extern "C" fn se_new_f32( name: *const c_char, ptr: *const f32, len: size_t, ) 
-    -> *mut SeriesC { se_new_vec(name, ptr, len) }
-
-#[no_mangle]
-pub extern "C" fn se_new_f64( name: *const c_char, ptr: *const f64, len: size_t, ) 
-    -> *mut SeriesC { se_new_vec(name, ptr, len) }
-
-#[no_mangle]
-pub extern "C" fn se_new_bool( name: *const c_char, ptr: *const bool, len: size_t, ) 
-    -> *mut SeriesC { se_new_vec(name, ptr, len) }
-*/
-#[no_mangle]
-pub extern "C" fn se_new_str( name: *const c_char, ptr: *const *const c_char, len: size_t, ) 
-    -> *mut SeriesC { 
+pub extern "C" fn se_new_str(
+    name: *const c_char, 
+    v_ptr: *const bool, 
+    d_ptr: *const *const c_char, 
+    d_len: size_t
+) -> *mut SeriesC { 
 
     let se_name;
+    let mut se_null = Vec::new();
     let mut se_data = Vec::<String>::new();
     unsafe {
-        assert!(!ptr.is_null());
+        assert!(!v_ptr.is_null());
         se_name = CStr::from_ptr(name).to_string_lossy().into_owned();
+        se_null.extend_from_slice(slice::from_raw_parts(v_ptr, d_len as usize));
 
-        for item in slice::from_raw_parts(ptr, len as usize) {
+        for item in slice::from_raw_parts(d_ptr, d_len as usize) {
             se_data.push(CStr::from_ptr(*item).to_string_lossy().into_owned());
         };
     };
 
-    Box::into_raw(Box::new(SeriesC::new(se_name, se_data)))
+    let mut se_vals = Vec::<Option<String>>::new();
+
+    for i in 0..d_len {
+        if se_null[i] {
+            se_vals.push(None);
+        } else {
+            se_vals.push(Some(se_data[i].clone()));
+        }
+    }
+
+    Box::into_raw(Box::new(SeriesC::new(se_name, se_vals)))
 }
 
 #[no_mangle]
@@ -320,7 +287,7 @@ pub extern "C" fn se_free(ptr: *mut SeriesC) {
         return;
     }
     unsafe {
-        Box::from_raw(ptr);
+        let _ = Box::from_raw(ptr);
     }
 }
 
@@ -531,7 +498,7 @@ pub extern "C" fn df_free(ptr: *mut DataFrameC) {
         return;
     }
     unsafe {
-        Box::from_raw(ptr);
+        let _ = Box::from_raw(ptr);
     }
 }
 
@@ -798,7 +765,7 @@ pub extern "C" fn lf_free(ptr: *mut LazyFrameC) {
         return;
     }
     unsafe {
-        Box::from_raw(ptr);
+        let _ = Box::from_raw(ptr);
     }
 }
 
@@ -973,67 +940,67 @@ impl ToExprs for Vec<&ExprC> {
 
 impl ExprC {
     fn alias(&self, string: String ) -> ExprC {
-        self.clone().inner.clone().alias(&string).into()
+        self.inner.clone().alias(&string).into()
     }
 
     fn sum(&self) -> ExprC {
-        self.clone().inner.clone().sum().into()
+        self.inner.clone().sum().into()
     }
 
     fn mean(&self) -> ExprC {
-        self.clone().inner.clone().mean().into()
+        self.inner.clone().mean().into()
     }
 
     fn min(&self) -> ExprC {
-        self.clone().inner.clone().min().into()
+        self.inner.clone().min().into()
     }
 
     fn max(&self) -> ExprC {
-        self.clone().inner.clone().max().into()
+        self.inner.clone().max().into()
     }
 
     fn first(&self) -> ExprC {
-        self.clone().inner.clone().first().into()
+        self.inner.clone().first().into()
     }
 
     fn last(&self) -> ExprC {
-        self.clone().inner.clone().last().into()
+        self.inner.clone().last().into()
     }
 
     fn unique(&self) -> ExprC {
-        self.clone().inner.clone().unique().into()
+        self.inner.clone().unique().into()
     }
 
     fn count(&self) -> ExprC {
-        self.clone().inner.clone().count().into()
+        self.inner.clone().count().into()
     }
 
     fn forward_fill(&self) -> ExprC {
-        self.clone().inner.clone().forward_fill(None).into()
+        self.inner.clone().forward_fill(None).into()
     }
 
     fn backward_fill(&self) -> ExprC {
-        self.clone().inner.clone().backward_fill(None).into()
+        self.inner.clone().backward_fill(None).into()
     }
 
     fn reverse(&self) -> ExprC {
-        self.clone().inner.clone().reverse().into()
+        self.inner.clone().reverse().into()
     }
 
     fn sort(&self) -> ExprC {
-        self.clone().inner.clone().sort(false).into()
+        self.inner.clone().sort(false).into()
     }
 
     fn std(&self) -> ExprC {
-        self.clone().inner.clone().std().into()
+        self.inner.clone().std().into()
     }
 
     fn var(&self) -> ExprC {
-        self.clone().inner.clone().var().into()
+        self.inner.clone().var().into()
     }
 
     fn exclude(&self, colvec: Vec::<String>) -> ExprC {
-        self.clone().inner.clone().exclude(colvec).into()
+        self.inner.clone().exclude(colvec).into()
     }
 
     fn __add__(&self, rhs: &ExprC) -> ExprC {
@@ -1061,63 +1028,63 @@ impl ExprC {
     }
 
     fn __gt__(&self, other: &ExprC) -> ExprC {
-        self.clone().inner.clone().gt(other.inner.clone()).into()
+        self.inner.clone().gt(other.inner.clone()).into()
     }
 
     fn __lt__(&self, other: &ExprC) -> ExprC {
-        self.clone().inner.clone().lt(other.inner.clone()).into()
+        self.inner.clone().lt(other.inner.clone()).into()
     }
 
     fn __ge__(&self, other: &ExprC) -> ExprC {
-        self.clone().inner.clone().gt_eq(other.inner.clone()).into()
+        self.inner.clone().gt_eq(other.inner.clone()).into()
     }
 
     fn __le__(&self, other: &ExprC) -> ExprC {
-        self.clone().inner.clone().lt_eq(other.inner.clone()).into()
+        self.inner.clone().lt_eq(other.inner.clone()).into()
     }
 
     fn __eq__(&self, other: &ExprC) -> ExprC {
-        self.clone().inner.clone().eq(other.inner.clone()).into()
+        self.inner.clone().eq(other.inner.clone()).into()
     }
 
     fn __ne__(&self, other: &ExprC) -> ExprC {
-        self.clone().inner.clone().neq(other.inner.clone()).into()
+        self.inner.clone().neq(other.inner.clone()).into()
     }
 
     fn __and__(&self, other: &ExprC) -> ExprC {
-        self.clone().inner.clone().and(other.inner.clone()).into()
+        self.inner.clone().and(other.inner.clone()).into()
     }
 
     fn __or__(&self, other: &ExprC) -> ExprC {
-        self.clone().inner.clone().or(other.inner.clone()).into()
+        self.inner.clone().or(other.inner.clone()).into()
     }
 
     fn is_not(&self) -> ExprC {
-        self.clone().inner.clone().not().into()
+        self.inner.clone().not().into()
     }
 
     fn is_null(&self) -> ExprC {
-        self.clone().inner.clone().is_null().into()
+        self.inner.clone().is_null().into()
     }
 
     fn is_not_null(&self) -> ExprC {
-        self.clone().inner.clone().is_not_null().into()
+        self.inner.clone().is_not_null().into()
     }
 
     fn is_infinite(&self) -> ExprC {
-        self.clone().inner.clone().is_infinite().into()
+        self.inner.clone().is_infinite().into()
     }
 
     fn is_finite(&self) -> ExprC {
-        self.clone().inner.clone().is_finite().into()
+        self.inner.clone().is_finite().into()
     }
 
     fn is_nan(&self) -> ExprC {
-        self.clone().inner.clone().is_nan().into()
+        self.inner.clone().is_nan().into()
     }
 
     fn is_not_nan(&self) -> ExprC {
-        self.clone().inner.clone().is_not_nan().into()
+        self.inner.clone().is_not_nan().into()
     }
 }
 
@@ -1232,7 +1199,7 @@ pub extern "C" fn ex_free(ptr: *mut ExprC) {
         return;
     }
     unsafe {
-        Box::from_raw(ptr);
+        let _ =Box::from_raw(ptr);
     }
 }
 

@@ -9,7 +9,7 @@ my regex number {
 	<?{ +"$/" ~~ Real }>    #assert coerces via '+' to Real
 }
 
-sub null-val( $dtype ) {
+sub rust-null-val( $dtype ) {
     given $dtype {
         when    'i32' { 0 }
         when    'u32' { 0 }
@@ -32,6 +32,29 @@ sub null-val( $dtype ) {
     }
 }
 
+sub raku-null-val( $dtype ) {
+    given $dtype {
+        when    'i32' { 'Int' }
+        when    'u32' { 'Int' }
+        when    'i64' { 'Int' }
+        when    'u64' { 'Int' }
+        when    'f32' { 'Num' }
+        when    'f64' { 'Num' }
+        when   int32  { 'Int' }
+        when  uint32  { 'Int' }
+        when   int64  { 'Int' }
+        when  uint64  { 'Int' }
+        when   num32  { 'Num' }
+        when   num64  { 'Num' }
+        when    bool  { 'False' }
+        when     str  { 'Str' }
+        when    Bool  { 'False' }
+        when     Int  { 'Int' }
+        when     Num  { 'Num' }
+        when     Str  { 'Str' }
+    }
+}
+
 #| make a CArray for NativeCall data
 sub carray( $dtype, @items ) {
     my $data := CArray[$dtype].new();
@@ -40,7 +63,7 @@ sub carray( $dtype, @items ) {
         with @items[$i] {
             $data[$i] = @items[$i];
         } else {
-            $data[$i] = null-val($dtype);
+            $data[$i] = rust-null-val($dtype);
         }
     }
     $data
@@ -230,23 +253,23 @@ class SeriesC is repr('CPointer') is export {
         se_is_null(self)
     }
 
+    method raku-null-val( $dtype ) {
+        raku-null-val( $dtype )
+    }
+
     # viz. https://docs.raku.org/language/nativecall#Arrays
-    method get-data {
-    say 1;
+    method get_data {
         my $elems = self.len;
 
         given self.dtype {
             when 'bool' {
                 my $array := CArray[bool].allocate($elems); 
                 se_get_bool(self, $array, $elems);
-                say $array.list;
                 $array.list
             }
             when 'i32' {
-            say 2;
                 my $array := CArray[int32].allocate($elems);
                 se_get_i32(self, $array, $elems);
-                say $array.list;
                 $array.list
             }
             when 'i64' {
@@ -270,19 +293,14 @@ class SeriesC is repr('CPointer') is export {
                 $array.list
             }
             when 'f64' {
-            say 3;
                 my $array := CArray[num64].allocate($elems);
                 se_get_f64(self, $array, $elems);
-                say $array.list;
-                say $elems;
                 $array.list
             }
             when 'str' {
-            say 4;
                 my $chars = self.str-lengths;
                    $chars += ($elems-1) * 3;  #pad for join '","' 
                 my $array := CArray[uint8].allocate($chars);
-                say $array.list;
 
                 se_get_u8(self, $array, $chars);
                 

@@ -6,10 +6,10 @@ use Dan::Polars;
 my \df = DataFrame.new([
     nrs    => [1, 2, 3, 4, 5],
     nrs2   => [Num, NaN, 4, Inf, 8.3],
-    #names  => ["foo", Str, "spam", "egg", ""],
+    names  => ["foo", Str, "spam", "egg", ""],
     random => [1.rand xx 5],
     #groups => ["A", "A", "B", "C", "B"],
-    flags  => [True,True,False,True,Bool],
+    #flags  => [True,True,False,True,Bool],
 ]);
 df.show;
 

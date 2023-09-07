@@ -90,6 +90,9 @@ role Series does Positional does Iterable is export {
 
     method TWEAK {
 
+        # reject missing empty data (since we cannot infer dtype)
+        die "please provide at least one data item so that we can infer the dtype" without @!data;
+
         # handle data => Array of Pairs 
         if @!data.first ~~ Pair {
 
@@ -120,10 +123,6 @@ role Series does Positional does Iterable is export {
     }
 
     #### Info Methods #####
-    method xxx {
-	    $!rc.xxx
-    }
-
     method show {
 	    $!rc.show
     }
@@ -149,9 +148,10 @@ role Series does Positional does Iterable is export {
         $!rc.len 
     }
 
-    method is_null {
-    #iamerejh (no such method flood)
-        $!rc .= is_null 
+    submethod is-null {         # cannot autoflood as self referential
+        my $nulls = Series.new( data => [False], name => 'nulls' );
+        $nulls.rc = $!rc.is_null;
+        $nulls
     }
 
     method index {              # get index as Hash
@@ -167,15 +167,35 @@ role Series does Positional does Iterable is export {
         $!rc.str-lengths
     }
 
-    method get-data {
-        my $nulls = self.is_null;
-        dd $nulls.flood.data;
+    method get_data {
+    say 1;
+        my $nulls = self.is-null;
+        say my @nulls = $nulls.rc.get_data;
+        say my @data  = $!rc.get_data; 
+        say self.elems;
+        say self.dtype;
 
-        $!rc.get-data 
+        say my $null-val = $nulls.rc.raku-null-val( self.dtype );
+
+        my @out = @data;
+
+        my @vals = gather {
+            for ^self.elems -> $i {
+                if @nulls[$i] {
+                    take $null-val 
+                } else {
+                    take @data.shift
+                }
+            }
+        }
+        say 2;
+        say @vals;
+
+        @vals
     }
 
     method Dan-Series {
-        my @data := $.get-data;
+        my @data := $.get_data;
         Dan::Series.new( :$!name, :@data )
     }
 
@@ -184,7 +204,7 @@ role Series does Positional does Iterable is export {
 
     #| set raku attrs to rc_data, reset index
     method flood {
-	    @!data = $.get-data.flat;
+	    @!data = $.get_data.flat;
 
         %!index = gather {
             for 0..^@!data {
@@ -522,7 +542,7 @@ role DataFrame does Positional does Iterable is export {
             say DateTime.now, "...column $colname";
             $series = $.column($colname);
 
-            @aoa.push: [$series.get-data.map({$colname => $_})];
+            @aoa.push: [$series.get_data.map({$colname => $_})];
         }
 
         say DateTime.now, "...transpose dataset";

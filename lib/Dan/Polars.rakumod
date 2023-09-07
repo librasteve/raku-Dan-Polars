@@ -149,6 +149,11 @@ role Series does Positional does Iterable is export {
         $!rc.len 
     }
 
+    method is_null {
+    #iamerejh (no such method flood)
+        $!rc .= is_null 
+    }
+
     method index {              # get index as Hash
         self.flood; 
         %!index
@@ -163,6 +168,9 @@ role Series does Positional does Iterable is export {
     }
 
     method get-data {
+        my $nulls = self.is_null;
+        dd $nulls.flood.data;
+
         $!rc.get-data 
     }
 

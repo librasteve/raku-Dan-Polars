@@ -117,6 +117,13 @@ impl SeriesC {
         self.se.rename(&name);
     }
 
+    fn is_null(&mut self) -> SeriesC {
+        let nulls_arr: ChunkedArray<BooleanType> = self.se.is_null();
+        let nulls_vec: Vec<bool> = nulls_arr.into_iter().flatten().collect();
+
+        SeriesC::new("nulls".to_string(), nulls_vec)
+    }
+
     fn len(&self) -> u32 {
         self.se.len().try_into().unwrap()
     }
@@ -124,8 +131,7 @@ impl SeriesC {
     fn get_data<T>(&self, buffer: *mut T, len: size_t, asvec: Vec<T>) {
         let slice: &[T] = &asvec;
         unsafe {
-            let buffer: &mut [T] = 
-                              slice::from_raw_parts_mut(buffer as *mut T, len as usize);
+            let buffer: &mut [T] = slice::from_raw_parts_mut(buffer as *mut T, len as usize);
             ptr::copy_nonoverlapping(slice.as_ptr(), buffer.as_mut_ptr(), len as usize);
         }
     }
@@ -155,15 +161,7 @@ impl SeriesC {
         self.get_data(buffer, len, asvec);
     }
     fn get_f64(&self, buffer: *mut f64, len: size_t) {
-    //fn get_f64(&self, valids: *mut bool, buffer: *mut f64, len: size_t) {
-    //iamerejh
-        println!("yo");
-        println!("{:?}",self.se);
-        println!("{:?}",self.se.f64());
-        println!("{:?}",self.se.f64().into_iter().collect::<Vec<_>>());
-        println!("{:?}",self.se.f64().into_iter().flatten().collect::<Vec<_>>());
         let asvec = self.se.f64().into_iter().flatten().flatten().collect();
-        println!("{:?}", asvec);
         self.get_data(buffer, len, asvec);
     }
     fn get_u8(&self, buffer: *mut u8, len: size_t) {
@@ -342,6 +340,12 @@ pub extern "C" fn se_rename(
 pub extern "C" fn se_len(ptr: *mut SeriesC) -> u32 {
     let se_c = check_ptr(ptr);
     se_c.len()
+}
+
+#[no_mangle]
+pub extern "C" fn se_is_null(ptr: *mut SeriesC) -> *mut SeriesC { 
+    let se_c = check_ptr(ptr);
+    Box::into_raw(Box::new( se_c.is_null() ))
 }
 
 #[no_mangle]

@@ -109,7 +109,6 @@ class SeriesC is repr('CPointer') is export {
     sub se_new_u64(Str, CArray[bool], CArray[uint64],size_t) returns SeriesC is native($n-path) { * }
     sub se_new_f32(Str, CArray[bool], CArray[num32], size_t) returns SeriesC is native($n-path) { * }
     sub se_new_f64(Str, CArray[bool], CArray[num64], size_t) returns SeriesC is native($n-path) { * }
-    ##sub se_new_str(Str, CArray[Str],   size_t) returns SeriesC is native($n-path) { * }
     sub se_new_str(Str, CArray[bool], CArray[Str],   size_t) returns SeriesC is native($n-path) { * }
     sub se_free(SeriesC)   is native($n-path) { * }
     sub se_show(SeriesC)   is native($n-path) { * }
@@ -118,6 +117,9 @@ class SeriesC is repr('CPointer') is export {
     sub se_name(SeriesC,   &callback (Str --> Str)) is native($n-path) { * }
     sub se_rename(SeriesC, Str)                returns SeriesC is native($n-path) { * }
     sub se_len(SeriesC)                        returns uint32 is native($n-path) { * }
+    sub se_str_lengths(SeriesC)                returns uint32 is native($n-path) { * }
+    sub se_append(SeriesC, SeriesC)            returns SeriesC is native($n-path) { * }
+    sub se_is_null(SeriesC)                    returns SeriesC is native($n-path) { * }
     sub se_get_bool(SeriesC, CArray[bool], size_t) is native($n-path) { * }
     sub se_get_i32(SeriesC, CArray[int32], size_t) is native($n-path) { * }
     sub se_get_i64(SeriesC, CArray[int64], size_t) is native($n-path) { * }
@@ -126,8 +128,6 @@ class SeriesC is repr('CPointer') is export {
     sub se_get_f32(SeriesC, CArray[num32], size_t) is native($n-path) { * }
     sub se_get_f64(SeriesC, CArray[num64], size_t) is native($n-path) { * }
     sub se_get_u8(SeriesC, CArray[uint8], size_t) is native($n-path) { * }
-    sub se_str_lengths(SeriesC)                returns uint32 is native($n-path) { * }
-    sub se_append(SeriesC, SeriesC)            returns SeriesC is native($n-path) { * }
 
 
     method new( $name, @data, :$dtype ) {
@@ -226,8 +226,8 @@ class SeriesC is repr('CPointer') is export {
         se_len(self)
     }
 
-    method str-lengths {
-        se_str_lengths(self)
+    method is_null {
+        se_is_null(self)
     }
 
     # viz. https://docs.raku.org/language/nativecall#Arrays
@@ -289,6 +289,10 @@ class SeriesC is repr('CPointer') is export {
                 Buf.new($array.list).decode.split('","')
             }
         }
+    }
+
+    method str-lengths {
+        se_str_lengths(self)
     }
 
     method append( SeriesC $right ) {

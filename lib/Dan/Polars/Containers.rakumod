@@ -40,18 +40,15 @@ sub raku-null-val( $dtype ) {
         when    'u64' { 'Int' }
         when    'f32' { 'Num' }
         when    'f64' { 'Num' }
-        when   int32  { 'Int' }
-        when  uint32  { 'Int' }
-        when   int64  { 'Int' }
-        when  uint64  { 'Int' }
-        when   num32  { 'Num' }
-        when   num64  { 'Num' }
-        when    bool  { 'False' }
-        when     str  { 'Str' }
-        when    Bool  { 'False' }
-        when     Int  { 'Int' }
-        when     Num  { 'Num' }
-        when     Str  { 'Str' }
+        when  'int32'  { 'Int' }
+        when 'uint32'  { 'Int' }
+        when  'int64'  { 'Int' }
+        when 'uint64'  { 'Int' }
+        when  'num32'  { 'Num' }
+        when  'num64'  { 'Num' }
+        when   'bool'  { 'Bool' }
+        when    'str'  { 'Str' }
+        default { $_ }
     }
 }
 
@@ -259,14 +256,13 @@ class SeriesC is repr('CPointer') is export {
 
     # viz. https://docs.raku.org/language/nativecall#Arrays
     method get_data($null-count = 0) {
-        say "nc is $null-count";
         my $elems = self.len - $null-count;
 
         given self.dtype {
             when 'bool' {
                 my $array := CArray[bool].allocate($elems); 
                 se_get_bool(self, $array, $elems);
-                $array.list
+                $array.list.map(*.Bool)
             }
             when 'i32' {
                 my $array := CArray[int32].allocate($elems);
@@ -305,7 +301,7 @@ class SeriesC is repr('CPointer') is export {
                 my $array := CArray[uint8].allocate($chars);
 
                 se_get_u8(self, $array, $chars);
-                $array.list;
+                Buf.new($array.list).decode.split('","')
             }
         }
     }

@@ -169,44 +169,11 @@ role Series does Positional does Iterable is export {
 
     method get_data {
         my $nulls = self.is-null;
-        say my @nulls = $nulls.rc.get_data;
-        say my $null-count = +@nulls.grep(*.so); 
+        my @nulls = $nulls.rc.get_data;
+        my $null-count = +@nulls.grep(*.so); 
         my $null-value = $nulls.rc.raku-null-val( self.dtype );
 
-        my @data;
-
-        if self.dtype eq 'str' {
-
-            my @chars;
-
-            for $!rc.get_data($null-count) -> $byte {
-                try {
-                    my $char = $byte.chr;
-                    @chars.push($char);
-                }
-                CATCH {
-                    # Handle invalid bytes as needed, or simply ignore them
-                }
-            }
-
-            my $utf8 = @chars.join('');
-            say $utf8;
-            $utf8 ~~ s:g/[<-alnum> && <-[_,]>]//;
-            say $utf8;
-            #iamerejh
-
-            @data = $utf8.split(',');
-
-            @data = Buf.new($!rc.get_data($null-count)).decode('utf-8', :replacement<pass>).split('","');
-            say @data;
-
-
-
-        } else {
-
-            @data = $!rc.get_data($null-count); 
-
-        }
+        my @data = $!rc.get_data($null-count); 
 
         my @vals = gather {
             for ^self.elems -> $i {
@@ -217,7 +184,6 @@ role Series does Positional does Iterable is export {
                 }
             }
         }
-        say @vals;
 
         @vals
     }

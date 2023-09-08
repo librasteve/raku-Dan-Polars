@@ -41,6 +41,6 @@ ok costs[3] == 111.15,                                                      '>>*
 
 my \u = s.Dan-Series;
 my \v = Series.new( u );
-ok v.dtype eq 'i32',                                                        'Dan rt';
+ok v.dtype eq 'bool',                                                       'Dan rt';
 
 #done-testing;

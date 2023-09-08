@@ -4,7 +4,7 @@ use Dan;
 use Dan::Polars;
 
 #monadic
-#[
+#`[
 my \df = DataFrame.new([
     nrs    => [1, 2, 3, 4, 5],
     nrs2   => [2, 3, 4, 5, 6],
@@ -13,7 +13,6 @@ my \df = DataFrame.new([
     groups => ["A", "A", "B", "C", "B"],
 ]);
 df.show;
-
 # viz. https://pola-rs.github.io/polars-book/user-guide/expressions/user-defined-functions/#to-map-or-to-apply
 
 #my $type = df.column("nrs").dtype;
@@ -25,9 +24,8 @@ df.show;
 df.groupby(["groups"]).agg([col("nrs").apply("|a: i32| (a + 1) as i32").alias("jones")]).head;
 #]
 
-
 #dyadic
-#[
+#`[
 my \df2 = DataFrame.new([
     keys => ["a", "a", "b"],
     values => [10, 7, 1],
@@ -42,9 +40,10 @@ df2.show;
 df2.groupby(["keys"]).agg([struct(["keys", "values"]).apply("|a: str, b: i32| (a.len() as i32 + b) as i32").alias("jones")]).show;
 #]
 
+
 #`[ todo
-- adjust install to work with apply
 - create apply section in synopsis
 - ditto README
 - ditto test
 #]
+

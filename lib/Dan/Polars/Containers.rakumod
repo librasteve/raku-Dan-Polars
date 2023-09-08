@@ -787,7 +787,7 @@ class ExprC is repr('CPointer') is export {
         my @dtypes = <Boolean Int32 Int64 UInt32 UInt64 Float32 Float64 Utf8>;
         my %type-map = @types Z=> @dtypes;
 
-        #use Grammar::Tracer;
+        use Grammar::Tracer;
 
         my grammar Lambda {
             rule  TOP       { <signature> <body> <as-type> }
@@ -802,6 +802,7 @@ class ExprC is repr('CPointer') is export {
             token r-type    { @types }
         }
         my $match = Lambda.parse($lambda);
+        die "cannot match this lambda" unless $match.so;
 
         my $pattern = $match<signature><b-sig> ?? 'dyadic' !! 'monadic';
         say "found pattern: $pattern ...";
@@ -831,6 +832,7 @@ class ExprC is repr('CPointer') is export {
 
             method r-type {
                 return 'i32' without $!match;
+
                 ~$!match<as-type><r-type>;
             }
 

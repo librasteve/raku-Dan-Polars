@@ -351,7 +351,7 @@ This will then provide a basis for ...
 - [x] logical operators (gt >, lt <, ge >=, le <=, eq ==, ne !=, and &&, or ||)
 - [x] filter  \  see Query_TODOs  (aka grep)
 - [x] sort    /
-- [ ] non-null, etc. [boolean](https://pola-rs.github.io/polars/py-polars/html/reference/expressions/boolean.html)
+- [x] non-null, etc. [boolean](https://pola-rs.github.io/polars/py-polars/html/reference/expressions/boolean.html)
 - [ ] cast
 - [ ] general tidy up / refactor (esp.lib.rs)
 

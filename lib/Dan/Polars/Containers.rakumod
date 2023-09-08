@@ -258,8 +258,9 @@ class SeriesC is repr('CPointer') is export {
     }
 
     # viz. https://docs.raku.org/language/nativecall#Arrays
-    method get_data {
-        my $elems = self.len;
+    method get_data($null-count = 0) {
+        say "nc is $null-count";
+        my $elems = self.len - $null-count;
 
         given self.dtype {
             when 'bool' {
@@ -299,12 +300,12 @@ class SeriesC is repr('CPointer') is export {
             }
             when 'str' {
                 my $chars = self.str-lengths;
-                   $chars += ($elems-1) * 3;  #pad for join '","' 
+                my $joins = $elems - 1;
+                   $chars += ($joins * 3);                      #pad for join '","' 
                 my $array := CArray[uint8].allocate($chars);
 
                 se_get_u8(self, $array, $chars);
-                
-                Buf.new($array.list).decode.split('","')
+                $array.list;
             }
         }
     }

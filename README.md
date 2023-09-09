@@ -1,8 +1,8 @@
 *WORK IN PROGRESS*
 
-_So far, I have managed to bring about a third of the Polars library into the Raku world with this module. Some track has been laid that may make the rest go faster and easier, but surely there is a lot of refactoring and tidying up to do to._
+_So far, I have managed to bring about half of the Polars library into the Raku world with this module. Some track has been laid that may make the rest go faster and easier, but surely there is a lot of refactoring and tidying up to do to._
 
-_You can see the TODO files here for Query and Expression features and I will be working my way down this list steadily._
+_You can see the TODO files here for Expression features and I will be working my way down this list steadily._
 
 _If you would like to alter the priority, please create an issue (or find an existing one) and hopefully others will upvoat it._
 

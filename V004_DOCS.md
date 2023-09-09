@@ -23,7 +23,7 @@ The TOC is a subset of the Polars Book TOC.
     - [Sort](#Sort)
   - Missing Data
   - Apply (user-defined functions)
-- [Transfomations](#Transfomations)
+- [Transformations](#Transformations)
   - [Join](#Join)
   - [Concat](#Concat) (aka hstack/vstack)
 
@@ -264,7 +264,7 @@ shape: (3, 2)
 └────────┴───────────┘
 ```
 
-### Transfomations
+### Transformations
 
 #### Join
 

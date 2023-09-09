@@ -134,7 +134,7 @@ shape: (4, 5)
 └─────┴──────┴───────┴──────────┴────────┘
 ```
 
-Filter (implemented in Rust Polars) is a sister function to grep (implemented in Raku Dan). Filter uses simple conditionals, whereas grep enjoys raku grep block-style semantics. The implication is that the ```.grep``` syntax is very rich, but the performance is lower than ```.filter```.
+Unlike ```.filter```, DataFrame ```.grep``` is implemented by converting a rust ```Dan::Polars::DataFrame``` to a raku ```Dan::DataFrame``` (a ```.flood```), performing the grep with a raku block-style syntax and then convering back (a ```.flush```). The implication is that the syntax is very rich, but the performance is lower than Expression Sorting.
 
 ```perl6
 # Grep (binary filter)

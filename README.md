@@ -38,7 +38,8 @@ Based on the Dockerfile chain [(1)](https://github.com/librasteve/raku-Dan-Polar
 - ```docker run -it librasteve/raku-dan:polars-amd64```
 
 Then try
-- ```cd ~/raku-Dan-Polars/bin``` (git clone this repo to load test_data)
+- ```cd ~ && git clone https://github.com/librasteve/raku-Dan-Polars.git``` (to load test_data)
+- ```cd ~/raku-Dan-Polars/bin```
 - ```./synopsis-dan-polars.raku``` or ```./nutshell.raku```
 
 (see bin/setup.raku for manual / development install steps)

@@ -19,13 +19,13 @@ The TOC is a subset of the Polars Book TOC.
     - [Booleans](#Booleans)
   - [Aggregation](#Aggregation)
     - [Conditionals](#Conditionals)
-    - [Filtering](#Filtering) (aka grep)
-    - [Sorting](#Sorting)
+    - [Filter](#Filter) (aka grep)
+    - [Sort](#Sort)
   - Missing Data
   - Apply (user-defined functions)
-- Transfomations
-  - Joins
-  - Concatenation (Stacking)
+- [Transfomations](#Transfomations)
+  - [Join](#Join)
+  - [Concat](#Concat) (aka hstack/vstack)
 
 ## Expressions
 
@@ -109,7 +109,7 @@ df.select([(col("nrs") > 2).alias("jones")]).head;
 #df.select([((col("nrs") >= 2) || (col("nrs2") == 5)) .alias("jones")]).head;
 ```
 
-#### Filtering
+#### Filter
 
 The filter method applies to the entire DataFrame.
 
@@ -134,9 +134,9 @@ shape: (4, 5)
 └─────┴──────┴───────┴──────────┴────────┘
 ```
 
-#### Sorting
+#### Sort
 
-##### Expression Sorting
+##### Expression Sort
 
 The sort method on col Expressions in a select is independently applied to each col.
 
@@ -185,7 +185,7 @@ shape: (3, 2)
 └────────┴───────────┘
 ```
 
-##### DataFrame Sorting
+##### DataFrame Sort
 
 As set out in the [Dan synopsis](https://github.com/librasteve/raku-Dan), DataFrame level sort is done like this:
 
@@ -204,5 +204,13 @@ $obj .= sort( {$obj[$++]<species>, $obj[$++]<mass>} )[*].reverse^;
 ```
 
 Unlike Expression sorting, DataFrame sorting is implemented by converting a rust ```Dan::Polars::DataFrame``` to a raku ```Dan::DataFrame``` (a ```.flood```), performing the sort with a raku block-style syntax and then convering back (a ```.flush```). The implication is that the syntax is very rich, but the performance is lower than Expression Sorting.
+
+### Transfomations
+
+#### Join
+
+#### Concat
+
+aka hstack/vstack
 
 Copyright(c) 2022-2023 Henley Cloud Consulting Ltd.

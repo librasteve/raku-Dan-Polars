@@ -1098,6 +1098,38 @@ impl ExprC {
     fn is_not_nan(&self) -> ExprC {
         self.inner.clone().is_not_nan().into()
     }
+
+    fn cast_i32(&self) -> ExprC {
+        self.inner.clone().cast(DataType::Int32).into()
+    }
+
+    fn cast_i64(&self) -> ExprC {
+        self.inner.clone().cast(DataType::Int64).into()
+    }
+
+    fn cast_u32(&self) -> ExprC {
+        self.inner.clone().cast(DataType::UInt32).into()
+    }
+
+    fn cast_u64(&self) -> ExprC {
+        self.inner.clone().cast(DataType::UInt64).into()
+    }
+
+    fn cast_f32(&self) -> ExprC {
+        self.inner.clone().cast(DataType::Float32).into()
+    }
+
+    fn cast_f64(&self) -> ExprC {
+        self.inner.clone().cast(DataType::Float64).into()
+    }
+
+    fn cast_str(&self) -> ExprC {
+        self.inner.clone().cast(DataType::Utf8).into()
+    }
+
+    fn cast_bool(&self) -> ExprC {
+        self.inner.clone().cast(DataType::Boolean).into()
+    }
 }
 
 //col() is the extern for new()
@@ -1459,6 +1491,7 @@ pub extern "C" fn ex_is_finite(ptr: *mut ExprC) -> *mut ExprC {
     Box::into_raw(Box::new(ex_c.is_finite()))
 
 }
+
 #[no_mangle]
 pub extern "C" fn ex_is_nan(ptr: *mut ExprC) -> *mut ExprC {
     let ex_c = check_ptr(ptr);
@@ -1470,3 +1503,52 @@ pub extern "C" fn ex_is_not_nan(ptr: *mut ExprC) -> *mut ExprC {
     let ex_c = check_ptr(ptr);
     Box::into_raw(Box::new(ex_c.is_not_nan()))
 }
+
+#[no_mangle]
+pub extern "C" fn ex_cast_i32(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.cast_i32()))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_cast_i64(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.cast_i64()))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_cast_u32(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.cast_u32()))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_cast_u64(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.cast_u64()))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_cast_f32(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.cast_f32()))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_cast_f64(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.cast_f64()))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_cast_str(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.cast_str()))
+}
+
+#[no_mangle]
+pub extern "C" fn ex_cast_bool(ptr: *mut ExprC) -> *mut ExprC {
+    let ex_c = check_ptr(ptr);
+    Box::into_raw(Box::new(ex_c.cast_bool()))
+}
+

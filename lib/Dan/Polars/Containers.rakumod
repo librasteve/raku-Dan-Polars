@@ -9,7 +9,9 @@ my regex number {
 	<?{ +"$/" ~~ Real }>    #assert coerces via '+' to Real
 }
 
-sub rust-null-val( $dtype ) {
+#| we are in raku here so can match raku types and nativetypes - accept rust types as Str also
+#| returns default value to pad the data for the CArray since it does not have a null representation
+sub rust-null-val( Any $dtype ) {
     given $dtype {
         when    'i32' { 0 }
         when    'u32' { 0 }
@@ -25,14 +27,16 @@ sub rust-null-val( $dtype ) {
         when   num64  { 0e0 }
         when    bool  { False }
         when     str  { '' }
-        when    Bool  { False }
         when     Int  { 0 }
         when     Num  { 0e0 }
+        when    Bool  { False }
         when     Str  { '' } 
     }
 }
 
-sub raku-null-val( $dtype ) {
+#| here we are getting dtype as a Str eg. from calling .dtype on a Series
+#| returns default value to represent null in a Dan::Series 
+sub raku-null-val( Str $dtype ) {
     given $dtype {
         when    'i32' { 'Int' }
         when    'u32' { 'Int' }
@@ -460,7 +464,6 @@ class ExprC is repr('CPointer') is export {
     sub ex_new()                 returns ExprC is native($n-path) { * }
     sub ex_free(ExprC)                         is native($n-path) { * }
     sub ex_col(Str)              returns ExprC is native($n-path) { * }
-    sub ex_lit_bool(bool)        returns ExprC is native($n-path) { * }
     sub ex_lit_i32(int32)        returns ExprC is native($n-path) { * }
     sub ex_lit_i64(int64)        returns ExprC is native($n-path) { * }
     sub ex_lit_u32(uint32)       returns ExprC is native($n-path) { * }
@@ -468,6 +471,7 @@ class ExprC is repr('CPointer') is export {
     sub ex_lit_f32(num32)        returns ExprC is native($n-path) { * }
     sub ex_lit_f64(num64)        returns ExprC is native($n-path) { * }
     sub ex_lit_str(Str)          returns ExprC is native($n-path) { * }
+    sub ex_lit_bool(bool)        returns ExprC is native($n-path) { * }
     sub ex_struct(CArray[Str], size_t) returns ExprC is native($n-path) { * }
     sub ex_alias(ExprC,Str)      returns ExprC is native($n-path) { * }
     sub ex_sum(ExprC)            returns ExprC is native($n-path) { * }
@@ -506,6 +510,14 @@ class ExprC is repr('CPointer') is export {
     sub ex_is_finite(ExprC)      returns ExprC is native($n-path) { * }
     sub ex_is_nan(ExprC)         returns ExprC is native($n-path) { * }
     sub ex_is_not_nan(ExprC)     returns ExprC is native($n-path) { * }
+    sub ex_cast_i32(ExprC)       returns ExprC is native($n-path) { * }
+    sub ex_cast_i64(ExprC)       returns ExprC is native($n-path) { * }
+    sub ex_cast_u32(ExprC)       returns ExprC is native($n-path) { * }
+    sub ex_cast_u64(ExprC)       returns ExprC is native($n-path) { * }
+    sub ex_cast_f32(ExprC)       returns ExprC is native($n-path) { * }
+    sub ex_cast_f64(ExprC)       returns ExprC is native($n-path) { * }
+    sub ex_cast_str(ExprC)       returns ExprC is native($n-path) { * }
+    sub ex_cast_bool(ExprC)      returns ExprC is native($n-path) { * }
 
     method new {
         ex_new
@@ -711,8 +723,21 @@ class ExprC is repr('CPointer') is export {
         ex_is_not_nan(self)
     }
 
+    method cast( $dtype ) {
+        given $dtype {
+            when  'i32' { ex_cast_i32(self) }
+            when  'i64' { ex_cast_i64(self) }
+            when  'u32' { ex_cast_u32(self) }
+            when  'u64' { ex_cast_u64(self) }
+            when  'f32' { ex_cast_f32(self) }
+            when  'f64' { ex_cast_f64(self) }
+            when  'str' { ex_cast_str(self) }
+            when 'bool' { ex_cast_bool(self) }
+        }
+    }
+
     ### APPLY ###
-    # Polars .map() function is not implemented ib Dan::Polars
+    # Polars .map() function is not implemented in Dan::Polars
 
     # Monadic Real
     # apply() is exported directly into client script and acts on the ExprC made by col()
@@ -832,7 +857,6 @@ class ExprC is repr('CPointer') is export {
 
             method r-type {
                 return 'i32' without $!match;
-
                 ~$!match<as-type><r-type>;
             }
 

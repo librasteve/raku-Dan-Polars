@@ -16,33 +16,19 @@ done:
 - [x] filter
 - [x] all (just use col("*")
 - [x] drop
-      
-next up:
-- [ ] is_not, is_null, is_not_null, is_infinite, is_finite, is_nan, is_not_nan
-- [ ] cast                         - arity
+- [x] is_not, is_null, is_not_null, is_infinite, is_finite, is_nan, is_not_nan
+- [x] cast
+- [x] nulls
+- [x] str_lengths
 
-```
-#viz.https://arrow.apache.org/docs/format/Columnar.html#validity-bitmaps
-fn main() {
-    // Create a data array (Vec) and a validity bitmap (Option<Bitmap>)
-    let data_array: Vec<Option<i64>> = vec![Some(1), Some(2), None, Some(4), None];
-    let validity_bitmap: Option<Bitmap> = Some(Bitmap::from_slice(&[true, true, false, true, false]));
-
-    // Create a new Series with the data array, data type, and validity bitmap
-    let series = Series::new("my_series", data_array, DataType::Int64, validity_bitmap);
-
-    // Print the Series
-    println!("{:?}", series);
-}
-```
-
-then - analytics:
-- [ ] quantile                     - arity
-- [ ] clip                         - arity
-- [ ] rank, diff, pct_change, skew, kurtosis - arity
-- [ ] pearson, spearman_rank_corr  - arity
-- [ ] entropy                      - think
-- [ ] rolling_sum,min,max,mean,std,var,median,quantile,skew - think
+next up - analytics:
+- [ ] quantile                     
+- [ ] clip                         
+- [ ] rank, diff, pct_change, skew, kurtosis
+- [ ] pearson, spearman_rank_corr
+- [ ] entropy
+- [ ] rolling_sum,min,max,mean,std,var,median,quantile,skew
+- [ ] cov(ariance)
 
 then - datetime:
 - [ ] str_parse_date, str_parse_datetime - think
@@ -55,10 +41,14 @@ then - datetime:
 then - ternary:
 - [ ] whenthenthen (ternary)       - think
 
+then - lists:
+- [ ] list (need to add Array dtype) - think
+- [ ] explode                      - think
+
 then - str:
 - [ ] str_strip,str_rstrip,str_lstrip - think
 - [ ] str_to_uppercase, str_to_lowercase - think
-- [ ] str_slice,str_lengths        - think
+- [ ] str_slice                    - think
 - [ ] str_contains, str_extract    - think
 - [ ] str_replace, str_replace_all - think
 - [ ] str_hex_decode,str_hex_encode - think
@@ -84,26 +74,23 @@ think:
 - [ ] extend                       - arity
 
 maybe:
-- [ ] to_string (what for)
-- [ ] list (need to add Array dtype)
-- [ ] take                         - arity
-- [ ] shift, shift_and_fill        - arity
-- [ ] explode                      - array
-- [ ] tail                         - arity
 - [ ] round                        - arity
 - [ ] over                         - arity
 - [ ] is_in                        - arity
 - [ ] repeat_by                    - arity
-- [ ] pow                          - arity
-- [ ] cov                          - arity
-- [ ] log                          - arity
 
 nope:
+- [ ] pow                          - apply
+- [ ] log                          - apply
+- [ ] to_string (got cast(str) already)
+- [ ] take                         - arity
+- [ ] shift, shift_and_fill        - arity
+- [ ] tail                         - accessors
 - [ ] agg_groups                   - internal detail
 - [ ] value_counts, unique_counts  - internal detail
 - [ ] arg_sort                     - internal detail
-- [ ] floor, ceil                  - ^^^^ method not found in `Expr`
-- [ ] abs                          - ^^^^ method not found in `Expr`
+- [ ] floor, ceil                  - apply
+- [ ] abs                          - apply
 - [ ] cumsum,cummax,cummin,cumprod - arity / daftness
 - [ ] product                      - this is daft!
 - [ ] dot, mode, keep_name         - huh?

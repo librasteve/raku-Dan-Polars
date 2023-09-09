@@ -136,6 +136,8 @@ shape: (4, 5)
 
 #### Sorting
 
+##### Expression Sorting
+
 The sort method on col Expressions in a select is independently applied to each col.
 
 ```perl6
@@ -183,5 +185,24 @@ shape: (3, 2)
 └────────┴───────────┘
 ```
 
+##### DataFrame Sorting
+
+As set out in the [Dan synopsis](https://github.com/librasteve/raku-Dan), DataFrame level sort is done like this:
+
+```perl6
+# Sort
+say ~df.sort: { .[1] };         # sort by 2nd col (ascending)
+say ~df.sort: { -.[1] };        # sort by 2nd col (descending)
+say ~df.sort: { df[$++]<C> };   # sort by col C
+say ~df.sort: { df.ix[$++] };   # sort by index
+```
+
+Here is another example from the [Dan::Polars Nutshell](https://github.com/librasteve/raku-Dan-Polars):
+
+```perl6
+$obj .= sort( {$obj[$++]<species>, $obj[$++]<mass>} )[*].reverse^;
+```
+
+Unlike Expression sorting, DataFrame sorting is implemented by converting a rust ```Dan::Polars::DataFrame``` to a raku ```Dan::DataFrame``` (a ```.flood```), performing the sort with a raku block-style syntax and then convering back (a ```.flush```). The implication is that the syntax is very rich, but the performance is lower than Expression Sorting.
 
 Copyright(c) 2022-2023 Henley Cloud Consulting Ltd.

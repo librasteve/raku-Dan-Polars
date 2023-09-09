@@ -493,9 +493,11 @@ impl DataFrameC {
         self.df.vstack(&df_c.df).unwrap().clone()
     }
 
+    /* not currently doing sort at df level
     fn sort(&self, colvec: Vec::<String>) -> DataFrame {
-    self.df.sort(&colvec, true).unwrap().clone()
+        self.df.sort(&colvec, true).unwrap().clone()
     }
+    */
 }
 
 // extern functions for DataFrame Container

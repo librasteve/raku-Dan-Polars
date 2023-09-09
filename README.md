@@ -347,10 +347,11 @@ This will then provide a basis for ...
 ### v0.2
 - [x] drop col
 - [x] [Dan concat (s1) via Rust join](https://github.com/p6steve/raku-Dan-Polars/issues/10)
-- [x] Dan splice to with_col, col, drop, hstack, vstack, append (need Issue discussion)
+- [x] Dan splice to with_col, col, drop, hstack, vstack, append (see Issue #10 and #11 discussion)
+- [x] cross join (aka cross product)
 - [x] apply (jit DSL style)
 - [x] logical operators (gt >, lt <, ge >=, le <=, eq ==, ne !=, and &&, or ||)
-- [x] filter  \  see Query_TODOs  (aka grep)
+- [x] filter  \  see   (aka grep)
 - [x] sort    /
 - [x] non-null, etc. [boolean](https://pola-rs.github.io/polars/py-polars/html/reference/expressions/boolean.html)
 - [x] cast
@@ -371,7 +372,6 @@ This will then provide a basis for design Dan::As::Query v0.1 for Dan and Dan::P
  
 ### v0.4...
 - [ ] strip / fold Index
-- [ ] cross join (aka cross product)
 - [ ] pivot / cross-tabluate
 - [ ] apply over [multiple cols](https://stackoverflow.com/questions/72372821/how-to-apply-a-function-to-multiple-columns-of-a-polars-dataframe-in-rust)
 - [ ] ternary if-then-else (Dan::As::Ternary)

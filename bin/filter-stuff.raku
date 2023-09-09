@@ -32,6 +32,10 @@ df.show;
 #viz. https://pola-rs.github.io/polars/py-polars/html/reference/expressions/api/polars.Expr.sort.html#polars.Expr.sort
 #df.select([(col("names").alias("jones").sort),col("groups").alias("smith").sort,col("nrs").reverse]).head;
 
-df.groupby(["groups"]).agg([col("nrs").sum]).head;
-df.groupby(["groups"]).agg([col("nrs").sort]).head;
-df.groupby(["groups"]).agg([col("nrs").reverse]).head;
+#df.groupby(["groups"]).agg([col("nrs").sum]).head;
+#df.groupby(["groups"]).agg([col("nrs").sort]).head;
+#df.groupby(["groups"]).agg([col("nrs").reverse]).head;
+
+df.sort(["groups","names"],[False, True]).show;
+
+df.sort( {df[$++]<random>} )[*].reverse^.show;

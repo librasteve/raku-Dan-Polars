@@ -493,11 +493,9 @@ impl DataFrameC {
         self.df.vstack(&df_c.df).unwrap().clone()
     }
 
-    /* not currently doing sort at df level
-    fn sort(&self, colvec: Vec::<String>) -> DataFrame {
-        self.df.sort(&colvec, true).unwrap().clone()
+    fn sort(&self, colvec: Vec::<String>, descvec: Vec::<bool> ) -> DataFrame {
+        self.df.sort(colvec, descvec).unwrap().clone()
     }
-    */
 }
 
 // extern functions for DataFrame Container
@@ -667,12 +665,14 @@ pub extern "C" fn df_vstack(
 
 #[no_mangle]
 pub extern "C" fn df_sort(
-    ptr: *mut DataFrameC,
+    d_ptr: *mut DataFrameC,
+    b_ptr: *const bool,
     colspec: *const *const c_char,
     len: size_t, 
 ) -> *mut DataFrameC {
-    let df_c = check_ptr(ptr);
+    let df_c = check_ptr(d_ptr);
 
+    let mut descvec = Vec::new();
     let mut colvec = Vec::<String>::new();
     unsafe {
         assert!(!colspec.is_null());
@@ -680,11 +680,13 @@ pub extern "C" fn df_sort(
         for item in slice::from_raw_parts(colspec, len as usize) {
             colvec.push(CStr::from_ptr(*item).to_string_lossy().into_owned());
         };
+
+        assert!(!b_ptr.is_null());
+        descvec.extend_from_slice(slice::from_raw_parts(b_ptr, len as usize));
     };
 
-    //FIXME adjust to new(df)
     let mut df_n = DataFrameC::new();
-    df_n.df = df_c.select(colvec);
+    df_n.df = df_c.sort(colvec, descvec);
     Box::into_raw(Box::new(df_n))
 }
 

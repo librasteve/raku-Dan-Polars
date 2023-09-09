@@ -655,12 +655,12 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
         $.collect
     }
 
-    method orderby( @colnames ) {           # takes Array of colnames (unlike Polars native call)
-        $!rc .= sort( $_ ) for @colnames;
+    multi method sort( Array \colspec, Array \descvec ) {           # takes Array of colnames (unlike Polars native call)
+        $!rc .= sort( colspec, descvec );
         self
     }
 
-    method sort( &cruton ) {                # &custom-routine-to-use
+    multi method sort( &cruton ) {                # &custom-routine-to-use
         self.flood;
 
         my $i;
@@ -710,7 +710,7 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
     }
 
     method concat( DataFrame:D $dfr, :ax(:$axis) is copy,
-                                     :jn(:$join) = 'outer', :ii(:$ignore-index) ) {
+                                            :jn(:$join) = 'outer', :ii(:$ignore-index) ) {
 
         $axis = clean-axis(:$axis);
 

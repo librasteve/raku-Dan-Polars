@@ -336,6 +336,7 @@ class DataFrameC is repr('CPointer') is export {
     sub df_with_column(DataFrameC, SeriesC) returns DataFrameC  is native($n-path) { * }
     sub df_drop(DataFrameC, Str)            returns DataFrameC  is native($n-path) { * }
     sub df_vstack(DataFrameC, DataFrameC)   returns DataFrameC  is native($n-path) { * }
+    sub df_sort(DataFrameC, CArray[bool], CArray[Str], size_t) returns DataFrameC  is native($n-path) { * }
 
     method new {
         df_new
@@ -407,6 +408,10 @@ class DataFrameC is repr('CPointer') is export {
 
     method vstack( DataFrameC \right --> DataFrameC ) {
         df_vstack(self, right)
+    }
+
+    method sort( Array \colspec, Array \descvec --> DataFrameC ) {
+        df_sort(self, carray( bool, descvec ), carray( Str, colspec ), colspec.elems)
     }
 }
 

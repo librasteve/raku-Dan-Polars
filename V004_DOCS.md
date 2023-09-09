@@ -12,11 +12,11 @@ The TOC is a subset of the Polars Book TOC.
 
 - Installation
 - Concepts
-- [Expressions](Expressions)
-  - [Casting](Casting{
-    - [Numerics](####Numerics)
-    - Strings
-    - Booleans
+- [Expressions](#Expressions)
+  - [Casting](#Casting)
+    - [Numerics](#Numerics)
+    - [Strings](#Strings)
+    - [Booleans](#Booleans)
   - Aggregation
     - Conditionals
     - Filtering (aka grep)
@@ -26,6 +26,24 @@ The TOC is a subset of the Polars Book TOC.
 - Transfomations
   - Joins
   - Concatenation (Stacking)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Expressions
 

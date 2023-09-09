@@ -14,7 +14,7 @@ The TOC is a subset of the Polars Book TOC.
 - Concepts
 - [Expressions](Expressions)
   - [Casting](Casting{
-    - [Numerics](Numerics)
+    - [Numerics](####Numerics)
     - Strings
     - Booleans
   - Aggregation

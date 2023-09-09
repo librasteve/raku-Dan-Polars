@@ -2,8 +2,6 @@ Here is the set of Polars Exprs to be considered for Dan::Polars:
 
 todos from https://github.com/p6steve/polars/blob/master/nodejs-polars/src/lazy/dsl.rs
 
-consider groupng by: [stringy listy analysis null_nany apply_alt extrapolaty]
-
 done:
 - [x] head
 - [x] min,sum,mean,sort,reverse,unique,std,var

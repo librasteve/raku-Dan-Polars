@@ -134,6 +134,15 @@ shape: (4, 5)
 └─────┴──────┴───────┴──────────┴────────┘
 ```
 
+Filter (implemented in Rust Polars) is a sister function to grep (implemented in Raku Dan). Filter uses simple conditionals, whereas grep enjoys raku grep block-style semantics. The implication is that the ```.grep``` syntax is very rich, but the performance is lower than ```.filter```.
+
+```perl6
+# Grep (binary filter)
+say ~df.grep( { .[1] < 0.5 } );                                # by 2nd column 
+say ~df.grep( { df.ix[$++] eq <2022-01-02 2022-01-06>.any } ); # by index (multiple) 
+
+```
+
 #### Sort
 
 ##### Expression Sort

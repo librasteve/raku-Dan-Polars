@@ -352,8 +352,8 @@ This will then provide a basis for ...
 - [x] filter  \  see Query_TODOs  (aka grep)
 - [x] sort    /
 - [x] non-null, etc. [boolean](https://pola-rs.github.io/polars/py-polars/html/reference/expressions/boolean.html)
-- [ ] cast
-- [ ] general tidy up / refactor (esp.lib.rs)
+- [x] cast
+- [x] general tidy up / refactor (esp.lib.rs)
 
 This will then provide a basis for design Dan::As::Query v0.1 for Dan and Dan::Pandas and review Dan API slice & concat, immutability, refactor...
 

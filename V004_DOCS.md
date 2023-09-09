@@ -145,6 +145,76 @@ say ~df.grep( { df.ix[$++] eq <2022-01-02 2022-01-06>.any } ); # by index (multi
 
 #### Sort
 
+##### DataFrame Sort
+
+Specify an Array[Str] of column names and an Array[Bool] of descending? options:
+
+```perl6
+df.sort(["groups","names"],[False, True]).show;
+```
+
+```
+shape: (5, 5)
+┌─────┬──────┬───────┬──────────┬────────┐
+│ nrs ┆ nrs2 ┆ names ┆ random   ┆ groups │
+│ --- ┆ ---  ┆ ---   ┆ ---      ┆ ---    │
+│ i32 ┆ i32  ┆ str   ┆ f64      ┆ str    │
+╞═════╪══════╪═══════╪══════════╪════════╡
+│ 2   ┆ 3    ┆ ham   ┆ 0.651383 ┆ A      │
+├╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ 1   ┆ 2    ┆ foo   ┆ 0.687945 ┆ A      │
+├╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ 3   ┆ 4    ┆ spam  ┆ 0.020684 ┆ B      │
+├╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ 5   ┆ 6    ┆       ┆ 0.961176 ┆ B      │
+├╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ 4   ┆ 5    ┆ egg   ┆ 0.666724 ┆ C      │
+└─────┴──────┴───────┴──────────┴────────┘
+```
+
+Or, if you prefer a more raku-oriented style, specify a Block:
+
+```perl6
+df.sort( {df[$++]<random>} )[*].reverse^.show;
+```
+
+```
+shape: (5, 5)
+┌─────┬──────┬───────┬──────────┬────────┐
+│ nrs ┆ nrs2 ┆ names ┆ random   ┆ groups │
+│ --- ┆ ---  ┆ ---   ┆ ---      ┆ ---    │
+│ i32 ┆ i32  ┆ str   ┆ f64      ┆ str    │
+╞═════╪══════╪═══════╪══════════╪════════╡
+│ 5   ┆ 6    ┆       ┆ 0.961176 ┆ B      │
+├╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ 1   ┆ 2    ┆ foo   ┆ 0.687945 ┆ A      │
+├╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ 4   ┆ 5    ┆ egg   ┆ 0.666724 ┆ C      │
+├╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ 2   ┆ 3    ┆ ham   ┆ 0.651383 ┆ A      │
+├╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ 3   ┆ 4    ┆ spam  ┆ 0.020684 ┆ B      │
+└─────┴──────┴───────┴──────────┴────────┘
+```
+
+As set out in the [Dan synopsis](https://github.com/librasteve/raku-Dan), DataFrame level sort is done like this:
+
+```perl6
+# Sort
+say ~df.sort: { .[1] };         # sort by 2nd col (ascending)
+say ~df.sort: { -.[1] };        # sort by 2nd col (descending)
+say ~df.sort: { df[$++]<C> };   # sort by col C
+say ~df.sort: { df.ix[$++] };   # sort by index
+```
+
+Here is another example from the [Dan::Polars Nutshell](https://github.com/librasteve/raku-Dan-Polars):
+
+```perl6
+$obj .= sort( {$obj[$++]<species>, $obj[$++]<mass>} )[*].reverse^;
+```
+
+Unlike colspec sort, Block sort is implemented by converting a rust ```Dan::Polars::DataFrame``` to a raku ```Dan::DataFrame``` (ie. ```.flood```), performing the sort with a raku block-style syntax and then convering back (ie. ```.flush```). The implication is that the syntax is very rich, but the performance is lower.
+
 ##### Expression Sort
 
 The sort method on col Expressions in a select is independently applied to each col.
@@ -193,26 +263,6 @@ shape: (3, 2)
 │ B      ┆ [3, 5]    │
 └────────┴───────────┘
 ```
-
-##### DataFrame Sort
-
-As set out in the [Dan synopsis](https://github.com/librasteve/raku-Dan), DataFrame level sort is done like this:
-
-```perl6
-# Sort
-say ~df.sort: { .[1] };         # sort by 2nd col (ascending)
-say ~df.sort: { -.[1] };        # sort by 2nd col (descending)
-say ~df.sort: { df[$++]<C> };   # sort by col C
-say ~df.sort: { df.ix[$++] };   # sort by index
-```
-
-Here is another example from the [Dan::Polars Nutshell](https://github.com/librasteve/raku-Dan-Polars):
-
-```perl6
-$obj .= sort( {$obj[$++]<species>, $obj[$++]<mass>} )[*].reverse^;
-```
-
-Unlike Expression sorting, DataFrame sorting is implemented by converting a rust ```Dan::Polars::DataFrame``` to a raku ```Dan::DataFrame``` (a ```.flood```), performing the sort with a raku block-style syntax and then convering back (a ```.flush```). The implication is that the syntax is very rich, but the performance is lower than Expression Sorting.
 
 ### Transfomations
 

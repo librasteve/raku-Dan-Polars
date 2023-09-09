@@ -114,3 +114,5 @@ nope:
   - raku is anyway not as fast as rust+polars ... use that if you need map levels of performance
 - filter is native rust polars, grep is via raku flood / flush
 - sort on expr is native polars, sort on df (with Block) is via raku flood/flush
+- embedded regex/str ops are unfriendly --- aim for this in raku
+- embedded ternaries are quite unfriendly --- I would rather aim for this in raku

@@ -24,8 +24,7 @@ The TOC is a subset of the Polars Book TOC.
   - Missing Data
   - Apply (user-defined functions)
 - [Transformations](#Transformations)
-  - [Join](#Join)
-  - [Concat](#Concat) (aka hstack/vstack)
+  - [Join-Concat](#Join-Concat) (aka hstack/vstack)
 
 ## Expressions
 
@@ -266,10 +265,44 @@ shape: (3, 2)
 
 ### Transformations
 
-#### Join
+#### Join-Concat
 
-#### Concat
+In Dan::Polars, the first two sections here - Join and Concat - are related via this universal ```.concat``` method:
 
+```perl6
+  method concat( DataFrame:D $dfr, :ax(:$axis) is copy,
+                            :jn(:$join) = 'outer', :ii(:$ignore-index) ) {
+
+        $axis = clean-axis(:$axis);
+
+        if ! $axis {                        # row-wise with Polars join
+
+            if $join eq 'right' {           # Polars has no JoinType Right
+                $dfr.join( self, jointype => 'left' )
+            } else {
+                self.join( $dfr, jointype => $join )
+            }
+
+        } else {                            # col-wise with Polars hstack
+
+            if $dfr.elems !== self.elems {
+                warn 'Polars column-wise join only implemented for DataFrames with same number of elems!'
+            } else {
+                my @series = $dfr.cx.map({$dfr.column($_)});
+                self.hstack: @series
+            }
+
+        }
+
+        self
+    }
+```
+
+Here's what is going on:
+- Rust / Polars has hstack & vstack methods, these are wrapped in Rust Polars ```.concat```
+
+After some experimentation, the 
 aka hstack/vstack
+
 
 Copyright(c) 2022-2023 Henley Cloud Consulting Ltd.

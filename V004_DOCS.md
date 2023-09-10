@@ -299,7 +299,8 @@ In Dan::Polars, the first two sections here - Join and Concat - are related via 
 ```
 
 Here's what is going on:
-- Rust / Polars has hstack & vstack methods, these are wrapped in Rust Polars ```.concat```
+- Rust-Polars has hstack & vstack methods, these are often wrapped in Rust-Polars ```.concat``` as described [here](https://pola-rs.github.io/polars-book/user-guide/transformations/concatenation/).
+- Python-Pandas has 
 
 After some experimentation, the 
 aka hstack/vstack

@@ -580,21 +580,21 @@ role DataFrame does Positional does Iterable is export {
     }
 
     #| viz. https://docs.rs/polars/latest/polars/prelude/struct.LazyFrame.html#method.join
-    #| implementing just the on argument and will autogen overlap cols otherwise
+    #| exposes just the on argument but not on_right and on_left 
     method join( DataFrame \right, Str :$on, JoinType :$jointype = 'outer' ) {
-        my @overlap;
+        my @join-cols;
 
         if $on {
-            @overlap = $on
-        } else {
-            @overlap = gather {
+            @join-cols = $on
+        } else {                            #autogen join-cols if 'on' not provided 
+            @join-cols = gather {
                 for self.columns.&sbv {
                     take $_ if right.columns{$_}:exists
                 }
             }
         }
 
-        my $colspec = [@overlap.map({ col($_) })];                      #autogen overlap colspec
+        my $colspec = [@join-cols.map({ col($_) })];
 
         $!lc = LazyFrameC.new( $!rc );                                  #autolazy self & right args
         my $lr = LazyFrameC.new( right.rc );

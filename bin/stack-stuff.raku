@@ -45,8 +45,9 @@ df7.show;
 
 
 
-#[
+#`[
 ### join
+##<left inner outer>; 
 
 my \df_customers = DataFrame([
     customer_id => [1, 2, 3],
@@ -66,18 +67,10 @@ df_inner_join.show;
 
 my \df_left_join = df_customers.join(df_orders, on => "customer_id", jointype => "left");
 df_left_join.show;
-die; #iamerejh
+
+my \df_outer_join = df_customers.join(df_orders, on => "customer_id", jointype => "outer");
+df_outer_join.show;
 #]
-
-##<left inner outer>; # asof cross>; polars has no right
-
-
-#]
-
-
-
-
-
 
 #`[ 
 ###cross join

@@ -760,8 +760,8 @@ impl LazyFrameC {
             //    ).collect().unwrap(); ()},
             "Cross"  => 
                 { 
-                    df_c.df = self.lf.clone().join(
-                    lf_c.lf.clone(), l_colvec, r_colvec, JoinType::Cross
+                    df_c.df = self.lf.clone().cross_join(
+                    lf_c.lf.clone()
                 ).collect().unwrap(); ()},
             _      => (),
         }

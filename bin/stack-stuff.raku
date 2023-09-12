@@ -66,18 +66,12 @@ df_inner_join.show;
 
 my \df_left_join = df_customers.join(df_orders, on => "customer_id", jointype => "left");
 df_left_join.show;
-die;
+die; #iamerejh
 #]
 
-##<left right inner outer>; # asof cross>;
+##<left inner outer>; # asof cross>; polars has no right
 
 
-#`[ 
-#for <left right inner outer> -> $jointype {
-for <left right outer> -> $jointype {
-    say "$jointype join...";
-    dfa.join( dfc, :$jointype ).show
-}
 #]
 
 

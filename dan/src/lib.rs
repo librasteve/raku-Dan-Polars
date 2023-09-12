@@ -741,10 +741,6 @@ impl LazyFrameC {
         jointype: &str 
     ) -> DataFrameC {
         let mut df_c = DataFrameC::new();
-        //iamerejh
-        println!("{:?}", jointype);
-        println!("{:?}", l_colvec);
-        println!("{:?}", r_colvec);
         match jointype {
             "Left"  => 
                 { df_c.df = self.lf.clone().join(

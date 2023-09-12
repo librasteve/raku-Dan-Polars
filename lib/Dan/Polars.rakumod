@@ -298,7 +298,7 @@ role Categorical does Series is export {
 }
 
 # viz. https://pola-rs.github.io/polars/polars_core/frame/hash_join/enum.JoinType.html
-subset JoinType of Str where <left right inner outer asof cross>.any;
+subset JoinType of Str where <left inner outer asof cross>.any;
 
 role DataFrame does Positional does Iterable is export {
     has Any        @.data;             #redo 2d shaped Array when [; ] implemented
@@ -579,17 +579,21 @@ role DataFrame does Positional does Iterable is export {
         $!rc.vstack( right.rc )
     }
 
+    #| viz. https://docs.rs/polars/latest/polars/prelude/struct.LazyFrame.html#method.join
+    #| implementing just the on argument and will autogen overlap cols otherwise
     method join( DataFrame \right, Str :$on, JoinType :$jointype = 'outer' ) {
-        say self.columns;
-        self.show;
-        say right.columns;
-        right.show;
-        say '-------';
-        say my @overlap = gather {
-            for self.columns.&sbv {
-                take $_ if right.columns{$_}:exists
+        my @overlap;
+
+        if $on {
+            @overlap = $on
+        } else {
+            @overlap = gather {
+                for self.columns.&sbv {
+                    take $_ if right.columns{$_}:exists
+                }
             }
         }
+
         my $colspec = [@overlap.map({ col($_) })];                      #autogen overlap colspec
 
         $!lc = LazyFrameC.new( $!rc );                                  #autolazy self & right args

@@ -148,7 +148,7 @@ role Series does Positional does Iterable is export {
         $!rc.len 
     }
 
-    submethod is-null {         # cannot autoflood as self referential
+    method !is-null {         # cannot autoflood as self referential
         my $nulls = Series.new( data => [False], name => 'nulls' );
         $nulls.rc = $!rc.is_null;
         $nulls
@@ -546,40 +546,40 @@ role DataFrame does Positional does Iterable is export {
 
     #### Polars Specific Submethods ###
 
-    submethod height {
+    method height {
         $!rc.height
     }
 
-    submethod width {
+    method width {
         $!rc.width
     }
 
-    submethod get_column_names {
+    method get_column_names {
         $!rc.get_column_names
     }
 
-    submethod column( Str \colname ) {
+    method column( Str \colname ) {
         my SeriesC $cont = $!rc.column( colname );
         my $news = Series.new( data => [<0>], name => $cont.name, dtype => $cont.dtype );
         $news.rc = $cont;
         $news
     }
 
-    submethod with_column( Series \column ) {
+    method with_column( Series \column ) {
         $!rc.with_column( column.rc );
         self
     }
 
-    submethod hstack( @series ) {
+    method !hstack( @series ) {
         self.with_column($_) for @series;
         self
     }
 
-    submethod vstack( DataFrame \right ) {
+    method !vstack( DataFrame \right ) {
         $!rc.vstack( right.rc )
     }
 
-    submethod join( DataFrame \right, JoinType :$jointype = 'outer' ) {
+    method join( DataFrame \right, JoinType :$jointype = 'outer' ) {
         my @overlap = gather {
             for self.columns.&sbv {
                 take $_ if right.columns{$_}:exists
@@ -638,7 +638,7 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
         self
     }
 
-    submethod collect( --> DataFrame ) {
+    method !collect( --> DataFrame ) {
         my \df = DataFrame.new;
         df.rc: $!lc.collect;
         df
@@ -655,12 +655,12 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
         $.collect
     }
 
-    multi method sort( Array \colspec, Array \descvec ) {           # takes Array of colnames (unlike Polars native call)
+    multi method sort( Array \colspec, Array \descvec ) {   # takes colspec, descvec
         $!rc .= sort( colspec, descvec );
         self
     }
 
-    multi method sort( &cruton ) {                # &custom-routine-to-use
+    multi method sort( &cruton ) {                          # takes Block &custom-routine-to-use
         self.flood;
 
         my $i;

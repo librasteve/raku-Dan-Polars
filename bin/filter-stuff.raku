@@ -37,5 +37,4 @@ df.show;
 #df.groupby(["groups"]).agg([col("nrs").reverse]).head;
 
 df.sort(["groups","names"],[False, True]).show;
-
 df.sort( {df[$++]<random>} )[*].reverse^.show;

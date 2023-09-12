@@ -41,28 +41,52 @@ my \df7 = df5.vstack(df6);
 df7.show;
 #]
 
-#`[
+
+
+
+
+#[
 ### join
-#<left right inner outer asof cross>
 
-my \dfa = DataFrame.new(
-        [['a', 1], ['b', 2]],
-        columns => <letter number>,
-);
-dfa.show;
+my \df_customers = DataFrame([
+    customer_id => [1, 2, 3],
+    name => ["Alice", "Bob", "Charlie"],
+]);
+df_customers.show;
 
-my \dfc = DataFrame.new(
-        [['c', 3, 'cat'], ['d', 4, 'dog']],
-        columns => <letter number animal>,
-);
-dfc.show;
+my \df_orders = DataFrame([
+    order_id => ["a", "b", "c"],
+    customer_id => [1, 2, 2],
+    amount => [100, 200, 300],
+]);
+df_orders.show;
 
-#my $x = dfa.join: dfc;
-my $x=dfa.join( dfc, :jointype<left> );
-$x.show;
+my \df_inner_join = df_customers.join(df_orders, on => "customer_id", jointype => "inner");
+df_inner_join.show;
+
+my \df_left_join = df_customers.join(df_orders, on => "customer_id", jointype => "left");
+df_left_join.show;
+die;
 #]
 
-#[ cross join
+##<left right inner outer>; # asof cross>;
+
+
+#`[ 
+#for <left right inner outer> -> $jointype {
+for <left right outer> -> $jointype {
+    say "$jointype join...";
+    dfa.join( dfc, :$jointype ).show
+}
+#]
+
+
+
+
+
+
+#`[ 
+###cross join
 my \df_colors = DataFrame([ 
     color => ["red", "blue", "green"],
 ]);

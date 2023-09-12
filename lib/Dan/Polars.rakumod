@@ -579,8 +579,13 @@ role DataFrame does Positional does Iterable is export {
         $!rc.vstack( right.rc )
     }
 
-    method join( DataFrame \right, JoinType :$jointype = 'outer' ) {
-        my @overlap = gather {
+    method join( DataFrame \right, Str :$on, JoinType :$jointype = 'outer' ) {
+        say self.columns;
+        self.show;
+        say right.columns;
+        right.show;
+        say '-------';
+        say my @overlap = gather {
             for self.columns.&sbv {
                 take $_ if right.columns{$_}:exists
             }
@@ -590,8 +595,9 @@ role DataFrame does Positional does Iterable is export {
         $!lc = LazyFrameC.new( $!rc );                                  #autolazy self & right args
         my $lr = LazyFrameC.new( right.rc );
 
-        $!rc = $!lc.join( $lr, $colspec, $colspec, $jointype.tc );      #l_ & r_colspec are the same
-        self
+        my \df = DataFrame.new;
+        df.rc: $!lc.join( $lr, $colspec, $colspec, $jointype.tc );      #l_ & r_colspec are the same
+        df
     }
 
     #### Query Methods #####

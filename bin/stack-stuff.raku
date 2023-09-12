@@ -43,6 +43,8 @@ df7.show;
 
 #`[
 ### join
+#<left right inner outer asof cross>
+
 my \dfa = DataFrame.new(
         [['a', 1], ['b', 2]],
         columns => <letter number>,
@@ -55,18 +57,36 @@ my \dfc = DataFrame.new(
 );
 dfc.show;
 
-#<left inner outer asof cross>
-#my $x=dfa.join( dfc, :jointype<left> );
-my $x = dfa.join: dfc;
+#my $x = dfa.join: dfc;
+my $x=dfa.join( dfc, :jointype<left> );
 $x.show;
+#]
 
+#[ cross join
+my \df_colors = DataFrame([ 
+    color => ["red", "blue", "green"],
+]);
+df_colors.show;
+
+my \df_sizes = DataFrame([
+    size => ["S", "M", "L"],
+]);
+df_sizes.show;
+
+my \df_crossjoin = df_colors.join( df_sizes, :jointype<cross> );
+df_crossjoin.show;
+#]
+
+#`[
 ### se_concat
 my \s = Series.new( [b=>1, a=>0, c=>2] );
 my \t = Series.new( [f=>1, e=>0, d=>2] );
 
 my $u = s.concat: t;                # concatenate
 $u.show;
+#]
 
+#`[
 ### df_concat
 my \dfa = DataFrame.new(
         [['a', 1], ['b', 2]],

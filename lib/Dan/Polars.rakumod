@@ -298,7 +298,7 @@ role Categorical does Series is export {
 }
 
 # viz. https://pola-rs.github.io/polars/polars_core/frame/hash_join/enum.JoinType.html
-subset JoinType of Str where <left inner outer asof cross>.any;
+subset JoinType of Str where <left right inner outer asof cross>.any;
 
 role DataFrame does Positional does Iterable is export {
     has Any        @.data;             #redo 2d shaped Array when [; ] implemented

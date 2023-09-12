@@ -759,7 +759,12 @@ impl LazyFrameC {
             //        lf_c.lf.clone(), l_colvec, r_colvec, JoinType::Asof
             //    ).collect().unwrap(); ()},
             "Cross"  => 
-                { df_c.df = self.lf.clone().join(
+                { 
+                    println!("{:?}", jointype);
+                    //iamerejh
+                    println!("{:?}", l_colvec);
+                    println!("{:?}", r_colvec);
+                    df_c.df = self.lf.clone().join(
                     lf_c.lf.clone(), l_colvec, r_colvec, JoinType::Cross
                 ).collect().unwrap(); ()},
             _      => (),

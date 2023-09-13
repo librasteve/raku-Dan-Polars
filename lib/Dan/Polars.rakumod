@@ -570,13 +570,44 @@ role DataFrame does Positional does Iterable is export {
         self
     }
 
+    method !vstack( DataFrame \right ) {
+        $!rc.vstack( right.rc )
+    }
+
     method !hstack( @series ) {
         self.with_column($_) for @series;
         self
     }
 
-    method !vstack( DataFrame \right ) {
-        $!rc.vstack( right.rc )
+    sub clean-axis( :$axis ) {
+        given $axis {
+            when ! .so || /row/ { 0 }
+            when   .so || /col/ { 1 }
+        }
+    }
+
+    method concat( DataFrame:D $dfr, :ax(:$axis) is copy ) {
+
+        $axis = clean-axis(:$axis);
+
+        if ! $axis {                        # row-wise with Polars vstack 
+
+            if $dfr.width !== self.width {
+                warn 'Polars row-wise concat only implemented for DataFrames with same number of columns!'
+            } else {
+                self!vstack: $dfr 
+            }
+
+        } else {                            # col-wise with Polars hstack
+
+            if $dfr.height !== self.height {
+                warn 'Polars column-wise join only implemented for DataFrames with same number of rows!'
+            } else {
+                my @series = $dfr.cx.map({$dfr.column($_)});
+                self!hstack: @series
+            }
+
+        }
     }
 
     #| viz. https://docs.rs/polars/latest/polars/prelude/struct.LazyFrame.html#method.join
@@ -710,40 +741,6 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
         }
 
 	    DataFrame.new( :%!index, :%!columns, :@!data )
-    }
-
-    sub clean-axis( :$axis ) {
-        given $axis {
-            when ! .so || /row/ { 0 }
-            when   .so || /col/ { 1 }
-        }
-    }
-
-    method concat( DataFrame:D $dfr, :ax(:$axis) is copy,
-                                            :jn(:$join) = 'outer', :ii(:$ignore-index) ) {
-
-        $axis = clean-axis(:$axis);
-
-        if ! $axis {                        # row-wise with Polars join
-
-            if $join eq 'right' {           # Polars has no JoinType Right
-                $dfr.join( self, jointype => 'left' )
-            } else {
-                self.join( $dfr, jointype => $join )
-            }
-
-        } else {                            # col-wise with Polars hstack
-
-            if $dfr.elems !== self.elems {
-                warn 'Polars column-wise join only implemented for DataFrames with same number of elems!'
-            } else {
-                my @series = $dfr.cx.map({$dfr.column($_)});
-                self.hstack: @series
-            }
-
-        }
-
-        self
     }
 
     #### Test Methods ###

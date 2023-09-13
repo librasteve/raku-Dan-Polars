@@ -41,9 +41,36 @@ my \df7 = df5.vstack(df6);
 df7.show;
 #]
 
+#`[
+### se_concat [calls Polars append]
+my \s = Series.new( [b=>1, a=>0, c=>2] );
+my \t = Series.new( [f=>1, e=>0, d=>2] );
 
+my $u = s.concat: t;                # concatenate
+$u.show;
+#]
 
+#[
+### df_concat [calls Polars vstack / hstack]
+my \dfa = DataFrame.new(
+        [['a', 1], ['b', 2]],
+        columns => <letter number>,
+);
 
+my \dfb = DataFrame.new(
+        [['c', 3], ['d', 4]],
+        columns => <letter number>,
+);
+
+my \dfc = DataFrame.new(
+        [['cat'], ['dog']],
+        columns => <animal>,
+);
+
+dfa.concat(dfb).show;                # vstack is default
+
+dfa.concat(dfc, axis => 1).show;     # hstack column-wise
+#]
 
 #`[
 ### join
@@ -88,48 +115,3 @@ my \df_crossjoin = df_colors.join( df_sizes, :jointype<cross> );
 df_crossjoin.show;
 #]
 
-#`[
-### se_concat
-my \s = Series.new( [b=>1, a=>0, c=>2] );
-my \t = Series.new( [f=>1, e=>0, d=>2] );
-
-my $u = s.concat: t;                # concatenate
-$u.show;
-#]
-
-#`[
-### df_concat
-my \dfa = DataFrame.new(
-        [['a', 1], ['b', 2]],
-        columns => <letter number>,
-);
-
-my \dfb = DataFrame.new(
-        [['c', 3], ['d', 4]],
-        columns => <letter number>,
-);
-
-my \dfc = DataFrame.new(
-        [['c', 3, 'cat'], ['d', 4, 'dog']],
-        columns => <letter number animal>,
-);
-
-my $y1 = dfa.concat: dfc;            # row-wise / outer join is default
-$y1.show;
-
-my $y2 = dfa.concat( dfc, join => 'inner' );
-$y2.show;
-
-my $y3 = dfa.concat( dfc, join => 'left' );
-$y3.show;
-
-my $y4 = dfa.concat( dfc, join => 'right' );
-$y4.show;
-
-
-my \dfd = DataFrame.new( [['bird', 'polly'], ['monkey', 'george']],
-                         columns=> <animal name>,                   );
-
-my $y5 = dfb.concat( dfd, axis => 1);             #column-wise
-$y5.show;
-#]

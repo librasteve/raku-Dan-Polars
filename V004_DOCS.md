@@ -265,7 +265,21 @@ shape: (3, 2)
 
 ### Transformations
 
-#### Join-Concat
+#### Join & Concat
+
+##### Table 1: Combining functions for DataFrames
+
+| Function | Description               | Dan                                       |
+|----------|---------------------------|-------------------------------------------|
+| join     | Join on a column          | `df1.join(df2, how=>'inner', on=>'col')`  |
+| concat   | Concatenate along an axis | `df1.concat(df2, axis=>0/1)`              |
+
+
+##### Table 2: Combining functions for Series
+
+| Function | Description                   | Dan                                    |
+|----------|-------------------------------|----------------------------------------| 
+| concat   | Append one Series to another  | `series1.concat( series2 )`            |
 
 In Dan::Polars, the first two sections here - Join and Concat - are related via this universal ```.concat``` method:
 

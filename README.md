@@ -357,6 +357,18 @@ This will then provide a basis for ...
 - [x] cast
 - [x] general tidy up / refactor (esp.lib.rs)
 
+docs v004
+- [x] filter-stuff
+- [x] stack-stuff
+- [x] cast-stuff
+- [ ] null-stuff
+
+test
+- [ ] filter-stuff
+- [ ] stack-stuff
+- [ ] cast-stuff
+- [ ] null-stuff
+
 This will then provide a basis for design Dan::As::Query v0.1 for Dan and Dan::Pandas and review Dan API slice & concat, immutability, refactor...
 
 ### v0.3...

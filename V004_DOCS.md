@@ -325,6 +325,103 @@ The rationale for this solution is set out in [Issue #10](https://github.com/lib
 
 #### Join
 
+Here is the signature of the Dan::Polars ```.join``` method:
+
+```perl6
+subset JoinType of Str where <left inner outer cross>.any;
+method join( DataFrame \right, Str :$on, JoinType :$how = 'outer' ) { ... }
+```
+
+- use ```on => 'colname' to pass the column on which to do the join
+  - Dan::Polars will guess the on column(s) if nothing is supplied
+  - ```on_right``` and ```on_left``` are not provided
+- use ```how => 'jointype' to specify how to do the join
+  - default is ```outer```
+  - undefined cells are created as ```null```
+  - ```right``` is not implemented (swap method call if needed)
+  - ```asof``` and ```semi``` are not yet implemented
+
+First some examples:
+
+```perl6
+my \df_customers = DataFrame([
+    customer_id => [1, 2, 3], 
+    name => ["Alice", "Bob", "Charlie"],
+]);
+df_customers.show;
+
+shape: (3, 2)
+┌─────────────┬─────────┐
+│ customer_id ┆ name    │
+│ ---         ┆ ---     │
+│ i32         ┆ str     │
+╞═════════════╪═════════╡
+│ 1           ┆ Alice   │
+├╌╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌┤
+│ 2           ┆ Bob     │
+├╌╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌┤
+│ 3           ┆ Charlie │
+└─────────────┴─────────┘
+
+my \df_orders = DataFrame([
+    order_id => ["a", "b", "c"],
+    customer_id => [1, 2, 2], 
+    amount => [100, 200, 300],
+]);
+df_orders.show;
+
+shape: (3, 3)
+┌──────────┬─────────────┬────────┐
+│ order_id ┆ customer_id ┆ amount │
+│ ---      ┆ ---         ┆ ---    │
+│ str      ┆ i32         ┆ i32    │
+╞══════════╪═════════════╪════════╡
+│ a        ┆ 1           ┆ 100    │
+├╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ b        ┆ 2           ┆ 200    │
+├╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ c        ┆ 2           ┆ 300    │
+└──────────┴─────────────┴────────┘
+```
+
+```perl6
+df_customers.join(df_orders, on => "customer_id", how => "inner").show;
+
+shape: (3, 4)
+┌─────────────┬───────┬──────────┬────────┐
+│ customer_id ┆ name  ┆ order_id ┆ amount │
+│ ---         ┆ ---   ┆ ---      ┆ ---    │
+│ i32         ┆ str   ┆ str      ┆ i32    │
+╞═════════════╪═══════╪══════════╪════════╡
+│ 1           ┆ Alice ┆ a        ┆ 100    │
+├╌╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ 2           ┆ Bob   ┆ b        ┆ 200    │
+├╌╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ 2           ┆ Bob   ┆ c        ┆ 300    │
+└─────────────┴───────┴──────────┴────────┘
+
+df_customers.join(df_orders).show;    #outer join relying on defaults
+
+shape: (4, 4)
+┌─────────────┬─────────┬──────────┬────────┐
+│ customer_id ┆ name    ┆ order_id ┆ amount │
+│ ---         ┆ ---     ┆ ---      ┆ ---    │
+│ i32         ┆ str     ┆ str      ┆ i32    │
+╞═════════════╪═════════╪══════════╪════════╡
+│ 1           ┆ Alice   ┆ a        ┆ 100    │
+├╌╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ 2           ┆ Bob     ┆ b        ┆ 200    │
+├╌╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ 2           ┆ Bob     ┆ c        ┆ 300    │
+├╌╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ 3           ┆ Charlie ┆ null     ┆ null   │
+└─────────────┴─────────┴──────────┴────────┘
+
+
+df_customers.join(df_orders, on => "customer_id", how => "left").show;
+^^ same as above (in this example)
+```
+
 #### Concat
 
 

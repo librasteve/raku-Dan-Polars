@@ -24,7 +24,8 @@ The TOC is a subset of the Polars Book TOC.
   - Missing Data
   - Apply (user-defined functions)
 - [Transformations](#Transformations)
-  - [Join-Concat](#Join-Concat) (aka hstack/vstack)
+  - [Join](#Join)
+  - [Concat](#Concat)
 
 ## Expressions
 
@@ -265,7 +266,7 @@ shape: (3, 2)
 
 ### Transformations
 
-#### Join & Concat
+In Dan::Polars, the two sections - Join and Concat - are related via these tables:
 
 ##### Table 1: Combining functions for DataFrames
 
@@ -281,7 +282,9 @@ shape: (3, 2)
 |----------|-------------------------------|----------------------------------------| 
 | concat   | Append one Series to another  | `series1.concat( series2 )`            |
 
-In Dan::Polars, the first two sections here - Join and Concat - are related via this universal ```.concat``` method:
+#### Join
+
+#### Concat
 
 ```perl6
   method concat( DataFrame:D $dfr, :ax(:$axis) is copy,

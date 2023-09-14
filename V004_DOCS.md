@@ -11,7 +11,8 @@ This Documentation should be read in conjunction with the [Polars Book](https://
 The TOC is a subset of the Polars Book TOC.
 
 - Installation
-- Concepts
+- [Concepts](#Concepts)
+  - [Contexts](#Contexts)
 - [Expressions](#Expressions)
   - [Casting](#Casting)
     - [Numerics](#Numerics)
@@ -26,6 +27,44 @@ The TOC is a subset of the Polars Book TOC.
 - [Transformations](#Transformations)
   - [Join](#Join)
   - [Concat](#Concat)
+
+## Concepts
+
+### Contexts
+
+#### Select
+
+```perl6
+my \df1 = DataFrame.new(['Ray Type' => ["α", "β", "X", "γ"]]);
+df1.show;
+
+shape: (4, 1)
+┌──────────┐
+│ Ray Type │
+│ ---      │
+│ str      │
+╞══════════╡
+│ α        │
+├╌╌╌╌╌╌╌╌╌╌┤
+│ β        │
+├╌╌╌╌╌╌╌╌╌╌┤
+│ X        │
+├╌╌╌╌╌╌╌╌╌╌┤
+│ γ        │
+└──────────┘
+```
+
+```perl6
+my \df2 = df1.drop(['Ray Type']);
+df2.show;
+
+shape: (0, 0)
+┌┐
+╞╡
+└┘
+
+say df2.is_empty; #True
+```
 
 ## Expressions
 

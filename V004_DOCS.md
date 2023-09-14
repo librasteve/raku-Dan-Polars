@@ -282,38 +282,13 @@ In Dan::Polars, the two sections - Join and Concat - are related via these table
 |----------|-------------------------------|----------------------------------------| 
 | concat   | Append one Series to another  | `series1.concat( series2 )`            |
 
+The rationale for this solution is set out in [Issue #10](https://github.com/librasteve/raku-Dan-Polars/issues/10)
+
 #### Join
 
 #### Concat
 
-```perl6
-  method concat( DataFrame:D $dfr, :ax(:$axis) is copy,
-                            :jn(:$join) = 'outer', :ii(:$ignore-index) ) {
 
-        $axis = clean-axis(:$axis);
-
-        if ! $axis {                        # row-wise with Polars join
-
-            if $join eq 'right' {           # Polars has no JoinType Right
-                $dfr.join( self, jointype => 'left' )
-            } else {
-                self.join( $dfr, jointype => $join )
-            }
-
-        } else {                            # col-wise with Polars hstack
-
-            if $dfr.elems !== self.elems {
-                warn 'Polars column-wise join only implemented for DataFrames with same number of elems!'
-            } else {
-                my @series = $dfr.cx.map({$dfr.column($_)});
-                self.hstack: @series
-            }
-
-        }
-
-        self
-    }
-```
 
 Here's what is going on:
 - Rust-Polars has hstack & vstack methods, these are often wrapped in Rust-Polars ```.concat``` as described [here](https://pola-rs.github.io/polars-book/user-guide/transformations/concatenation/).

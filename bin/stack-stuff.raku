@@ -63,8 +63,8 @@ my \dfb = DataFrame.new(
 );
 
 my \dfc = DataFrame.new(
-        [['cat'], ['dog']],
-        columns => <animal>,
+        [['cat', 4], ['dog', 4]],
+        columns => <animal legs>,
 );
 
 dfa.concat(dfb).show;                # vstack is default
@@ -72,9 +72,10 @@ dfa.concat(dfb).show;                # vstack is default
 dfa.concat(dfc, axis => 1).show;     # hstack column-wise
 #]
 
-#`[
+#[
 ### join
-##<left inner outer>; 
+##<left inner outer> 
+## defaault = outer
 
 my \df_customers = DataFrame([
     customer_id => [1, 2, 3],
@@ -89,17 +90,12 @@ my \df_orders = DataFrame([
 ]);
 df_orders.show;
 
-my \df_inner_join = df_customers.join(df_orders, on => "customer_id", jointype => "inner");
-df_inner_join.show;
-
-my \df_left_join = df_customers.join(df_orders, on => "customer_id", jointype => "left");
-df_left_join.show;
-
-my \df_outer_join = df_customers.join(df_orders, on => "customer_id", jointype => "outer");
-df_outer_join.show;
+df_customers.join(df_orders, on => "customer_id", how => "inner").show;
+df_customers.join(df_orders, on => "customer_id", how => "left").show;
+df_customers.join(df_orders, on => "customer_id", how => "outer").show;
 #]
 
-#`[ 
+#[ 
 ###cross join
 my \df_colors = DataFrame([ 
     color => ["red", "blue", "green"],
@@ -111,7 +107,6 @@ my \df_sizes = DataFrame([
 ]);
 df_sizes.show;
 
-my \df_crossjoin = df_colors.join( df_sizes, :jointype<cross> );
-df_crossjoin.show;
+df_colors.join( df_sizes, :how<cross> ).show;
 #]
 

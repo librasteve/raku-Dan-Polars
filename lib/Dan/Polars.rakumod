@@ -581,8 +581,8 @@ role DataFrame does Positional does Iterable is export {
 
     sub clean-axis( :$axis ) {
         given $axis {
-            when ! .so || /row/ { 0 }
-            when   .so || /col/ { 1 }
+            when ! .so || /^r/ || /^v/ { 0 }
+            when   .so || /^c/ || /^h/ { 1 }
         }
     }
 
@@ -612,7 +612,7 @@ role DataFrame does Positional does Iterable is export {
 
     #| viz. https://docs.rs/polars/latest/polars/prelude/struct.LazyFrame.html#method.join
     #| exposes just the on argument but not on_right and on_left 
-    method join( DataFrame \right, Str :$on, JoinType :$jointype = 'outer' ) {
+    method join( DataFrame \right, Str :$on, JoinType :$how = 'outer' ) {
         my @join-cols;
 
         if $on {
@@ -631,7 +631,7 @@ role DataFrame does Positional does Iterable is export {
         my $lr = LazyFrameC.new( right.rc );
 
         my \df = DataFrame.new;
-        df.rc: $!lc.join( $lr, $colspec, $colspec, $jointype.tc );      #l_ & r_colspec are the same
+        df.rc: $!lc.join( $lr, $colspec, $colspec, $how.tc );      #l_ & r_colspec are the same
         df
     }
 

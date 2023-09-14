@@ -335,6 +335,7 @@ method join( DataFrame \right, Str :$on, JoinType :$how = 'outer' ) { ... }
 - use ```on => 'colname' to pass the column on which to do the join
   - Dan::Polars will guess the on column(s) if nothing is supplied
   - ```on_right``` and ```on_left``` are not provided
+  - ignored if a ```cross``` join
 - use ```how => 'jointype' to specify how to do the join
   - default is ```outer```
   - undefined cells are created as ```null```
@@ -417,21 +418,174 @@ shape: (4, 4)
 │ 3           ┆ Charlie ┆ null     ┆ null   │
 └─────────────┴─────────┴──────────┴────────┘
 
-
 df_customers.join(df_orders, on => "customer_id", how => "left").show;
 ^^ same as above (in this example)
 ```
 
+For cross join:
+
+```perl6
+my \df_colors = DataFrame([ 
+    color => ["red", "blue", "green"],
+]);
+df_colors.show;
+
+shape: (3, 1)
+┌───────┐
+│ color │
+│ ---   │
+│ str   │
+╞═══════╡
+│ red   │
+├╌╌╌╌╌╌╌┤
+│ blue  │
+├╌╌╌╌╌╌╌┤
+│ green │
+└───────┘
+
+my \df_sizes = DataFrame([
+    size => ["S", "M", "L"],
+]);
+df_sizes.show;
+
+shape: (3, 1)
+┌──────┐
+│ size │
+│ ---  │
+│ str  │
+╞══════╡
+│ S    │
+├╌╌╌╌╌╌┤
+│ M    │
+├╌╌╌╌╌╌┤
+│ L    │
+└──────┘
+```
+
+```perl6
+df_colors.join( df_sizes, :how<cross> ).show;
+
+shape: (9, 2)
+┌───────┬──────┐
+│ color ┆ size │
+│ ---   ┆ ---  │
+│ str   ┆ str  │
+╞═══════╪══════╡
+│ red   ┆ S    │
+├╌╌╌╌╌╌╌┼╌╌╌╌╌╌┤
+│ red   ┆ M    │
+├╌╌╌╌╌╌╌┼╌╌╌╌╌╌┤
+│ red   ┆ L    │
+├╌╌╌╌╌╌╌┼╌╌╌╌╌╌┤
+│ blue  ┆ S    │
+├╌╌╌╌╌╌╌┼╌╌╌╌╌╌┤
+│ ...   ┆ ...  │
+├╌╌╌╌╌╌╌┼╌╌╌╌╌╌┤
+│ blue  ┆ L    │
+├╌╌╌╌╌╌╌┼╌╌╌╌╌╌┤
+│ green ┆ S    │
+├╌╌╌╌╌╌╌┼╌╌╌╌╌╌┤
+│ green ┆ M    │
+├╌╌╌╌╌╌╌┼╌╌╌╌╌╌┤
+│ green ┆ L    │
+└───────┴──────┘
+```
+
 #### Concat
 
+##### DataFrames
 
+Here is the signature of the Dan::Polars DataFrame ```.concat``` method:
 
-Here's what is going on:
-- Rust-Polars has hstack & vstack methods, these are often wrapped in Rust-Polars ```.concat``` as described [here](https://pola-rs.github.io/polars-book/user-guide/transformations/concatenation/).
-- Python-Pandas has 
+```perl6
+method concat( DataFrame:D $dfr, :ax(:$axis) is copy ) { ... }
 
-After some experimentation, the 
-aka hstack/vstack
+given $axis {
+    when ! .so || /^r/ || /^v/ { 0 }
+    when   .so || /^c/ || /^h/ { 1 }
+}
+```
 
+- ```ax``` is an alias for ```axis```
+- default (False) is vertical
+- as values you can use
+  - False | True
+  - 0 | 1
+  - anything with initial char [r]ow or [c]olumn
+  - anything with initial char [v]ertical or [h]orizontal
+
+First, some example data:
+
+```perl6
+my \dfa = DataFrame.new(
+        [['a', 1], ['b', 2]],
+        columns => <letter number>,
+);
+
+my \dfb = DataFrame.new(
+        [['c', 3], ['d', 4]],
+        columns => <letter number>,
+);
+
+my \dfc = DataFrame.new(
+        [['cat', 4], ['dog', 4]],
+        columns => <animal legs>,
+);
+```
+
+```perl6
+dfa.concat(dfb).show;               # vertical is default
+
+shape: (4, 2)
+┌────────┬────────┐
+│ letter ┆ number │
+│ ---    ┆ ---    │
+│ str    ┆ i32    │
+╞════════╪════════╡
+│ a      ┆ 1      │
+├╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ b      ┆ 2      │
+├╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ c      ┆ 3      │
+├╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ d      ┆ 4      │
+└────────┴────────┘
+```
+
+```perl6
+dfa.concat(dfc, :axis).show;     # horizontal or column-wise
+
+shape: (2, 4)
+┌────────┬────────┬────────┬──────┐
+│ letter ┆ number ┆ animal ┆ legs │
+│ ---    ┆ ---    ┆ ---    ┆ ---  │
+│ str    ┆ i32    ┆ str    ┆ i32  │
+╞════════╪════════╪════════╪══════╡
+│ a      ┆ 1      ┆ cat    ┆ 4    │
+├╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌┤
+│ b      ┆ 2      ┆ dog    ┆ 4    │
+└────────┴────────┴────────┴──────┘
+```
+
+##### Series
+
+```perl6
+my \s = Series.new( [b=>1, a=>0, c=>2] );
+my \t = Series.new( [f=>1, e=>0, d=>2] );
+
+my $u = s.concat: t;                # concatenate
+$u.show;
+
+shape: (6,)
+Series: 'anon' [i32]
+[
+	1
+	0
+	2
+	1
+	0
+	2
+]
+```
 
 Copyright(c) 2022-2023 Henley Cloud Consulting Ltd.

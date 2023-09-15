@@ -10,7 +10,6 @@ This Documentation should be read in conjunction with the [Polars Book](https://
 
 The TOC is a subset of the Polars Book TOC.
 
-- Installation
 - [Concepts](#Concepts)
   - [Contexts](#Contexts)
 - [Expressions](#Expressions)
@@ -23,7 +22,7 @@ The TOC is a subset of the Polars Book TOC.
     - [Filter](#Filter) (aka grep)
     - [Sort](#Sort)
   - [Missing Data](#Missing_Data)
-  - Apply (user-defined functions)
+  - [Apply](#Apply) (user-defined functions)
 - [Transformations](#Transformations)
   - [Join](#Join)
   - [Concat](#Concat)
@@ -302,6 +301,7 @@ shape: (3, 2)
 │ B      ┆ [3, 5]    │
 └────────┴───────────┘
 ```
+
 ### Missing_Data
 
 In Dan::Polars, missing data is represented by the raku Type Object (Int, Bool, Str and so on) or by the raku Numeric special values (NaN, +/-Inf).
@@ -384,6 +384,23 @@ shape: (5, 1)
 │ false │
 └───────┘
 ```
+
+### Apply
+
+#### General
+
+In Rust Polars, map and apply functions are offered. In Dan::Polars, only ```apply``` is provided for user-defined functions. 
+
+Per the Polars user guide:
+
+_Use cases for map in the group_by context are slim. They are only used for performance reasons, but can quite easily lead to incorrect results..._
+
+Luckily, ```apply``` works on the smallest logical elements for the operation:
+
+- ```select context``` -> single elements
+- ```group by context``` -> single groups
+
+So, Dan::Polars ```apply``` is provided to attain _approaching Rust Polars performance_ on user-defined operations with raku. It is intended to be suitable for concurrent and parallel processing so in principle could be faster than Python Polars. To do this, the operation is written as a lambda in Rust as a "slang" and then it is JIT compiled and made available in a Rust library (```libapply.so``` or equivalent) to be called from the Rust
 
 ### Transformations
 

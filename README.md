@@ -361,7 +361,7 @@ docs v004
 - [x] filter-stuff
 - [x] stack-stuff
 - [x] cast-stuff
-- [ ] null-stuff
+- [x] null-stuff
 - [ ] apply-stuff
 
 test

@@ -362,12 +362,14 @@ docs v004
 - [x] stack-stuff
 - [x] cast-stuff
 - [ ] null-stuff
+- [ ] apply-stuff
 
 test
 - [ ] filter-stuff
 - [ ] stack-stuff
 - [ ] cast-stuff
 - [ ] null-stuff
+- [ ] apply-stuff
 
 This will then provide a basis for design Dan::As::Query v0.1 for Dan and Dan::Pandas and review Dan API slice & concat, immutability, refactor...
 

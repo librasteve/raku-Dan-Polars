@@ -22,7 +22,7 @@ The TOC is a subset of the Polars Book TOC.
     - [Conditionals](#Conditionals)
     - [Filter](#Filter) (aka grep)
     - [Sort](#Sort)
-  - Missing Data
+  - [Missing Data](#Missing Data)
   - Apply (user-defined functions)
 - [Transformations](#Transformations)
   - [Join](#Join)
@@ -301,6 +301,88 @@ shape: (3, 2)
 ├╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌┤
 │ B      ┆ [3, 5]    │
 └────────┴───────────┘
+```
+### Missing Data
+
+In Dan::Polars, missing data is represented by the raku Type Object (Int, Bool, Str and so on) or by the raku Numeric special values (NaN, +/-Inf).
+
+```perl6
+my \df = DataFrame.new([
+    nrs    => [1, 2, 3, 4, 5], 
+    nrs2   => [Num, NaN, 4, Inf, 8.3],
+    names  => ["foo", Str, "spam", "egg", ""],
+    random => [1.rand xx 5], 
+    groups => ["A", "A", "B", "C", "B"],
+    flags  => [True,True,False,True,Bool],
+]);
+df.show;
+
+shape: (5, 6)
+┌─────┬──────┬───────┬──────────┬────────┬───────┐
+│ nrs ┆ nrs2 ┆ names ┆ random   ┆ groups ┆ flags │
+│ --- ┆ ---  ┆ ---   ┆ ---      ┆ ---    ┆ ---   │
+│ i32 ┆ f64  ┆ str   ┆ f64      ┆ str    ┆ bool  │
+╞═════╪══════╪═══════╪══════════╪════════╪═══════╡
+│ 1   ┆ null ┆ foo   ┆ 0.074586 ┆ A      ┆ true  │
+├╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌┤
+│ 2   ┆ NaN  ┆ null  ┆ 0.867919 ┆ A      ┆ true  │
+├╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌┤
+│ 3   ┆ 4.0  ┆ spam  ┆ 0.069183 ┆ B      ┆ false │
+├╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌┤
+│ 4   ┆ inf  ┆ egg   ┆ 0.739191 ┆ C      ┆ true  │
+├╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌┤
+│ 5   ┆ 8.3  ┆       ┆ 0.133729 ┆ B      ┆ null  │
+└─────┴──────┴───────┴──────────┴────────┴───────┘
+```
+
+And, conversely, when cast back to a (non Polars) Dan DataFrame:
+
+```perl6
+say ~df.Dan-DataFrame;
+
+    nrs  nrs2  names  random               groups  flags 
+ 0  1    Num   foo    0.9188127959571387   A       True  
+ 1  2    NaN   Str    0.08257029673307026  A       True  
+ 2  3    4     spam   0.0682447340762582   B       False 
+ 3  4    Inf   egg    0.3287371781756494   C       True  
+ 4  5    8.3          0.5133318112263049   B       Bool 
+```
+
+You can test for what you have with:
+
+| Sense | Truthiness | Definedness | Numberness   | Finiteness  |
+|-------|------------|-------------|--------------|-------------|
+|  so   |    n/a     | is_null     | is_not_nan   | is_finite   |
+|  not  |   is_not   | is_not_null | is_nan       | is_infinite |  
+
+```perl6
+#`[
+df.select([(col("nrs") > 2)]).head;
+df.select([((col("nrs") > 2).is_not)]).head;
+df.select([(col("nrs2").is_null)]).head;
+df.select([(col("nrs2").is_not_null)]).head;
+df.select([(col("nrs2").is_not_nan)]).head;
+df.select([(col("nrs2").is_nan)]).head;
+df.select([(col("nrs2").is_finite)]).head;
+#]
+df.select([(col("nrs2").is_infinite)]).head;
+
+shape: (5, 1)
+┌───────┐
+│ nrs2  │
+│ ---   │
+│ bool  │
+╞═══════╡
+│ null  │
+├╌╌╌╌╌╌╌┤
+│ false │
+├╌╌╌╌╌╌╌┤
+│ false │
+├╌╌╌╌╌╌╌┤
+│ true  │
+├╌╌╌╌╌╌╌┤
+│ false │
+└───────┘
 ```
 
 ### Transformations

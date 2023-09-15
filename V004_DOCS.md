@@ -22,7 +22,7 @@ The TOC is a subset of the Polars Book TOC.
     - [Conditionals](#Conditionals)
     - [Filter](#Filter) (aka grep)
     - [Sort](#Sort)
-  - [Missing Data](#Missing Data)
+  - [Missing_Data](#Missing_Data)
   - Apply (user-defined functions)
 - [Transformations](#Transformations)
   - [Join](#Join)

@@ -22,7 +22,7 @@ The TOC is a subset of the Polars Book TOC.
     - [Conditionals](#Conditionals)
     - [Filter](#Filter) (aka grep)
     - [Sort](#Sort)
-  - [Missing_Data](#Missing_Data)
+  - [Missing Data](#Missing_Data)
   - Apply (user-defined functions)
 - [Transformations](#Transformations)
   - [Join](#Join)
@@ -302,7 +302,7 @@ shape: (3, 2)
 │ B      ┆ [3, 5]    │
 └────────┴───────────┘
 ```
-### Missing Data
+### Missing_Data
 
 In Dan::Polars, missing data is represented by the raku Type Object (Int, Bool, Str and so on) or by the raku Numeric special values (NaN, +/-Inf).
 

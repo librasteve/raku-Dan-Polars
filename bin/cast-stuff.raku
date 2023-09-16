@@ -37,7 +37,7 @@ dfs.select([
 
 #[
 my \dfs = DataFrame.new([
-    integers => [-1, 0, 2, 3, 4],
+    integers => [-1, 0, 2, 3, 4], 
     floats => [0.0, 1.0, 2.0, 3.0, 4.0],
     bools => [True, False, True, False, True],
 ]);
@@ -49,8 +49,3 @@ dfs.select([
     col("bools").cast("i32"),
 ]).show;
 #]
-
-#`[ todo
-- test
-#]
-

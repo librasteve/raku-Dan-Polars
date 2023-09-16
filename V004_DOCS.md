@@ -389,9 +389,7 @@ shape: (5, 1)
 
 #### General
 
-In Rust Polars, map and apply functions are offered. In Dan::Polars, only ```apply``` is provided for user-defined functions. 
-
-Per the Polars user guide:
+In Rust Polars, map and apply functions are offered. In Dan::Polars, only ```apply``` is provided for user-defined functions. Per the Polars user guide:
 
 _Use cases for map in the group_by context are slim. They are only used for performance reasons, but can quite easily lead to incorrect results..._
 
@@ -400,7 +398,124 @@ Luckily, ```apply``` works on the smallest logical elements for the operation:
 - ```select context``` -> single elements
 - ```group by context``` -> single groups
 
-So, Dan::Polars ```apply``` is provided to attain _approaching Rust Polars performance_ on user-defined operations with raku. It is intended to be suitable for concurrent and parallel processing so in principle could be faster than Python Polars. To do this, the operation is written as a lambda in Rust as a "slang" and then it is JIT compiled and made available in a Rust library (```libapply.so``` or equivalent) to be called from the Rust
+Dan::Polars ```apply``` aims to offer _near native Rust Polars performance_ on user-defined operations embedded in raku code. Long term, it is intended to be suitable for concurrent and parallel processing so could be faster than Python Polars. The operation is written in "Rust lambda slang" within your raku code and then it is JIT compiled and made available in a Rust library (```libapply.so``` or equivalent) to be called from the Rust Polars library.
+
+##### Monadic Apply Operations
+
+Monadic - operations with one argument
+
+Taking this example DataFrame:
+
+```perl6
+my \df = DataFrame.new([
+    nrs    => [1, 2, 3, 4, 5],
+    nrs2   => [2, 3, 4, 5, 6],
+    names  => ["foo", "ham", "spam", "egg", ""],
+    random => [1.rand xx 5],
+    groups => ["A", "A", "B", "C", "B"],
+]);
+df.show;
+
+shape: (5, 5)
+┌─────┬──────┬───────┬──────────┬────────┐
+│ nrs ┆ nrs2 ┆ names ┆ random   ┆ groups │
+│ --- ┆ ---  ┆ ---   ┆ ---      ┆ ---    │
+│ i32 ┆ i32  ┆ str   ┆ f64      ┆ str    │
+╞═════╪══════╪═══════╪══════════╪════════╡
+│ 1   ┆ 2    ┆ foo   ┆ 0.455665 ┆ A      │
+├╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ 2   ┆ 3    ┆ ham   ┆ 0.961131 ┆ A      │
+├╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ 3   ┆ 4    ┆ spam  ┆ 0.093231 ┆ B      │
+├╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ 4   ┆ 5    ┆ egg   ┆ 0.570909 ┆ C      │
+├╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┤
+│ 5   ┆ 6    ┆       ┆ 0.716256 ┆ B      │
+└─────┴──────┴───────┴──────────┴────────┘
+```
+
+Here we add one to each i32 value in a ```groupby```:
+
+```perl6
+df.groupby(["groups"]).agg([col("nrs").apply("|a: i32| (a + 1) as i32").alias("jones")]).head;
+
+shape: (3, 2)
+┌────────┬───────────┐
+│ groups ┆ jones     │
+│ ---    ┆ ---       │
+│ str    ┆ list[i32] │
+╞════════╪═══════════╡
+│ B      ┆ [4, 6]    │
+├╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌┤
+│ A      ┆ [2, 3]    │
+├╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌┤
+│ C      ┆ [5]       │
+└────────┴───────────┘
+```
+
+The various part of the raku source code with Rust lambda slang are described below:
+
+```perl6
+    # Monadic Real
+    # apply() is exported directly into client script and acts on the ExprC made by col()
+    # its argument is a string in the form of a Rust lambda with |signature| (body) as rtn-type
+    # the lambda takes variable 'a: type' if monadic or 'a: type, b: type' if dyadic' 
+    # the body is a valid Rust expression 
+
+#df.select([col("nrs").apply("|a: i32| (a + 1) as i32").alias("jones")]).head;
+--- ------  ---------- -----  --------  -----  ------   -----            ----
+ |     |        |        |        |       |      |        |                -> method head prints top lines of result
+ |     |        |        |        |       |      |        |
+ |     |        |        |        |       |      |        -> method alias returns a new Expr
+ |     |        |        |        |       |      |
+ |     |        |        |        |       |      -> lamda return type (Rust)
+ |     |        |        |        |       |
+ |     |        |        |        |       -> lambda expression using varname (Rust) 
+ |     |        |        |        |
+ |     |        |        |        -> lambda signature with varname : type (Rust) 
+ |     |        |        |
+ |     |        |        -> method apply returns a new Expr with the results of the lambda
+ |     |        |
+ |     |        -> method col(Str \colname) returns a new (empty) Expr
+ |     |
+ |     -> method select(Array \exprs) creates a LazyFrame, calls .select(exprs) then .collect
+ |
+ |
+ -> DataFrame object with attributes of pointers to rust DataFrame and LazyFrame structures
+```
+
+##### Dyadic Apply Operations
+
+Dyadic - operations with two arguments
+
+Taking this example DataFrame:
+
+```perl6
+my \df2 = DataFrame.new([
+    keys => ["a", "a", "b"],
+    values => [10, 7, 1],
+    ovalues => [10, 7, 1],
+]);
+df2.show;
+
+shape: (3, 3)
+┌──────┬────────┬─────────┐
+│ keys ┆ values ┆ ovalues │
+│ ---  ┆ ---    ┆ ---     │
+│ str  ┆ i32    ┆ i32     │
+╞══════╪════════╪═════════╡
+│ a    ┆ 10     ┆ 10      │
+├╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌┤
+│ a    ┆ 7      ┆ 7       │
+├╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌┤
+│ b    ┆ 1      ┆ 1       │
+└──────┴────────┴─────────┘
+```
+
+Here we add one to each i32 value in a ```groupby```:
+
+
+
 
 ### Transformations
 

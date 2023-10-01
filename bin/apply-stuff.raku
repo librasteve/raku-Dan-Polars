@@ -35,9 +35,9 @@ df2.show;
 
 
 #df2.select([(col("ovalues") + col("values")).alias("solution_expr")]).show;  # str and lengths tbd
-#df2.select([struct(["keys", "values"]).alias("struct")]).show;
-#df2.select([struct(["values", "ovalues"]).apply("|a: i32, b: i32| (a + b) as i32").alias("jones")]).show;
-df2.select([struct(["keys", "values"]).apply("|a: str, b: i32| (a.len() as i32 + b) as i32").alias("jones")]).show;
+#df2.select([struct(["values", "ovalues"]).alias("struct")]).show;
+df2.select([struct(["values", "ovalues"]).apply("|a: i32, b: i32| (a + b) as i32").alias("jones")]).show;
+#df2.select([struct(["keys", "values"]).apply("|a: str, b: i32| (a.len() as i32 + b) as i32").alias("jones")]).show;
 #df2.groupby(["keys"]).agg([struct(["keys", "values"]).apply("|a: str, b: i32| (a.len() as i32 + b) as i32").alias("jones")]).show;
 #]
 

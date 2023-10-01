@@ -910,7 +910,7 @@ class ExprC is repr('CPointer') is export {
         #say "monadic:\n$mro\ndyadic:\n$dro\n";   #debug
 
         #| build libapply.so dynamically
-        #[  <= turn off
+        #`[  <= turn off
 
         my $app-dir = "{a-root}/apply";
         my $app-dir-src = "$app-dir/src";

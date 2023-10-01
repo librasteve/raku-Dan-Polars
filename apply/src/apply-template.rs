@@ -22,14 +22,14 @@ impl ExprC {
 }
 
 //START_APPLY - monadic
-fn do_apply_monadic(vals: Series) -> Result<Series> {
+fn do_apply_monadic(vals: Series) -> Result<Option<Series>, PolarsError> {
     let x = vals
         .%MATYPE%() 
         .unwrap() 
         .into_iter()
         .map(|opt: Option<%MATYPE%>| opt.map(|a: %MATYPE%| %MEXPR% as %MRTYPE%))
         .collect::<%MDTYPE%Chunked>();
-    Ok(x.into_series())
+    Ok(Some(x.into_series()))
 }
 //END_APPLY
 
@@ -52,7 +52,7 @@ pub extern "C" fn ap_apply_monadic(ptr: *mut ExprC) -> *mut ExprC {
 */
 
 //START_APPLY - dyadic
-fn do_apply_dyadic(s: Series) -> Result<Series> {
+fn do_apply_dyadic(s: Series) -> Result<Option<Series>, PolarsError> {
 
     // downcast to struct
     let ca = s.struct_()?;
@@ -77,7 +77,7 @@ fn do_apply_dyadic(s: Series) -> Result<Series> {
 
     //println!("{}",out.clone().into_series());
 
-    Ok(out.into_series())
+    Ok(Some(out.into_series()))
 }
 //END_APPLY
 

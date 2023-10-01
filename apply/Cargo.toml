@@ -6,9 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-libc = "0.2.126"
-polars = {version = "0.22.1", features = ["lazy", "dtype-struct"]}
-ffi-convert = "0.5.0"
+libc = "0.2.148"
+polars = {version = "0.33.2", features = ["lazy", "dtype-struct"]}
+ffi-convert = "0.6.1"
 libloading = "*"
 
 [lib]

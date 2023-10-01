@@ -54,7 +54,12 @@ pub extern "C" fn ap_apply_monadic(ptr: *mut ExprC) -> *mut ExprC {
 //START_APPLY - dyadic
 fn do_apply_dyadic(s: Series) -> Result<Series> {
 
+    let data = vec![1, 2, 3, 4, 5];
+    let series = Series::new("numbers", data);
     // downcast to struct
+    println!("yo");
+    println!("{:?}", s.len());
+    println!("ho");
     let ca = s.struct_()?;
 
     // get the fields as Series
@@ -84,6 +89,9 @@ fn do_apply_dyadic(s: Series) -> Result<Series> {
 #[no_mangle]
 pub extern "C" fn ap_apply_dyadic(ptr: *mut ExprC) -> *mut ExprC {
     let ex_c = check_ptr(ptr);
+
+    println!("wo");
+    println!("{:?}",ex_c.inner.clone());
 
     let new_inn: Expr = ex_c.inner.clone().apply(do_apply_dyadic, GetOutput::default()).into();
 

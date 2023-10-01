@@ -7,7 +7,6 @@ use std::fs::File;
 use std::path::{Path};
 
 use polars::prelude::*;//{CsvReader, DataType, DataFrame, Series};
-use polars::prelude::{Result as PolarResult};
 
 // these from nodejs lazy/dsl.rs...
 use polars::lazy::dsl;
@@ -410,7 +409,7 @@ pub extern "C" fn se_append(
 
 // DataFrame Container
 
-pub fn df_load_csv(spath: &str) -> PolarResult<DataFrame> {
+pub fn df_load_csv(spath: &str) -> PolarsResult<DataFrame> {
     let fpath = Path::new(spath);
     let file = File::open(fpath).expect("Cannot open file.");
 
@@ -494,7 +493,7 @@ impl DataFrameC {
     }
 
     fn sort(&self, colvec: Vec::<String>, descvec: Vec::<bool> ) -> DataFrame {
-        self.df.sort(colvec, descvec).unwrap().clone()
+        self.df.sort(colvec, descvec, false).unwrap().clone()
     }
 }
 
@@ -727,7 +726,7 @@ impl LazyFrameC {
 
     fn groupby(&mut self, colvec: Vec::<String>) {
         let colrefs: Vec<&str> = colvec.iter().map(AsRef::as_ref).collect();
-        self.gb = Some(self.lf.clone().groupby(colrefs));
+        self.gb = Some(self.lf.clone().group_by(colrefs));
     }
 
     fn agg(&mut self, exprvec: Vec::<Expr>) {
@@ -744,15 +743,18 @@ impl LazyFrameC {
         match jointype {
             "Left"  => 
                 { df_c.df = self.lf.clone().join(
-                    lf_c.lf.clone(), l_colvec, r_colvec, JoinType::Left
+                    lf_c.lf.clone(), l_colvec, r_colvec, 
+                    JoinArgs::new(JoinType::Left)
                 ).collect().unwrap(); ()},
             "Inner"  => 
                 { df_c.df = self.lf.clone().join(
-                    lf_c.lf.clone(), l_colvec, r_colvec, JoinType::Inner
+                    lf_c.lf.clone(), l_colvec, r_colvec, 
+                    JoinArgs::new(JoinType::Inner)
                 ).collect().unwrap(); ()},
             "Outer"  => 
                 { df_c.df = self.lf.clone().join(
-                    lf_c.lf.clone(), l_colvec, r_colvec, JoinType::Outer
+                    lf_c.lf.clone(), l_colvec, r_colvec, 
+                    JoinArgs::new(JoinType::Outer)
                 ).collect().unwrap(); ()},
             //"Asof"  => 
             //    { df_c.df = self.lf.clone().join(
@@ -1009,11 +1011,11 @@ impl ExprC {
     }
 
     fn std(&self) -> ExprC {
-        self.inner.clone().std().into()
+        self.inner.clone().std(0).into()
     }
 
     fn var(&self) -> ExprC {
-        self.inner.clone().var().into()
+        self.inner.clone().var(0).into()
     }
 
     fn exclude(&self, colvec: Vec::<String>) -> ExprC {

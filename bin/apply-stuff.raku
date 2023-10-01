@@ -4,7 +4,7 @@ use Dan;
 use Dan::Polars;
 
 #monadic
-#[
+#`[
 my \df = DataFrame.new([
     nrs    => [1, 2, 3, 4, 5],
     nrs2   => [2, 3, 4, 5, 6],
@@ -25,7 +25,7 @@ df.groupby(["groups"]).agg([col("nrs").apply("|a: i32| (a + 1) as i32").alias("j
 #]
 
 #dyadic
-#`[
+#[
 my \df2 = DataFrame.new([
     keys => ["a", "a", "b"],
     values => [10, 7, 1],
@@ -33,11 +33,12 @@ my \df2 = DataFrame.new([
 ]);
 df2.show;
 
+
 #df2.select([(col("ovalues") + col("values")).alias("solution_expr")]).show;  # str and lengths tbd
 #df2.select([struct(["keys", "values"]).alias("struct")]).show;
 #df2.select([struct(["values", "ovalues"]).apply("|a: i32, b: i32| (a + b) as i32").alias("jones")]).show;
-#df2.select([struct(["keys", "values"]).apply("|a: str, b: i32| (a.len() as i32 + b) as i32").alias("jones")]).show;
-df2.groupby(["keys"]).agg([struct(["keys", "values"]).apply("|a: str, b: i32| (a.len() as i32 + b) as i32").alias("jones")]).show;
+df2.select([struct(["keys", "values"]).apply("|a: str, b: i32| (a.len() as i32 + b) as i32").alias("jones")]).show;
+#df2.groupby(["keys"]).agg([struct(["keys", "values"]).apply("|a: str, b: i32| (a.len() as i32 + b) as i32").alias("jones")]).show;
 #]
 
 

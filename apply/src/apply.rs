@@ -24,10 +24,10 @@ impl ExprC {
 //START_APPLY - monadic
 fn do_apply_monadic(vals: Series) -> Result<Series> {
     let x = vals
-        .f64() 
+        .i32() 
         .unwrap() 
         .into_iter()
-        .map(|opt: Option<f64>| opt.map(|a: f64| a as i32))
+        .map(|opt: Option<i32>| opt.map(|a: i32| a + 1 as i32))
         .collect::<Int32Chunked>();
     Ok(x.into_series())
 }

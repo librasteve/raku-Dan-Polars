@@ -168,7 +168,7 @@ role Series does Positional does Iterable is export {
     }
 
     method get_data {
-        my $nulls = self.is-null;
+        my $nulls = self!is-null;
         my @nulls = $nulls.rc.get_data;
         my $null-count = +@nulls.grep(*.so); 
         my $null-value = $nulls.rc.raku-null-val( self.dtype );
@@ -665,13 +665,13 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
     method select( Array \exprs ) {
         $!lc = LazyFrameC.new( $!rc );      # autolazy
         $!lc.select( exprs );
-        $.collect
+        self!collect
     }
 
     method with_columns( Array \exprs ) {
         $!lc = LazyFrameC.new( $!rc );      # autolazy
         $!lc.with_columns( exprs );
-        $.collect
+        self!collect
     }
 
     method drop( @colnames ) {              # takes List of Str (unlike Polars native call)
@@ -693,7 +693,7 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
 
     method agg( Array \exprs ) {
         $!lc.agg( exprs );
-        $.collect
+        self!collect
     }
 
     multi method sort( Array \colspec, Array \descvec ) {   # takes colspec, descvec
@@ -722,7 +722,7 @@ dfa.groupby(["letter"]).agg([col("number").sum]).head;
     method filter( Array \exprs ) {         # takes Array of Exprs (unlike Polars native call)
         $!lc = LazyFrameC.new( $!rc );      # autolazy
         $!lc.filter( exprs );
-        $.collect
+        self!collect
     }
 
     method grep( &cruton ) {                # &custom-routine-to-use

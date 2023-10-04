@@ -2,7 +2,7 @@ extern crate polars;
 
 use polars::prelude::*;//{CsvReader, DataType, DataFrame, Series};
 use polars::lazy::dsl;
-use polars::lazy::dsl::Expr;
+//use polars::lazy::dsl::Expr;
 
 fn check_ptr<'a, T>(ptr: *mut T) -> &'a mut T {
     unsafe {
@@ -21,6 +21,7 @@ impl ExprC {
     }
 }
 
+/*
 //START_APPLY - monadic
 fn do_apply_monadic(vals: Series) -> Result<Option<Series>, PolarsError> {
     let x = vals
@@ -42,6 +43,7 @@ pub extern "C" fn ap_apply_monadic(ptr: *mut ExprC) -> *mut ExprC {
     let ex_n = ExprC::new(new_inn.clone());
     Box::into_raw(Box::new(ex_n))
 }
+*/
 
 /* Monadic Exemplar
         .i32()
@@ -54,8 +56,17 @@ pub extern "C" fn ap_apply_monadic(ptr: *mut ExprC) -> *mut ExprC {
 //START_APPLY - dyadic
 fn do_apply_dyadic(s: Series) -> Result<Option<Series>, PolarsError> {
 
+    // my debug code
     let df = DataFrame::new(vec![s.clone()]);
     println!("{:?}", &df);
+
+    let df2 = df?.clone().lazy().with_column(col("values")).collect()?;
+    println!("{:?}", &df2);
+    
+    let df3 = df2.clone().lazy().select([col("values").value_counts(true, true)]).unnest(["values"]).collect()?;
+    println!("{:?}", &df3);
+
+    println!("debug over -----------------");
 
     // downcast to struct
     let ca = s.struct_()?;
